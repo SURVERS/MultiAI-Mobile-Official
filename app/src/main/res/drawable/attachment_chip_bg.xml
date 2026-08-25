@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Компактный чип файла поверх пузыря пользователя: полупрозрачный
+     overlay читается и на светлом, и на тёмном пузыре. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#33FFFFFF" />
+    <corners android:radius="10dp" />
+</shape>

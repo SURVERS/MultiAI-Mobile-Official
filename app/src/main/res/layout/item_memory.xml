@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginBottom="10dp"
+    android:layout_marginStart="2dp"
+    android:layout_marginEnd="2dp"
+    android:padding="16dp"
+    android:background="@drawable/memory_card_bg">
+
+    <!-- Header: icon + name + delete -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_s_memory"
+            android:tint="@color/text_hint"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/lay_cd_memory" />
+
+        <TextView
+            android:id="@+id/textMemoryName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <ImageButton
+            android:id="@+id/buttonDelete"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_close"
+            android:tint="@color/text_hint"
+            android:padding="8dp"
+            android:contentDescription="@string/lay_cd_delete" />
+    </LinearLayout>
+
+    <!-- Content -->
+    <TextView
+        android:id="@+id/textMemoryContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:lineSpacingExtra="3dp" />
+
+    <!-- Timestamp -->
+    <TextView
+        android:id="@+id/textMemoryTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/text_hint"
+        android:textSize="11sp" />
+
+</LinearLayout>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English overrides for the resource-backed drawer/navigation strings.
+     Applied automatically when the user selects English in General Settings
+     (AppCompatDelegate.setApplicationLocales). Only the strings already wired
+     via @string / R.string in drawer_navigation.xml and DrawerNavHelper are
+     translated here; hardcoded UI labels elsewhere remain out of scope. -->
+<resources>
+    <string name="app_name">MultiAI</string>
+    <string name="hint_message">Type something...</string>
+    <string name="send">Send</string>
+    <string name="menu">Menu</string>
+    <string name="chat">Chat</string>
+    <string name="terminal">Terminal</string>
+    <string name="files">Files</string>
+    <string name="editor">Editor</string>
+    <string name="account">Account</string>
+    <string name="settings">Settings</string>
+    <string name="work_access_whitelist_manage">Allowed commands</string>
+    <string name="work_access_whitelist_title">Allowed commands</string>
+    <string name="work_access_whitelist_description">Commands in this list run without another confirmation. The match must be exact.</string>
+    <string name="work_access_whitelist_empty">No commands are allowed yet</string>
+    <string name="work_access_whitelist_add">Add command</string>
+    <string name="work_access_whitelist_add_title">Add command</string>
+    <string name="work_access_whitelist_edit">Edit</string>
+    <string name="work_access_whitelist_edit_title">Edit command</string>
+    <string name="work_access_whitelist_input_hint">Enter the complete command. It will run without another confirmation.</string>
+    <string name="work_access_whitelist_input_example">For example: npm run build</string>
+    <string name="work_access_whitelist_save">Save</string>
+    <string name="work_access_whitelist_delete">Delete</string>
+    <string name="work_access_whitelist_delete_title">Remove allowed command?</string>
+    <string name="work_access_whitelist_delete_message">This command will request approval again:\n%1$s</string>
+    <string name="work_access_whitelist_empty_error">Enter a command</string>
+    <string name="nav_history">History</string>
+
+    <!-- Drawer subtitles -->
+    <string name="nav_subtitle_chat">Talk with AI</string>
+    <string name="nav_subtitle_terminal">Commands and scripts</string>
+    <string name="nav_subtitle_files">Manage your files</string>
+    <string name="nav_subtitle_editor">Create and edit</string>
+    <string name="nav_subtitle_history">Recent chats</string>
+    <string name="nav_subtitle_settings">App and account</string>
+    <string name="nav_subtitle_profile">Your profile and data</string>
+    <string name="nav_header_title">MultiAI</string>
+    <string name="nav_header_subtitle">Your all-in-one AI assistant</string>
+    <string name="profile">Profile</string>
+    <string name="general_title">General</string>
+    <string name="language_title">Language</string>
+    <string name="language_russian">Russian</string>
+    <string name="language_english">English</string>
+    <string name="settings_home_title">My MultiAI</string>
+    <string name="personalization">Personalization</string>
+    <string name="memory">Memory</string>
+    <string name="email">Email</string>
+    <string name="data_controls">Data controls</string>
+    <string name="security">Security</string>
+    <string name="report_bug">Report a bug</string>
+    <string name="about">About</string>
+    <string name="logout">Log out</string>
+    <string name="drawer_version">Version 1.3</string>
+    <string name="archive_title">Archive</string>
+    <string name="archive_empty_title">Archive is empty</string>
+    <string name="archive_empty_subtitle">Archived chats will appear here</string>
+    <string name="archive_view">View archived chats</string>
+    <string name="archive_all_history">Archive chat history</string>
+    <string name="clear_chat_history">Clear chat history</string>
+    <string name="archive_origin_chat">Chat mode</string>
+    <string name="archive_origin_project">Project</string>
+    <string name="action_open">Open</string>
+    <string name="action_unarchive">Unarchive</string>
+    <string name="action_delete">Delete</string>
+    <string name="chat_search_hint">Search chats</string>
+    <string name="close_search">Close search</string>
+    <string name="ask_multiai">Ask MultiAI</string>
+    <string name="voice">Voice</string>
+    <string name="stop">Stop</string>
+    <string name="send_voice">Send voice</string>
+    <string name="transcribing">Transcribing…</string>
+    <string name="attach">Attach</string>
+    <string name="remove_attachment">Remove attachment</string>
+    <string name="saved_memories">Memories</string>
+    <string name="saved_memory_subtitle">Saved memory</string>
+    <string name="chat_history_title">Chat history</string>
+    <string name="chat_history_empty">Once you start chatting,\nyour conversations will appear here.</string>
+</resources>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Semantic palette (DARK): OLED canvas with distinguishable elevated layers. -->
+    <color name="bg">#FF000000</color>
+    <color name="surface">#FF080808</color>
+    <color name="surface_elevated">#FF121212</color>
+    <color name="surface_card">#FF171717</color>
+    <color name="surface_tonal">#FF222222</color>
+    <color name="divider">#FF292929</color>
+    <color name="ripple">#29FFFFFF</color>
+    <color name="stroke">#FF353535</color>
+    <color name="shadow_ambient">#5C000000</color>
+    <color name="shadow_spot">#7A000000</color>
+    <color name="ambient_glow">#08FFFFFF</color>
+
+    <color name="text_primary">#FFF7F7F8</color>
+    <color name="text_secondary">#FFD4D4D8</color>
+    <color name="text_hint">#FFA1A1AA</color>
+    <color name="text_disabled">#FF71717A</color>
+    <color name="icon">#FFF4F4F5</color>
+    <color name="icon_muted">#FFA1A1AA</color>
+    <color name="action_inactive">#FFA1A1AA</color>
+    <color name="text_on_accent">#FF09090B</color>
+    <color name="icon_on_accent">#FF09090B</color>
+
+    <color name="accent">#FFF4F4F5</color>
+    <color name="accent_muted">#FFA1A1AA</color>
+
+    <color name="control_disabled">#FF292929</color>
+    <color name="control_disabled_text">#FF7A7A82</color>
+    <color name="switch_track_off">#FF3F3F46</color>
+    <color name="switch_thumb_off">#FFD4D4D8</color>
+
+    <color name="on_fixed_dark">#FFFFFFFF</color>
+    <color name="on_fixed_dark_muted">#FFE4E4E7</color>
+    <color name="weather_foreground">#FFFFFFFF</color>
+    <color name="weather_foreground_muted">#FFE0F2FE</color>
+
+    <color name="user_bubble">#FF202022</color>
+    <color name="user_bubble_text">#FFFFFFFF</color>
+    <color name="ai_bubble">#00000000</color>
+    <color name="ai_bubble_text">#FFF7F7F8</color>
+
+    <color name="error">#FFF04444</color>
+    <color name="error_bg">#FF2A1414</color>
+    <color name="error_text">#FFFCA5A5</color>
+    <color name="error_text_muted">#FFF87171</color>
+    <color name="success">#FF34D399</color>
+    <color name="success_bg">#FF0B2A1F</color>
+
+    <!-- Chat Mode thinking-card test palette. -->
+    <color name="thinking_card">#FF101011</color>
+    <color name="thinking_card_stroke">#FF2A2A2D</color>
+    <color name="thinking_step_card">#FF0D0D0E</color>
+    <color name="thinking_step_stroke">#FF242426</color>
+    <color name="thinking_accent">#FFA1A1AA</color>
+
+    <color name="telegram">#FF3EA6FF</color>
+    <color name="telegram_bg">#FF0E1B2E</color>
+
+    <color name="code_bg">#FF121212</color>
+    <color name="code_text">#FFF2F2F2</color>
+    <color name="syntax_comment">#FF98A2B3</color>
+    <color name="syntax_string">#FF6CE9A6</color>
+    <color name="syntax_keyword">#FF84ADFF</color>
+    <color name="syntax_literal">#FFFDA29B</color>
+    <color name="syntax_number">#FFBDB4FE</color>
+    <color name="ide_tool_code_bg">#FF111112</color>
+    <color name="ide_tool_gutter">#FF19191B</color>
+    <color name="ide_tool_add_bg">#FF163528</color>
+    <color name="ide_tool_add_text">#FF6CE9A6</color>
+    <color name="ide_tool_delete_bg">#FF3A2020</color>
+    <color name="ide_tool_delete_text">#FFFDA29B</color>
+
+    <color name="overlay_dim">#99000000</color>
+
+    <color name="background_dark">@color/bg</color>
+    <color name="surface_dark">@color/surface</color>
+    <color name="accent_purple">@color/accent</color>
+    <color name="accent_blue">@color/accent</color>
+    <color name="user_message_bg">@color/user_bubble</color>
+    <color name="ai_message_bg">@color/ai_bubble</color>
+</resources>

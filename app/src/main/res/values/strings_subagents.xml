@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="subagents_title">Сабагенты</string>
+    <string name="subagents_subtitle">Настраивай специализированных помощников для Work Mode.</string>
+    <string name="subagents_new">Новый</string>
+    <string name="subagents_search">Поиск сабагентов…</string>
+    <string name="subagents_installed">Установленные</string>
+    <plurals name="subagents_installed_count">
+        <item quantity="one">Установлен %1$d сабагент</item>
+        <item quantity="few">Установлено %1$d сабагента</item>
+        <item quantity="many">Установлено %1$d сабагентов</item>
+        <item quantity="other">Установлено %1$d сабагента</item>
+    </plurals>
+    <string name="subagents_empty_title">Сабагенты не найдены</string>
+    <string name="subagents_empty_subtitle">Заполни имя, инструменты и system prompt, затем сохрани первый пресет.</string>
+    <string name="subagents_builtin">Встроенные сабагенты</string>
+    <string name="subagents_general_name">general-purpose</string>
+    <string name="subagents_general_desc">Универсальный помощник для сложных исследований и многошаговых задач.</string>
+    <string name="subagents_explore_name">Explore</string>
+    <string name="subagents_explore_desc">Read-only помощник для широкого исследования кода и проекта.</string>
+    <string name="subagents_all_tools">Все инструменты</string>
+    <string name="subagents_read_tools">Read-only</string>
+    <string name="subagents_actions">Действия сабагента</string>
+    <string name="subagents_edit">Редактировать</string>
+    <string name="subagents_duplicate">Дублировать</string>
+    <string name="subagents_no_description">Без описания</string>
+    <string name="subagents_scope_user">Пользователь</string>
+    <string name="subagents_scope_workspace">Этот проект</string>
+    <string name="subagents_default_permissions">Стандартные разрешения</string>
+    <string name="subagents_custom_permissions">Свои разрешения</string>
+    <plurals name="subagents_tool_count">
+        <item quantity="one">%1$d инструмент</item>
+        <item quantity="few">%1$d инструмента</item>
+        <item quantity="many">%1$d инструментов</item>
+        <item quantity="other">%1$d инструмента</item>
+    </plurals>
+
+    <string name="subagent_new_title">Новый сабагент</string>
+    <string name="subagent_edit_title">Настройка сабагента</string>
+    <string name="subagent_editor_subtitle">Заполни роль, модель, инструменты и system prompt — затем сохрани пресет.</string>
+    <string name="subagent_identity_section">Профиль</string>
+    <string name="subagent_runtime_section">Среда выполнения</string>
+    <string name="subagent_name">Имя</string>
+    <string name="subagent_name_hint">Например, code-reviewer</string>
+    <string name="subagent_name_required">Укажи имя сабагента</string>
+    <string name="subagent_description">Описание</string>
+    <string name="subagent_description_hint">Коротко: для какой задачи нужен этот сабагент</string>
+    <string name="subagent_color">Цвет</string>
+    <string name="subagent_model">Модель</string>
+    <string name="subagent_model_and_effort">Модель и размышление</string>
+    <string name="subagent_builtin_runtime_subtitle">Выбери отдельную модель и уровень размышления для встроенного сабагента.</string>
+    <string name="subagent_model_inherit">Наследовать текущую</string>
+    <string name="subagent_model_choose">Выбрать модель</string>
+    <string name="subagent_model_loading">Загружаю модели…</string>
+    <string name="subagent_model_unavailable">Список моделей пока недоступен</string>
+    <string name="subagent_scope">Scope</string>
+    <string name="subagent_scope_workspace_missing">Сначала выбери папку проекта в Work Mode</string>
+    <string name="subagent_allowed_tools">Разрешённые инструменты</string>
+    <string name="subagent_system_prompt">System prompt</string>
+    <string name="subagent_prompt_hint">Опиши роль, границы и формат ответа сабагента…</string>
+    <string name="subagent_inject_agents">Inject AGENTS.md</string>
+    <string name="subagent_inject_agents_sub">Добавлять инструкции из AGENTS.md выбранного проекта в каждый запуск.</string>
+    <string name="subagent_save">Сохранить</string>
+    <string name="subagent_saved">Сабагент сохранён</string>
+    <string name="subagent_delete">Удалить сабагента</string>
+    <string name="subagent_delete_confirm">Удалить «%1$s»? Это действие нельзя отменить.</string>
+</resources>

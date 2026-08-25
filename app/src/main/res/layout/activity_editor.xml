@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/chat_background">
+
+        <LinearLayout
+            android:id="@+id/editorTopBar"
+            android:layout_width="0dp"
+            android:layout_height="58dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:background="@color/surface"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnMenu"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_menu"
+                android:tint="@color/text_primary"
+                android:contentDescription="@string/menu" />
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="2dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_left"
+                android:tint="@color/code_text"
+                android:contentDescription="@string/lay_back" />
+
+            <TextView
+                android:id="@+id/textEditorTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/editor"
+                android:textColor="@color/text_primary"
+                android:textSize="17sp"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <ImageButton
+                android:id="@+id/btnSearch"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_magnify"
+                android:tint="@color/text_secondary"
+                android:contentDescription="@string/lay_search" />
+
+            <ImageButton
+                android:id="@+id/btnSave"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="2dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_save_outline"
+                android:tint="@color/accent"
+                android:contentDescription="@string/lay_save" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerTabs"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
+            app:layout_constraintTop_toBottomOf="@id/editorTopBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/searchPanel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:background="@drawable/editor_search_panel_background"
+            android:elevation="10dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/recyclerTabs"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <EditText
+                android:id="@+id/editSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/input_background"
+                android:hint="@string/lay_search"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:padding="10dp"
+                android:singleLine="true" />
+
+            <EditText
+                android:id="@+id/editReplace"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/input_background"
+                android:hint="@string/lay_replace_with"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:padding="10dp"
+                android:singleLine="true" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFindNext"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/lay_find"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    app:backgroundTint="@color/surface_tonal"
+                    app:cornerRadius="14dp"
+                    app:strokeColor="@color/stroke"
+                    app:strokeWidth="1dp"
+                    app:rippleColor="@color/ripple" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReplaceOne"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/lay_replace"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    app:backgroundTint="@color/surface_tonal"
+                    app:cornerRadius="14dp"
+                    app:strokeColor="@color/stroke"
+                    app:strokeWidth="1dp"
+                    app:rippleColor="@color/ripple" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReplaceAll"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/lay_all"
+                    android:textAllCaps="false"
+                    android:textColor="@color/icon_on_accent"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    app:backgroundTint="@color/accent"
+                    app:cornerRadius="14dp"
+                    app:rippleColor="@color/ripple" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/editorContentContainer"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp"
+            app:layout_constraintTop_toBottomOf="@id/recyclerTabs"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:id="@+id/previewContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@drawable/editor_preview_background"
+                android:padding="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/textPreviewTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Preview"
+                    android:textColor="@color/code_text"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium" />
+
+                <ImageView
+                    android:id="@+id/imagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="10dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone"
+                    android:contentDescription="Preview image" />
+
+                <VideoView
+                    android:id="@+id/videoPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/audioPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <!-- Album art / spinning record. Circular clip (full circle),
+                         not a square. When no art: a rotating gradient is painted on
+                         audioAlbumBackground and the small music icon stays centered
+                         and static. When art exists: the bitmap is shown and the whole
+                         stack spins like a record. Rotation is driven from code. -->
+                    <FrameLayout
+                        android:id="@+id/audioAlbumRoot"
+                        android:layout_width="180dp"
+                        android:layout_height="180dp">
+
+                        <!-- Rotating gradient background (visible only when no album art). -->
+                        <ImageView
+                            android:id="@+id/audioAlbumBackground"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:contentDescription="@string/lay_editor_cd_album_bg" />
+
+                        <!-- Album art bitmap (centerCrop, clipped to circle). Empty/hidden
+                             when no art is embedded. -->
+                        <ImageView
+                            android:id="@+id/audioAlbumArt"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:contentDescription="@string/lay_editor_cd_album_art" />
+
+                        <!-- Small static music note centered over the gradient (no-art case).
+                             Hidden when album art is present. -->
+                        <ImageView
+                            android:id="@+id/audioAlbumIcon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_music_note_outline"
+                            android:tint="@color/icon_on_accent"
+                            android:contentDescription="@string/lay_editor_cd_music" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/audioTrackTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginEnd="24dp"
+                        android:gravity="center"
+                        android:text=""
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:maxLines="2"
+                        android:ellipsize="middle" />
+
+                    <TextView
+                        android:id="@+id/textAudioStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/lay_editor_audio_ready"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                    <!-- Time row: elapsed | SeekBar | remaining -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/audioTimeCurrent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0:00"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:fontFamily="monospace" />
+
+                        <SeekBar
+                            android:id="@+id/audioSeekBar"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="0dp"
+                            android:layout_marginEnd="0dp"
+                            android:max="100" />
+
+                        <TextView
+                            android:id="@+id/audioTimeRemaining"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-0:00"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:fontFamily="monospace"
+                            android:gravity="end" />
+                    </LinearLayout>
+
+                    <!-- Controls row: [prev] [play/pause] [next] -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageButton
+                            android:id="@+id/btnAudioPrev"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_skip_previous"
+                            android:tint="@color/text_primary"
+                            android:contentDescription="@string/lay_editor_prev_track" />
+
+                        <ImageButton
+                            android:id="@+id/btnPlayPauseAudio"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginEnd="24dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_play_circle_outline"
+                            android:tint="@color/text_primary"
+                            android:scaleType="centerInside"
+                            android:contentDescription="Play/Pause" />
+
+                        <ImageButton
+                            android:id="@+id/btnAudioNext"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_skip_next"
+                            android:tint="@color/text_primary"
+                            android:contentDescription="@string/lay_editor_next_track" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Hint shown only for binary (non-text) files: long-press for actions. -->
+                <TextView
+                    android:id="@+id/textBinaryHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="@string/lay_editor_binary_hint"
+                    android:textColor="@color/text_hint"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/editCode"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/editor_preview_background"
+                android:padding="14dp"
+                android:paddingBottom="48dp"
+                android:textColor="@color/code_text"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp"
+                android:lineSpacingExtra="2dp"
+                android:textIsSelectable="true"
+                android:scrollbars="vertical"
+                android:overScrollMode="always"
+                android:scrollbarFadeDuration="0"
+                android:fastScrollEnabled="true"
+                android:scrollbarSize="8dp"
+                android:gravity="top|start"
+                android:fontFamily="monospace"
+                android:inputType="textMultiLine|textNoSuggestions|textImeMultiLine"
+                android:imeOptions="flagNoExtractUi" />
+
+            <!-- Pagination bar: visible only when file has >1 page -->
+            <LinearLayout
+                android:id="@+id/paginationBar"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_gravity="bottom"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="@color/surface_card"
+                android:elevation="6dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:visibility="gone">
+
+                <ImageButton
+                    android:id="@+id/btnPagePrev"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_arrow_back"
+                    android:tint="@color/icon"
+                    android:padding="8dp"
+                    android:scaleType="centerInside"
+                    android:contentDescription="Previous page" />
+
+                <TextView
+                    android:id="@+id/textPageIndicator"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium" />
+
+                <ImageButton
+                    android:id="@+id/btnPageNext"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_chevron_right"
+                    android:tint="@color/icon"
+                    android:padding="8dp"
+                    android:scaleType="centerInside"
+                    android:contentDescription="Next page" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/emptyEditorState"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@drawable/ic_code_tags"
+                    android:tint="@color/text_hint"
+                    android:contentDescription="Editor" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/lay_editor_empty_hint"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Navigation Drawer -->
+    <include layout="@layout/drawer_navigation" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

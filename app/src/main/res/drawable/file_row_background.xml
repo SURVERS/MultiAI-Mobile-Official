@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- File row background: rounded surface_card pill with a press ripple.
+     Used by item_file.xml; the selection tint is applied in FilesAdapter via
+     setColorFilter(SRC_ATOP) on top of this drawable. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/ripple">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/white" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/surface_card" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/stroke" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+</ripple>

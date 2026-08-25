@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ясно: голубо-солнечный -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="135"
+        android:startColor="#0284C7"
+        android:centerColor="#0369A1"
+        android:endColor="#0C4A6E" />
+    <corners android:radius="22dp" />
+</shape>

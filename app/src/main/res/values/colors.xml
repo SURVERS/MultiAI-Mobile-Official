@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Semantic palette (LIGHT defaults). Dark overrides live in values-night/. -->
+    <!-- Surfaces: a quiet canvas with crisp white interactive layers. -->
+    <color name="bg">#FFF7F7F8</color>
+    <color name="surface">#FFFCFCFD</color>
+    <color name="surface_elevated">#FFFFFFFF</color>
+    <color name="surface_card">#FFFFFFFF</color>
+    <color name="surface_tonal">#FFF0F0F2</color>
+    <color name="divider">#FFE2E2E5</color>
+    <color name="ripple">#1A18181B</color>
+    <color name="stroke">#FFDADADF</color>
+    <color name="shadow_ambient">#1F18181B</color>
+    <color name="shadow_spot">#2E18181B</color>
+    <color name="ambient_glow">#0A000000</color>
+
+    <!-- Text and icons. All muted values keep usable contrast on bg/card. -->
+    <color name="text_primary">#FF09090B</color>
+    <color name="text_secondary">#FF3F3F46</color>
+    <color name="text_hint">#FF5F6368</color>
+    <color name="text_disabled">#FF8A8A92</color>
+    <color name="icon">#FF18181B</color>
+    <color name="icon_muted">#FF52525B</color>
+    <color name="action_inactive">#FF52525B</color>
+    <color name="text_on_accent">#FFFFFFFF</color>
+    <color name="icon_on_accent">#FFFFFFFF</color>
+
+    <!-- Accents (the default accent is monochrome; runtime accents use AccentColor). -->
+    <color name="accent">#FF111113</color>
+    <color name="accent_muted">#FF5F6368</color>
+
+    <!-- Control states. -->
+    <color name="control_disabled">#FFE4E4E7</color>
+    <color name="control_disabled_text">#FF71717A</color>
+    <color name="switch_track_off">#FFD4D4D8</color>
+    <color name="switch_thumb_off">#FFFFFFFF</color>
+
+    <!-- Content placed on a deliberately dark illustration/gradient. -->
+    <color name="on_fixed_dark">#FFFFFFFF</color>
+    <color name="on_fixed_dark_muted">#FFE4E4E7</color>
+    <color name="weather_foreground">#FFFFFFFF</color>
+    <color name="weather_foreground_muted">#FFE0F2FE</color>
+
+    <!-- Message bubbles. -->
+    <color name="user_bubble">#FF111113</color>
+    <color name="user_bubble_text">#FFFFFFFF</color>
+    <color name="ai_bubble">#00000000</color>
+    <color name="ai_bubble_text">#FF09090B</color>
+
+    <!-- Semantic feedback. -->
+    <color name="error">#FFDC2626</color>
+    <color name="error_bg">#FFFEE2E2</color>
+    <color name="error_text">#FFB91C1C</color>
+    <color name="error_text_muted">#FFDC2626</color>
+    <color name="success">#FF059669</color>
+    <color name="success_bg">#FFD1FAE5</color>
+    <color name="warning">#FFF5A623</color>
+    <color name="work_access_full_color">#FFEA580C</color>
+
+    <!-- Chat Mode thinking-card test palette. -->
+    <color name="thinking_card">#FFFAFAFB</color>
+    <color name="thinking_card_stroke">#FFE8E8EB</color>
+    <color name="thinking_step_card">#FFF6F6F7</color>
+    <color name="thinking_step_stroke">#FFE4E4E7</color>
+    <color name="thinking_accent">#FF71717A</color>
+
+    <!-- Brand surfaces. -->
+    <color name="telegram">#FF1689D8</color>
+    <color name="telegram_bg">#FFEAF6FF</color>
+
+    <!-- Code and editor syntax. -->
+    <color name="code_bg">#FFF3F4F6</color>
+    <color name="code_text">#FF171717</color>
+    <color name="syntax_comment">#FF667085</color>
+    <color name="syntax_string">#FF067647</color>
+    <color name="syntax_keyword">#FF175CD3</color>
+    <color name="syntax_literal">#FFB42318</color>
+    <color name="syntax_number">#FF7A5AF8</color>
+    <color name="ide_tool_code_bg">#FFF8F8F9</color>
+    <color name="ide_tool_gutter">#FFF0F0F2</color>
+    <color name="ide_tool_add_bg">#FFDDF7E9</color>
+    <color name="ide_tool_add_text">#FF067647</color>
+    <color name="ide_tool_delete_bg">#FFFDE4E4</color>
+    <color name="ide_tool_delete_text">#FFB42318</color>
+
+    <color name="overlay_dim">#7A000000</color>
+    <color name="ic_launcher_background">#FF0A0A0A</color>
+
+    <!-- Usage charts: model segment palette (readable on light and dark). -->
+    <color name="chart_c1">#FF7C5CFC</color>
+    <color name="chart_c2">#FF4C9AFF</color>
+    <color name="chart_c3">#FF34D399</color>
+    <color name="chart_c4">#FFF5A623</color>
+    <color name="chart_muted">#FF8E8E93</color>
+
+    <!-- Legacy aliases kept while old layouts migrate to semantic names. -->
+    <color name="background_dark">@color/bg</color>
+    <color name="surface_dark">@color/surface</color>
+    <color name="accent_purple">@color/accent</color>
+    <color name="accent_blue">@color/accent</color>
+    <color name="user_message_bg">@color/user_bubble</color>
+    <color name="ai_message_bg">@color/ai_bubble</color>
+</resources>

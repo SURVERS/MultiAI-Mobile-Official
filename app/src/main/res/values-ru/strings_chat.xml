@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Russian overrides for chat UI strings (mirror of values/strings_chat.xml). -->
+<resources>
+
+    <!-- ===== Generic chat UI ===== -->
+    <string name="chat_permission_denied">Разрешение отклонено</string>
+    <string name="chat_copied">Скопировано</string>
+    <string name="chat_thanks_for_rating">Спасибо за оценку</string>
+    <string name="chat_feedback_sent">Отзыв отправлен</string>
+    <string name="chat_share">Поделиться</string>
+    <string name="chat_copy">Скопировать</string>
+    <string name="chat_retry">Повторить</string>
+    <string name="chat_cancel">Отмена</string>
+    <string name="chat_new_chat">Новый чат</string>
+    <string name="chat_temporary_chat">Временный чат</string>
+    <string name="chat_actions">Действия с чатом</string>
+    <string name="chat_share_user_prefix">Вы:</string>
+    <string name="chat_share_ai_prefix">MultiAI:</string>
+    <string name="chat_share_default_title">Чат MultiAI</string>
+    <string name="chat_share_chooser">Поделиться чатом</string>
+    <string name="chat_no_files">В этом чате нет загруженных файлов</string>
+    <string name="chat_files_title">Загруженные файлы</string>
+    <string name="chat_shortcut_unsupported">Ярлыки не поддерживаются на этом устройстве</string>
+    <string name="chat_shortcut_launcher_unsupported">Лаунчер не поддерживает добавление ярлыков</string>
+    <string name="chat_safe_title_default">Новый чат</string>
+    <string name="chat_message_label">Сообщение</string>
+    <string name="chat_match_user_prefix">Вы ·</string>
+    <string name="chat_match_ai_prefix">MultiAI ·</string>
+    <string name="chat_find">Найти</string>
+    <string name="chat_save">Сохранить</string>
+    <string name="chat_not_now">Не сейчас</string>
+    <string name="chat_allow">Разрешить</string>
+    <string name="chat_got_it">Понял</string>
+    <string name="chat_go">Перейти</string>
+    <string name="chat_later">Потом</string>
+    <string name="chat_submit">Отправить</string>
+
+    <!-- ===== Attach menu ===== -->
+    <string name="chat_camera">Камера</string>
+    <string name="chat_photo">Фото</string>
+    <string name="chat_files">Файлы</string>
+    <string name="chat_attach_title">Прикрепить</string>
+
+    <!-- ===== Error / status toasts (formatted) ===== -->
+    <string name="chat_error_camera">Ошибка камеры: %1$s</string>
+    <string name="chat_error_image">Ошибка изображения: %1$s</string>
+    <string name="chat_error_file">Ошибка файла: %1$s</string>
+    <string name="chat_error_mic">Ошибка микрофона: %1$s</string>
+    <string name="chat_error_recognition">Ошибка распознавания: %1$s</string>
+    <string name="chat_error_read_file">Ошибка чтения файла: %1$s</string>
+    <string name="chat_error_move">Ошибка перемещения: %1$s</string>
+    <string name="chat_error_load_image">Ошибка загрузки изображения: %1$s</string>
+    <string name="chat_error_generic">Ошибка: %1$s</string>
+    <string name="chat_error_playback">Ошибка воспроизведения</string>
+    <string name="chat_voice_unrecognized">MultiAI не сумел распознать. Попробуйте ещё раз.</string>
+    <string name="chat_speech_not_recognized">Речь не распознана</string>
+    <string name="chat_voice_unavailable">Голосовой ввод недоступен</string>
+    <string name="chat_error_recognition_short">Ошибка распознавания</string>
+    <string name="chat_no_network">Нет сети</string>
+
+    <!-- ===== TTS ===== -->
+    <string name="chat_tts_generating">Генерация озвучки…</string>
+    <string name="chat_error_tts_code">Ошибка TTS: %1$d</string>
+    <string name="chat_tts_error">TTS: %1$s</string>
+    <string name="chat_tts_error_msg">TTS ошибка: %1$s</string>
+
+    <!-- ===== Empty state / greetings (Chat Mode) ===== -->
+    <string name="chat_temp_chat_title">Это временный чат</string>
+    <string name="chat_temp_chat_subtitle">Он не будет отображаться в истории и исчезнет после выключения.</string>
+    <string name="chat_hello_name">Привет, %1$s!</string>
+    <string name="chat_friend">друг</string>
+
+    <!-- ===== Message / attachment labels ===== -->
+    <string name="chat_file_truncated">\n... [файл обрезан]</string>
+    <string name="chat_image_label">Изображение</string>
+    <string name="chat_file_label">Файл: %1$s</string>
+    <string name="chat_file_attached">Файл прикреплён: %1$s</string>
+    <string name="chat_logs_prefix">Логи: %1$s</string>
+    <string name="chat_tool_running">Выполняется...</string>
+
+    <!-- ===== Chat action sheet items ===== -->
+    <string name="chat_pin">Закрепить</string>
+    <string name="chat_unpin">Открепить</string>
+    <string name="chat_move_to_project">Перенести в проект</string>
+    <string name="chat_move_to_chat_mode">Перенести в чат режим</string>
+    <string name="chat_downloaded_files">Загруженные файлы</string>
+    <string name="chat_find_in_chat">Найти в чате</string>
+    <string name="chat_add_to_home">Добавить на главный экран</string>
+    <string name="chat_archive">Архив</string>
+    <string name="chat_rename">Переименовать</string>
+
+    <!-- ===== Chat state toasts ===== -->
+    <string name="chat_chat_pinned">Чат закреплён</string>
+    <string name="chat_chat_unpinned">Чат откреплён</string>
+    <string name="chat_chat_archived">Чат в архиве</string>
+    <string name="chat_chat_unarchived">Чат разархивирован</string>
+    <string name="chat_chat_deleted">Чат удалён</string>
+    <string name="chat_chat_not_found">Чат не найден</string>
+    <string name="chat_moved_to_project">Перенесён в проект</string>
+    <string name="chat_moved_to_chat_mode">Перемещён в режим чата</string>
+
+    <!-- ===== Search in chat ===== -->
+    <string name="chat_search_text_hint">Текст для поиска</string>
+    <string name="chat_no_matches">Совпадений не найдено</string>
+    <string name="chat_found_count">Найдено: %1$d</string>
+    <string name="chat_search_in_chat">Поиск в чате</string>
+    <string name="chat_nothing_found">Ничего не найдено</string>
+    <string name="chat_no_messages_yet">В этом чате ещё нет сообщений</string>
+
+    <!-- ===== Rename / delete dialogs ===== -->
+    <string name="chat_chat_name_hint">Название чата</string>
+    <string name="chat_rename_chat">Переименовать чат</string>
+    <string name="chat_delete_chat_title">Удалить чат?</string>
+    <string name="chat_delete_chat_body">\"%1$s\" будет удалён навсегда.</string>
+    <string name="chat_chat_fallback">Чат</string>
+
+    <!-- ===== Model picker ===== -->
+    <string name="chat_loading_models">Загрузка моделей…</string>
+    <string name="chat_model_loading_dots">Загрузка моделей...</string>
+    <string name="chat_model_picker_title">Выбор модели</string>
+    <string name="chat_model_sheet_title">Модель</string>
+    <string name="chat_model_not_selected">Модель не выбрана</string>
+    <string name="chat_model_unavailable">%1$s временно недоступна</string>
+    <string name="chat_temporarily_unavailable">Временно недоступна</string>
+    <string name="chat_model_maintenance_title">Модель на техобслуживании</string>
+    <string name="chat_model_maintenance_body">%1$s временно недоступна. Попробуй выбрать другую модель или зайди чуть позже!</string>
+
+    <!-- ===== Location permission rationale ===== -->
+    <string name="chat_location_title">Геолокация</string>
+    <string name="chat_location_message_chatmode">MultiAI может показывать точную погоду и время в твоём городе. Разреши доступ к местоположению? Иначе будет использоваться IP-определение.</string>
+    <string name="chat_location_message_project">MultiAI может подсказать точную погоду и время в твоём городе, если разрешишь доступ к местоположению. Можно отказаться — тогда погода будет по IP.</string>
+
+    <!-- ===== AI message more menu ===== -->
+    <string name="chat_branch_new_chat">Ветка в новом чате</string>
+    <string name="chat_search_web">Искать в сети</string>
+    <string name="chat_branch_created">Ветка создана</string>
+
+    <!-- ===== Dislike feedback ===== -->
+    <string name="chat_what_wrong_with_answer">Что не так с ответом?</string>
+    <string name="chat_share_details_hint">Поделитесь подробностями (необязательно)</string>
+    <string name="chat_feedback_info">Ваше обсуждение будет включено в отзыв, чтобы помочь улучшить работу MultiAI.</string>
+    <string name="chat_thanks_for_feedback">Спасибо за отзыв!</string>
+
+    <!-- ===== Notifications ===== -->
+    <string name="chat_notif_channel_name">Ответы AI</string>
+    <string name="chat_notif_channel_desc">Уведомления о готовности ответа AI</string>
+    <string name="chat_notif_default">Ответ готов</string>
+    <string name="chat_notif_title">MultiAI ответил</string>
+
+    <!-- ===== Auth errors ===== -->
+    <string name="chat_not_authorized_google">Не авторизован в MultiAI</string>
+
+    <!-- ===== Voice hints ===== -->
+    <string name="chat_speak_now">Говорите...</string>
+    <string name="chat_recognizing">Распознаю речь...</string>
+    <string name="chat_message_hint">Сообщение...</string>
+
+    <!-- ===== showChatStyleError (Project mode) ===== -->
+    <string name="chat_err_model_disabled_title">Модель недоступна 🚫</string>
+    <string name="chat_err_model_disabled_body">%1$s отключена на сервере. Выбери другую модель в переключателе сверху — их там ещё много.</string>
+    <string name="chat_err_no_models_title">Нет доступных моделей 😶</string>
+    <string name="chat_err_no_models_body">Сервер вернул пустой список моделей. Попробуй позже или проверь аккаунт в профиле.</string>
+    <string name="chat_err_maintenance_title">На техобслуживании 🔧</string>
+    <string name="chat_err_maintenance_body">Сервер обновляется. Загляни через пару минут — мы не надолго.</string>
+    <string name="chat_err_timeout_title">Время вышло ⏰</string>
+    <string name="chat_err_timeout_body">Сервер не ответил после 10 попыток переподключения. Попробуй повторить запрос позже.</string>
+    <string name="chat_err_folder_access_title">Нет доступа к папке</string>
+    <string name="chat_err_folder_access_body">Проверь разрешения для папки проекта в настройках.</string>
+    <string name="chat_err_file_not_found_title">Файл не найден</string>
+    <string name="chat_err_file_not_found_body">Проверь путь к файлу и структуру папок.</string>
+    <string name="chat_err_tool_title">Инструмент сломался 🛠️</string>
+    <string name="chat_err_tool_body">Вызов инструмента не удался. Попробуй ещё раз или переформулируй запрос.</string>
+    <string name="chat_err_empty_title">Модель не ответила 😴</string>
+    <string name="chat_err_empty_body">Сервер завершил запрос без ответа. Это бывает на free-моделях при высокой нагрузке. Попробуй ещё раз или выбери другую модель.</string>
+    <string name="chat_err_tool_round_limit_title">Цепочка инструментов остановлена</string>
+    <string name="chat_err_tool_round_limit_body">Модель превысила безопасный лимит: максимум 12 раундов инструментов на один запрос. Начни новый запрос или уточни задачу.</string>
+    <string name="chat_err_client_unavailable">Клиент MultiAI недоступен</string>
+    <string name="chat_err_followup">Ошибка follow-up: %1$s</string>
+    <string name="chat_err_tool_results">Ошибка обработки результатов tools: %1$s</string>
+    <string name="chat_err_tool_loop_msg">**Цепочка инструментов остановлена**\n\nМодель запросила больше %1$d последовательных раундов tools. Попробуй уточнить запрос или начать новый ответ.</string>
+    <string name="chat_err_tool_loop_tool">Превышен лимит из %1$d последовательных раундов tools</string>
+    <string name="chat_err_limit_exhausted">Лимит исчерпан</string>
+    <string name="chat_err_firecrawl_limit">Лимит Firecrawl исчерпан</string>
+    <string name="chat_attached_file_prefix">Вложенный файл: %1$s</string>
+    <string name="chat_err_empty_tool_result">Пустой результат tool</string>
+    <string name="chat_err_server_title">Сервер капризничает 🤖</string>
+    <string name="chat_err_server_body">Ответ пришёл с ошибкой. Повтори запрос — со второго раза обычно ок.</string>
+    <string name="chat_err_network_title">Нет соединения 📡</string>
+    <string name="chat_err_network_body">Проверь интернет и нажми повтор. Wi-Fi тоже может устать.</string>
+    <string name="chat_err_generic_title">Что-то пошло не так 🤔</string>
+    <string name="chat_err_generic_body">Запрос не выполнен. Повтори — часто это решает проблему. Если не помогает — напиши в поддержку.</string>
+    <string name="chat_err_support_link">Тех. поддержка →</string>
+    <string name="chat_err_auth_title">Упс... 🫠</string>
+    <string name="chat_err_auth_body">Кажется, твоя сессия истекла. Такое бывает — токены не вечные. Нажми кнопку ниже, чтобы зайти заново.</string>
+    <string name="chat_err_not_authorized_title">Упс... 👀</string>
+    <string name="chat_err_not_authorized_body">Ты ещё не авторизовался. Без аккаунта AI молчит, а мы не хотим его обижать. Нажми кнопку ниже, чтобы войти.</string>
+    <string name="chat_err_auth_button">Войти через MultiAI</string>
+
+    <!-- ===== Vibe lines rotation (Chat Mode empty state) ===== -->
+    <string-array name="vibe_lines">
+        <item>Что сегодня разнесём?</item>
+        <item>С чего начнём, бро?</item>
+        <item>Кидай мысль — докрутим до вау.</item>
+        <item>Есть идея, которую прокачаем?</item>
+        <item>Хочешь собрать что-нибудь дерзкое?</item>
+        <item>Давай удивим мир сегодня?</item>
+        <item>Чем займёмся? Я готов</item>
+        <item>Расскажи — я послушаю и помогу.</item>
+        <item>Го что-нибудь крутое замутим?</item>
+        <item>Какой план на сегодня?</item>
+        <item>Запусти идею — я подхвачу.</item>
+        <item>Мозговой штурм? Погнали.</item>
+        <item>Сегодня ломаем шаблоны?</item>
+        <item>Я слушаю. Ты главный.</item>
+        <item>Нужна помощь или просто поболтать?</item>
+        <item>Кидай задачу — разберёмся.</item>
+        <item>Готов на всё. Ну почти</item>
+        <item>Давай сделаем день продуктивным?</item>
+        <item>Есть вопрос? Есть ответ.</item>
+        <item>Жги — я записываю</item>
+        <item>Сегодня будем кодить?</item>
+        <item>Может, найдём что-то интересное в сети?</item>
+        <item>Хочешь узнать погоду или время?</item>
+        <item>У меня есть инструменты — юзай их!</item>
+        <item>Ну что, рофлим или работаем?</item>
+        <item>Проверим грамматику? Или свайпнём на код?</item>
+        <item>Спроси что угодно — не стесняйся.</item>
+        <item>Давай копнём глубже?</item>
+        <item>Нужен совет? Я тут.</item>
+        <item>Что крутится в голове?</item>
+        <item>Накидай тему — раскачаем вайб.</item>
+        <item>Перевести что-то? Легко.</item>
+        <item>Математика? Физика? Философия? Поехали!</item>
+        <item>Расскажу сказку или объясню квантовую физику.</item>
+        <item>Кофе уже выпил? Тогда погнали работать.</item>
+        <item>Я в чилле, но в любой момент включаюсь на максимум.</item>
+        <item>Проверим грамматику? Или сразу письмо?</item>
+        <item>Короче, ты говори — я делаю.</item>
+    </string-array>
+
+    <!-- ===== Project mode empty-state typing phrases ===== -->
+    <string-array name="chat_empty_phrases">
+        <item>Загружайте свой запрос, но перед стартом можно покрутить ручки, как в старом радио — вдруг поймаете другую волну.</item>
+        <item>ИИ сочиняет ответ, как игрок в «Угадай мелодию», только вместо нот — слова, и он никогда не сдаётся, даже если бредит.</item>
+        <item>Контекст — это как заметки на салфетке, которые модель читает, пока вы не закрыли барную стойку. Закрыли — и поминай как звали.</item>
+        <item>Стриминг — это когда ответ прилетает кусочками, как тизеры сериала, чтобы вы не уснули, пока нейросеть раскачивается.</item>
+        <item>Код от ИИ — как кот в мешке: выглядит пушисто, но проверять надо всё равно руками, а то вместо сайта получится аквариум.</item>
+    </string-array>
+
+    <!-- ===== Dislike feedback categories ===== -->
+    <string-array name="chat_dislike_categories">
+        <item>Выберите проблему</item>
+        <item>Неправильно или неполно</item>
+        <item>Это не то, что я просил</item>
+        <item>Медленная работа или наличие ошибок</item>
+        <item>Стиль или тон</item>
+        <item>Вопросы безопасности или юридические проблемы</item>
+        <item>Другое</item>
+    </string-array>
+
+</resources>

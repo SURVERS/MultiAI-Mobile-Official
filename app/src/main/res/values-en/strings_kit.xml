@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English overrides for kit/layouts/messages migration strings.
+     Applied automatically when the user selects English in General Settings
+     (AppCompatDelegate.setApplicationLocales). Mirrors the key set in
+     values/strings_kit.xml. -->
+<resources>
+
+    <!-- ═══════════════ ReportBugSheet (ReportBugSheet.java) ═══════════════ -->
+    <string name="kit_report_bug_title">Report a bug</string>
+    <string name="kit_report_bug_subtitle">What happened?</string>
+    <string name="kit_report_bug_hint">Tell us about the problem you encountered</string>
+    <string name="kit_report_bug_disclaimer">Your feedback may be used to improve MultiAI. Learn more.</string>
+    <string name="kit_report_bug_disclaimer_link">Learn more.</string>
+    <string name="kit_report_bug_shake_title">Shake your phone to report a bug</string>
+    <string name="kit_report_bug_shake_subtitle">Turn this off to disable shaking</string>
+    <string name="kit_report_bug_submitted">Thanks! The report has been sent</string>
+
+    <!-- ═══════════════ FilesAdapter (FilesAdapter.java) ═══════════════ -->
+    <string name="kit_file_unnamed">(unnamed)</string>
+    <string name="kit_file_folder">Folder</string>
+    <string name="kit_file_file">File</string>
+
+    <!-- ═══════════════ MessagesAdapter (MessagesAdapter.java) ═══════════════ -->
+    <string name="kit_msg_error_title">Something went wrong</string>
+    <string name="kit_msg_error_body">Please try again in a little while.</string>
+    <string name="kit_msg_error_code_prefix">Code:&#160;</string>
+    <string name="kit_msg_error_default_code">MULTIAI-UNKNOWN</string>
+    <string name="kit_msg_error_fallback_title">Error</string>
+    <string name="kit_msg_error_fallback_code">MULTIAI-UNKNOWN</string>
+    <string name="kit_msg_error_share_support">Contact support</string>
+    <string name="kit_msg_error_retry">Retry</string>
+    <string name="kit_msg_copied">Copied</string>
+    <string name="kit_msg_action_copy">Copy</string>
+    <string name="kit_msg_action_select_text">Select text</string>
+    <string name="kit_msg_action_edit">Edit message</string>
+    <string name="kit_unit_seconds">s</string>
+
+    <!-- ═══════════════ ToolWidgetRenderer (ToolWidgetRenderer.java) ═══════════════ -->
+    <string name="w_unit_ms">m/s</string>
+    <string name="w_search_results">Results</string>
+    <string name="w_url_fetch_loaded">Page loaded</string>
+    <string name="w_url_fetch_chars_suffix">&#160;chars</string>
+
+    <!-- ═══════════════ activity_biometric_gate.xml ═══════════════ -->
+    <string name="lay_biometric_cd">Biometric protection</string>
+    <string name="lay_biometric_title">Confirm sign in.</string>
+    <string name="lay_biometric_status">Use your fingerprint or Face Unlock</string>
+    <string name="lay_biometric_retry">Try again</string>
+    <string name="lay_biometric_open_settings">Open device settings</string>
+    <string name="lay_biometric_data_on_device">Your data stays on this device</string>
+
+    <!-- ═══════════════ activity_editor.xml ═══════════════ -->
+    <string name="lay_back">Back</string>
+    <string name="lay_search">Search</string>
+    <string name="lay_save">Save</string>
+    <string name="lay_replace_with">Replace with</string>
+    <string name="lay_find">Find</string>
+    <string name="lay_replace">Replace</string>
+    <string name="lay_all">All</string>
+    <string name="lay_editor_audio_ready">Ready to play</string>
+    <string name="lay_editor_prev_track">Previous track</string>
+    <string name="lay_editor_next_track">Next track</string>
+    <string name="lay_editor_binary_hint">Long-press for file actions</string>
+    <string name="lay_editor_empty_hint">Open a file in Files to edit it</string>
+    <string name="lay_editor_cd_album_bg">Record background</string>
+    <string name="lay_editor_cd_album_art">Album art</string>
+    <string name="lay_editor_cd_music">Music</string>
+
+    <!-- ═══════════════ activity_chat.xml ═══════════════ -->
+    <string name="lay_chat_cd_image_preview">Image preview</string>
+    <string name="lay_chat_cd_remove_image">Remove image</string>
+    <string name="lay_chat_attach_camera">Camera</string>
+    <string name="lay_chat_attach_photo">Photo</string>
+    <string name="lay_chat_cd_voice_input">Voice input</string>
+    <string name="lay_chat_cd_stop">Stop</string>
+
+    <!-- ═══════════════ widget_weather.xml ═══════════════ -->
+    <string name="lay_weather_cd">Weather</string>
+    <string name="lay_weather_feels_like">Feels like</string>
+    <string name="lay_weather_humidity">Humidity</string>
+    <string name="lay_weather_wind">Wind</string>
+
+    <!-- ═══════════════ widget_search.xml ═══════════════ -->
+    <string name="lay_web_search">Web search</string>
+
+    <!-- ═══════════════ widget_save_memory.xml ═══════════════ -->
+    <string name="lay_memory_saved">Saved to memory</string>
+
+    <!-- ═══════════════ item_chat_list.xml ═══════════════ -->
+    <string name="lay_new_chat">New chat</string>
+    <string name="lay_no_messages">No messages</string>
+    <string name="lay_cd_delete_chat">Delete chat</string>
+
+    <!-- ═══════════════ item_chat_mode_message_tool.xml ═══════════════ -->
+    <string name="lay_cd_tool">Tool</string>
+
+    <!-- ═══════════════ item_archived_chat.xml ═══════════════ -->
+    <string name="lay_cd_chat">Chat</string>
+    <string name="lay_cd_chat_actions">Chat actions</string>
+
+    <!-- ═══════════════ item_file.xml ═══════════════ -->
+    <string name="lay_file_name">File name</string>
+
+    <!-- ═══════════════ item_message_ai.xml ═══════════════ -->
+    <string name="lay_thinking_process">Thinking process</string>
+    <string name="chat_thinking_active">Reasoning</string>
+    <string name="chat_thinking_finished">Reasoning · %1$.1f s</string>
+    <string name="chat_workflow_completed">Completed in %1$s</string>
+    <string name="chat_workflow_working">Working for %1$s</string>
+    <string name="lay_cd_copy">Copy</string>
+    <string name="lay_cd_like">Like</string>
+    <string name="lay_cd_dislike">Dislike</string>
+    <string name="lay_cd_tts">Read aloud</string>
+    <string name="lay_cd_share">Share</string>
+    <string name="lay_cd_more">More</string>
+
+    <!-- ═══════════════ item_message_user.xml ═══════════════ -->
+    <string name="lay_cd_attached_image">Attached image</string>
+    <string name="lay_cd_file">File</string>
+
+    <!-- ═══════════════ item_memory.xml ═══════════════ -->
+    <string name="lay_cd_memory">Memory</string>
+    <string name="lay_cd_delete">Delete</string>
+
+    <!-- ═══════════════ item_message_error.xml ═══════════════ -->
+    <string name="lay_error_default_body">Please try your request again</string>
+    <string name="lay_cd_retry">Retry</string>
+
+    <!-- ═══════════════ activity_terminal.xml ═══════════════ -->
+    <string name="lay_cd_tools">Tools</string>
+    <string name="lay_storage_access_title">Access to all files</string>
+    <string name="lay_storage_access_subtitle">Please grant access to all files</string>
+    <string name="lay_grant_access">Grant access</string>
+    <string name="lay_terminal_command_hint">Enter a command…</string>
+    <string name="lay_terminal_seed">MultiAI Terminal v1.0\nEnter a command…\n\n$ </string>
+    <string name="lay_terminal_setup_title">Build your dev kit</string>
+    <string name="lay_terminal_setup_subtitle">Only the modules you need. ARM64 · on-demand download</string>
+    <string name="lay_terminal_basic_set">Basic set · 0 MB</string>
+    <string name="lay_terminal_open_basic">Open basic terminal</string>
+    <string name="lay_terminal_download_install">Download and install</string>
+
+    <!-- ═══════════════ activity_profile.xml ═══════════════ -->
+    <string name="lay_not_authorized">Not signed in</string>
+    <string name="lay_sign_in_multiai">Sign in with MultiAI</string>
+    <string name="lay_account_section">ACCOUNT</string>
+    <string name="lay_google_id">Google ID</string>
+    <string name="lay_status">Status</string>
+    <string name="lay_status_active">Active</string>
+    <string name="lay_app_section">APP</string>
+    <string name="lay_version">Version</string>
+    <string name="lay_sign_out">Sign out</string>
+    <string name="lay_delete_account">Delete account</string>
+
+    <!-- ═══════════════ activity_files.xml ═══════════════ -->
+    <string name="lay_choose_project">Pick a project to start</string>
+    <string name="lay_cd_change_folder">Change folder</string>
+    <string name="lay_cd_folder">Folder</string>
+    <string name="lay_files_open_project">Open a project and let\'s go</string>
+    <string name="lay_files_grant_hint">Choose a project folder to browse files and open them in the editor.</string>
+    <string name="lay_files_open_folder">Open project folder</string>
+    <string name="lay_files_project">Project</string>
+
+    <!-- ═══════════════ item_editor_tab.xml ═══════════════ -->
+    <string name="lay_cd_close_tab">Close tab</string>
+
+    <!-- Accent color labels -->
+    <string name="kit_accent_default">Default</string>
+    <string name="kit_accent_blue">Blue</string>
+    <string name="kit_accent_green">Green</string>
+    <string name="kit_accent_yellow">Yellow</string>
+    <string name="kit_accent_pink">Pink</string>
+    <string name="kit_accent_orange">Orange</string>
+    <string name="kit_accent_purple">Purple</string>
+    <string name="kit_accent_black">Black</string>
+
+    <!-- Tool call labels -->
+    <string name="kit_tool_running">Running…</string>
+    <string name="kit_tool_default">Tool</string>
+    <string name="kit_tool_weather">Weather</string>
+    <string name="kit_tool_time">Time</string>
+    <string name="kit_tool_web_search">Web search</string>
+    <string name="kit_tool_url_fetch">Fetching page</string>
+    <string name="kit_tool_save_memory">Saving to memory</string>
+
+    <!-- Save memory widget placeholders -->
+    <string name="w_memory_name_placeholder">name</string>
+    <string name="w_memory_content_placeholder">content</string>
+
+    <!-- MultiAI OAuth profile sections -->
+    <string name="lay_tokens_section">Tokens</string>
+    <string name="lay_tokens_total">Total tokens</string>
+    <string name="lay_tokens_subscription">Subscription</string>
+    <string name="lay_tokens_active">active</string>
+    <string name="lay_tokens_inactive">none</string>
+    <string name="lay_tokens_billing_mode">billing mode</string>
+    <string name="lay_tokens_selected_key">key</string>
+    <string name="lay_keys_section">API keys</string>
+    <string name="lay_keys_empty">No keys yet</string>
+    <string name="lay_keys_create">Create key</string>
+    <string name="lay_keys_delete">Delete key</string>
+    <string name="lay_keys_clear_select">Clear selection</string>
+    <string name="lay_keys_select">Select</string>
+    <string name="lay_keys_selected">Selected</string>
+    <string name="lay_keys_masked">masked</string>
+    <string name="lay_usage_section">Usage history</string>
+    <string name="lay_usage_soon">Section in development</string>
+    <string name="lay_buy_section">Subscription &amp; token packs</string>
+    <string name="lay_buy_button">Top up / buy subscription</string>
+    <string name="scr_email">Email</string>
+    <string name="scr_telegram">Telegram</string>
+
+    <!-- Profile screen redesign (billing tabs) -->
+    <string name="profile_tab_home">Home</string>
+    <string name="profile_tab_keys">API keys</string>
+    <string name="profile_tab_usage">Usage</string>
+    <string name="profile_tab_subscription">Subscription</string>
+    <string name="profile_balance">Balance</string>
+    <string name="profile_tokens_word">tokens</string>
+    <string name="profile_top_up_caps">Top up</string>
+    <string name="profile_row_billing">Billing mode:</string>
+    <string name="profile_row_key">Key:</string>
+    <string name="profile_row_subscription">Subscription:</string>
+    <string name="profile_active_key">Active key:</string>
+    <string name="profile_key_rename">Rename key</string>
+    <string name="profile_key_delete">Delete key</string>
+    <string name="profile_key_actions">Key actions</string>
+    <string name="profile_key_actions_for">Actions for key “%1$s”</string>
+    <string name="profile_key_balance">Balance: %1$s tokens</string>
+    <string name="profile_key_requests">%1$s requests</string>
+    <string name="profile_subscription_current">Current subscription</string>
+    <string name="profile_usage_overview">Usage overview</string>
+    <string name="profile_usage_month">Spent this month</string>
+    <string name="profile_usage_week">Spent this week</string>
+    <string name="profile_usage_day">Average per day</string>
+    <string name="profile_usage_tokens_caps">Tokens</string>
+    <string name="profile_usage_prev_month">vs last month</string>
+    <string name="profile_usage_prev_week">vs last week</string>
+    <string name="profile_usage_prev_day">vs yesterday</string>
+    <string name="profile_usage_dynamics">Spending dynamics</string>
+    <string name="profile_usage_period_month">Month</string>
+    <string name="profile_usage_period_week">Week</string>
+    <string name="profile_usage_structure">Spending structure</string>
+    <string name="profile_usage_other">Other</string>
+    <string name="profile_usage_recent">Recent activity</string>
+    <!-- Subscription tab -->
+    <string name="profile_sub_current">Current plan</string>
+    <string name="profile_sub_inactive">Inactive</string>
+    <string name="profile_sub_active_badge">Active</string>
+    <string name="profile_sub_expires">Valid until</string>
+    <string name="profile_sub_days_left">%1$d days left</string>
+    <string name="profile_sub_limits">Plan usage</string>
+    <string name="profile_sub_details">Details</string>
+    <string name="profile_sub_limit_5h">5-hour</string>
+    <string name="profile_sub_limit_week">Weekly</string>
+    <string name="profile_sub_limit_month">Monthly</string>
+    <string name="profile_sub_used_percent">%1$d%% used</string>
+    <string name="profile_sub_used_percent_short">%1$d%%</string>
+    <string name="profile_sub_history">Payment history</string>
+    <string name="profile_pay_success">Succeeded</string>
+
+    <!-- Store screen -->
+    <string name="store_title">Store</string>
+    <string name="store_tokens">Tokens</string>
+    <string name="store_tokens_question">How many tokens do you need?</string>
+    <string name="store_tokens_hint">Drag the slider or type the amount manually.</string>
+    <string name="store_total">Total</string>
+    <string name="store_per_unit">%1$s ₽ / 1M tokens</string>
+    <string name="store_tokens_suffix">tokens</string>
+    <string name="store_min_max">Min: 1M tokens · Max: 10B tokens</string>
+    <string name="store_buy_tokens">Buy selected amount</string>
+    <string name="store_value_by_models">Value by models</string>
+    <string name="store_value_tokens">%1$s tokens</string>
+    <string name="store_value_free">FREE</string>
+    <string name="store_free_models">Free models</string>
+    <string name="store_subscriptions">Subscriptions</string>
+    <string name="store_recommended">Recommended</string>
+    <string name="store_per_month">/ month</string>
+    <string name="store_features">Features</string>
+    <string name="store_buy">Buy</string>
+    <string name="store_sub_pro_tagline">A comfortable start for personal tasks at a relaxed pace.</string>
+    <string name="store_sub_premium_tagline">Maximum power for heavy projects and teams.</string>
+    <string name="store_models_cn">China</string>
+    <string name="store_sub_pro_price">999 ₽</string>
+    <string name="store_sub_premium_price">2,499 ₽</string>
+    <string name="store_feat_pro_1">All models</string>
+    <string name="store_feat_pro_2">High limits</string>
+    <string name="store_feat_pro_3">Priority support</string>
+    <string name="store_feat_prem_1">Everything in Pro</string>
+    <string name="store_feat_prem_2">Maximum limits</string>
+    <string name="store_feat_prem_3">Dedicated support</string>
+    <string name="store_feat_prem_4" formatted="false">99.9% SLA</string>
+    <string name="profile_stat_spent">Spent in total</string>
+    <string name="profile_stat_requests">Requests</string>
+    <string name="profile_stat_active_key">Active key</string>
+    <string name="profile_pay_tokens">Tokens · %1$s</string>
+    <string name="profile_tab_store">Store</string>
+    <string name="profile_period_day">Day</string>
+    <string name="profile_greeting_morning">Good morning, %1$s</string>
+    <string name="profile_greeting_day">Good afternoon, %1$s</string>
+    <string name="profile_greeting_evening">Good evening, %1$s</string>
+    <string name="profile_greeting_night">Good night, %1$s</string>
+    <string name="profile_promo_title">Promo code</string>
+    <string name="profile_promo_hint">Enter promo code</string>
+    <string name="profile_promo_activate">Activate</string>
+    <string name="profile_plan_tokens">Tokens in plan</string>
+    <string name="profile_plan_requests">Requests per month</string>
+    <string name="profile_plan_next">Next payment</string>
+    <string name="profile_sub_available">Available plans</string>
+    <string name="profile_mode_tokens">Tokens</string>
+    <string name="profile_mode_subscription">Subscription</string>
+    <string name="mode_chat">Chat</string>
+    <string name="mode_work">Work</string>
+    <string name="mode_badge_chat">CHAT</string>
+    <string name="mode_badge_work">WORK</string>
+    <string name="settings_mode_switcher">Mode switcher</string>
+    <string name="settings_mode_switcher_sub">Show Chat / Work in the top bar</string>
+    <string name="state_enabled">Enabled</string>
+    <string name="state_disabled">Disabled</string>
+    <string name="settings_streaming">Stream responses</string>
+    <string name="settings_streaming_sub">Smooth text appearance during generation</string>
+    <string name="settings_show_thinking">Show thinking</string>
+    <string name="settings_show_thinking_sub">“Thinking process” block in AI replies</string>
+    <string name="settings_use_tools">Use tools</string>
+    <string name="settings_use_tools_sub">Weather, time, web search and other tools in regular chat. Work Mode tools are always enabled.</string>
+
+    <!-- Emoji style settings -->
+    <string name="settings_emoji_style">Emoji style</string>
+    <string name="settings_emoji_style_sub">Telegram-style from Telemoji</string>
+    <string name="emoji_mode_system">Classic (system)</string>
+    <string name="emoji_mode_static">Static (Telemoji)</string>
+    <string name="emoji_mode_animated">Animated (Telemoji)</string>
+    <string name="profile_empty_period">Nothing here yet — no records for this period</string>
+    <string name="profile_key_create_fail">Could not create the key</string>
+    <string name="profile_key_created_title">Key “%1$s” created</string>
+    <string name="profile_key_copy_hint">Copy the key now — it will not be shown again</string>
+    <string name="profile_checkout_fail">Could not create a payment link</string>
+    <string name="profile_checkout_copied">Payment link copied</string>
+    <string name="profile_checkout_confirm">Subscribe for %1$s?</string>
+    <string name="profile_buy">Pay</string>
+    <string name="profile_promo_ok">Promo code applied: +%1$d tokens 🎁</string>
+    <string name="profile_promo_fail">Promo code rejected</string>
+    <string name="profile_err_scope">missing permissions (keys:write / billing:read) — sign in again</string>
+    <string name="profile_err_key_limit">key limit reached (10/hour)</string>
+    <string name="profile_err_promo_used">promo code already used</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_close">Close</string>
+    <string name="copied_ok">Copied</string>
+    <string name="profile_tokens_unit">TOKENS</string>
+    <string name="profile_key_delete_confirm">Delete key “%1$s”? This cannot be undone.</string>
+    <string name="profile_key_deleted">Key deleted</string>
+    <string name="save">Save</string>
+    <string name="profile_promo_success_title">Success!</string>
+    <string name="profile_promo_awesome">Thanks.</string>
+    <string name="profile_tx_purchase">Token purchase</string>
+    <string name="profile_tx_tokens">%1$s tokens</string>
+    <string name="profile_tx_subscription">Subscription</string>
+    <string name="profile_tx_refund">Refund</string>
+    <string name="profile_tx_bonus">Promo code</string>
+    <string name="profile_tx_paid">Paid</string>
+    <string name="profile_tx_pending">Pending</string>
+    <string name="profile_tx_failed">Failed</string>
+    <string name="profile_tx_refunded">Refunded</string>
+    <string name="filter_all">All operations</string>
+    <string name="filter_spends">Spends</string>
+    <string name="filter_topups">Top-ups</string>
+    <string name="filter_subs">Subscriptions</string>
+    <string name="filter_search_hint">Search by description…</string>
+    <string name="filter_empty">Nothing found</string>
+    <string name="filter_tx_tokens">Tokens</string>
+    <string name="filter_tx_subs">Subscriptions</string>
+    <string name="filter_tx_promo">Promo codes</string>
+    <string name="profile_payments_title">Payment history</string>
+    <string name="store_subs_title">Subscriptions</string>
+    <string name="model_image_gen">Image generation</string>
+    <string name="profile_all_spends">All spends</string>
+    <string name="profile_all_payments">Full history</string>
+    <string name="profile_sub_remaining_percent_short">%1$d%%</string>
+    <string name="store_buy_tokens_amount">Buy %1$s tokens</string>
+    <string name="sheet_ops_all">All operations</string>
+    <string name="sheet_ops_api">API spends</string>
+    <string name="sheet_ops_topup">Top-ups</string>
+    <string name="sheet_ops_refund">Refunds</string>
+    <string name="sheet_ops_purchase">Purchases</string>
+    <string name="sheet_ops_promo">Promo codes</string>
+    <string name="sheet_keys_all">All keys</string>
+    <string name="sheet_date_from">from dd.mm.yyyy</string>
+    <string name="sheet_date_to">to dd.mm.yyyy</string>
+    <string name="sheet_date_title">Pick a date</string>
+
+    <!-- IDE tool widgets -->
+    <string name="ide_tool_explore">Explore</string>
+    <plurals name="ide_tool_run_count">
+        <item quantity="one">%1$d run</item>
+        <item quantity="other">%1$d runs</item>
+    </plurals>
+    <plurals name="ide_tool_file_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+    <string name="ide_tool_searching_query">Search “%1$s”</string>
+    <string name="ide_tool_searching_files">Search files “%1$s”</string>
+    <string name="ide_tool_running">Running</string>
+    <string name="ide_tool_deleting">Deleting</string>
+    <string name="ide_tool_deleted">Deleted</string>
+    <string name="ide_tool_moving">Moving</string>
+    <string name="ide_tool_moved">Moved</string>
+    <string name="ide_tool_reading">Reading</string>
+    <string name="ide_tool_listing">Browsing folder</string>
+    <plurals name="ide_tool_listed_objects">
+        <item quantity="one">Found %1$d object</item>
+        <item quantity="other">Found %1$d objects</item>
+    </plurals>
+    <string name="ide_tool_cancelled">Cancelled: %1$s</string>
+    <string name="ide_tool_action_read_file">file reading</string>
+    <string name="ide_tool_action_list_dir">folder browsing</string>
+    <string name="ide_tool_action_search">project search</string>
+    <string name="ide_tool_action_find_files">file search</string>
+    <string name="ide_tool_action_command">command execution</string>
+    <string name="ide_tool_action_delete">deletion</string>
+    <string name="ide_tool_action_move">move</string>
+    <plurals name="ide_tool_searched_results">
+        <item quantity="one">Searched %1$d result</item>
+        <item quantity="other">Searched %1$d results</item>
+    </plurals>
+    <plurals name="ide_tool_searched_files">
+        <item quantity="one">Searched %1$d file</item>
+        <item quantity="other">Searched %1$d files</item>
+    </plurals>
+    <string name="ide_tool_failed">Failed</string>
+    <string name="ide_tool_ran">Ran</string>
+    <string name="ide_tool_read">Read</string>
+    <string name="ide_tool_read_failed">Read failed</string>
+    <string name="ide_tool_editing">Editing</string>
+    <string name="ide_tool_edited">Edited</string>
+    <string name="ide_tool_writing">Writing</string>
+    <string name="ide_tool_wrote">Wrote</string>
+    <string name="ide_tool_input">Input</string>
+    <string name="ide_tool_output">Output</string>
+    <string name="ide_tool_error">Error</string>
+    <string name="ide_tool_content">Content</string>
+    <string name="ide_tool_diff">Changes</string>
+    <string name="ide_tool_command">command</string>
+    <string name="ide_tool_exit_code">exit %1$d</string>
+    <string name="ide_tool_execution_error">Execution failed</string>
+    <plurals name="ide_tool_hidden_lines">
+        <item quantity="one">— %1$d line hidden —</item>
+        <item quantity="other">— %1$d lines hidden —</item>
+    </plurals>
+    <plurals name="ide_duration_seconds">
+        <item quantity="one">%1$d sec</item>
+        <item quantity="other">%1$d sec</item>
+    </plurals>
+    <plurals name="ide_duration_minutes">
+        <item quantity="one">%1$d min</item>
+        <item quantity="other">%1$d min</item>
+    </plurals>
+
+    <!-- Compact tool failure labels -->
+    <string name="tool_fail_read">Couldn\'t read %1$s</string>
+    <string name="tool_fail_read_generic">Couldn\'t read the file</string>
+    <string name="tool_fail_list_dir">Couldn\'t open folder %1$s</string>
+    <string name="tool_fail_list_dir_generic">Couldn\'t open the folder</string>
+    <string name="tool_fail_search">Project search failed</string>
+    <string name="tool_fail_find_files">File search failed</string>
+    <string name="tool_fail_command">Command failed</string>
+    <string name="tool_fail_write">Couldn\'t write %1$s</string>
+    <string name="tool_fail_edit">Couldn\'t edit %1$s</string>
+    <string name="tool_fail_delete">Couldn\'t delete %1$s</string>
+    <string name="tool_fail_move">Move failed</string>
+    <string name="tool_fail_web_search">Web search failed</string>
+    <string name="tool_fail_url_fetch">Couldn\'t load the page</string>
+    <string name="tool_fail_memory">Couldn\'t save to memory</string>
+    <string name="tool_fail_weather">Couldn\'t get the weather</string>
+    <string name="tool_fail_time">Couldn\'t get the time</string>
+    <string name="tool_fail_subagent">Couldn\'t start the subagent</string>
+    <string name="tool_fail_summarize">Couldn\'t summarize the chat</string>
+    <string name="tool_fail_rules">Couldn\'t read the project rules</string>
+    <string name="tool_fail_generic">“%1$s” failed</string>
+    <string name="tool_fail_reason">Reason</string>
+    <string name="tool_fail_unknown_reason">Reason unknown</string>
+
+    <!-- Compact web search widget -->
+    <string name="web_search_running">Searching “%1$s”</string>
+    <string name="web_search_running_generic">Searching the web</string>
+    <plurals name="web_search_sources">
+        <item quantity="one">%1$d source found</item>
+        <item quantity="other">%1$d sources found</item>
+    </plurals>
+    <string name="web_search_no_results">Nothing found</string>
+    <string name="url_fetch_loading">Loading the page</string>
+    <string name="url_fetch_done">Page loaded</string>
+
+    <string name="settings_command_whitelist_sub">Allow, block and manage command execution rules</string>
+
+    <!-- Past-chat summarization tool driven by a separate AI model -->
+    <string name="summarize_running">Compacting the conversation</string>
+    <string name="summarize_done">Chat history compacted by a separate model</string>
+    <string name="summarize_skipped">History is already compact enough</string>
+    <string name="summarize_summary">Summary</string>
+
+    <!-- Past-chat briefing tool driven by a separate AI model -->
+    <string name="past_chat_running">Reading the earlier chat</string>
+    <string name="past_chat_done">Earlier chat reviewed: “%1$s”</string>
+    <string name="past_chat_needs_selection">Pick which earlier chat to read</string>
+    <string name="past_chat_empty">No earlier chats found</string>
+    <string name="past_chat_summary">Earlier chat briefing</string>
+    <string name="tool_fail_past_chat">Couldn\'t review the earlier chat</string>
+
+    <!-- Command rules screen -->
+    <string name="whitelist_screen_title">Command rules</string>
+    <string name="whitelist_screen_description">Allowed commands run without confirmation; blocked commands never run. In “Confirm for me”, dangerous and unknown commands still ask. Matching is exact; “*” in an allow list permits any shell command.</string>
+    <string name="whitelist_section_global">Allowed globally</string>
+    <string name="whitelist_section_global_note">Saved permanently and applied in every chat. “*” permits any shell command.</string>
+    <string name="whitelist_section_blocked">Blocked globally</string>
+    <string name="whitelist_section_blocked_note">A block overrides every allow rule and applies in every chat.</string>
+    <string name="whitelist_session_picker">Session</string>
+    <string name="whitelist_session_unnamed">New session</string>
+    <string name="whitelist_session_current">%1$s · current</string>
+    <string name="whitelist_section_session">This session only</string>
+    <string name="whitelist_section_session_note">Applies only to the selected session and is cleared when the app restarts.</string>
+    <string name="whitelist_empty">The list is empty</string>
+    <string name="whitelist_add">Add a command</string>
+    <string name="whitelist_block_add">Block a command</string>
+    <string name="whitelist_clear">Clear the list</string>
+    <string name="whitelist_add_title">New command</string>
+    <string name="whitelist_edit_title">Edit command</string>
+    <string name="whitelist_block_add_title">Block a command</string>
+    <string name="whitelist_block_edit_title">Edit block rule</string>
+    <string name="whitelist_input_hint">Enter the whole command. Matching is exact; “*” permits any shell command.</string>
+    <string name="whitelist_block_input_hint">Enter the whole command. A global block overrides every allow rule.</string>
+    <string name="whitelist_input_example">./gradlew :app:assembleDebug</string>
+    <string name="whitelist_save">Save</string>
+    <string name="whitelist_saved">Rule saved</string>
+    <string name="whitelist_deleted">Rule removed</string>
+    <string name="whitelist_empty_error">The command cannot be empty</string>
+    <string name="whitelist_delete">Delete</string>
+    <string name="whitelist_delete_title">Revoke this permission?</string>
+    <string name="whitelist_delete_message">“%1$s” will ask for confirmation again.</string>
+    <string name="whitelist_block_delete_title">Remove this block?</string>
+    <string name="whitelist_block_delete_message">“%1$s” can run again if the access mode permits it.</string>
+    <string name="whitelist_clear_title">Clear the list?</string>
+    <string name="whitelist_clear_message">%1$d rules will be removed. File permissions are untouched.</string>
+    <string name="whitelist_block_clear_title">Remove every block?</string>
+    <string name="whitelist_block_clear_message">%1$d global blocks will be removed.</string>
+</resources>

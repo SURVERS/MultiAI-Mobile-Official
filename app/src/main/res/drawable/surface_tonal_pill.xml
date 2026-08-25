@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Soft rounded background used behind the editor audio-player album-art tile
+    when there is no embedded artwork (the music-note glyph sits on top of it).
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/surface_tonal" />
+    <corners android:radius="20dp" />
+</shape>

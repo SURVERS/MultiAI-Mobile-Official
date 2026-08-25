@@ -1,0 +1,1501 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <ScrollView
+        android:id="@+id/profileScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Toolbar -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
+                android:elevation="0dp"
+                app:contentInsetStart="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageButton
+                        android:id="@+id/buttonMenu"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_menu"
+                        android:tint="@color/text_primary"
+                        android:contentDescription="@string/menu" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/profile"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginStart="8dp" />
+
+                    <ImageButton
+                        android:id="@+id/btnOverflow"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="4dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_more_vert"
+                        android:tint="@color/text_primary"
+                        android:visibility="gone"
+                        android:contentDescription="@null" />
+                </LinearLayout>
+            </androidx.appcompat.widget.Toolbar>
+
+            <!-- User card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="68dp"
+                    android:layout_height="68dp"
+                    app:cardCornerRadius="34dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/surface_card"
+                    app:cardPreventCornerOverlap="false">
+
+                    <ImageView
+                        android:id="@+id/imgAvatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_account"
+                        android:tint="@color/icon"
+                        android:padding="16dp" />
+                </androidx.cardview.widget.CardView>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textUserName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/lay_not_authorized"
+                        android:textColor="@color/text_primary"
+                        android:textSize="19sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/textUserEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/text_hint"
+                        android:textSize="13sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/textMemberSince"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/text_hint"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Content -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp">
+
+                <!-- Sign in (guest only) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMultiAiSignIn"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/lay_sign_in_multiai"
+                    android:textColor="@color/icon_on_accent"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    app:backgroundTint="@color/accent"
+                    app:cornerRadius="14dp"
+                    app:icon="@drawable/ic_multiai_logo"
+                    app:iconTint="@color/icon_on_accent"
+                    app:iconGravity="textStart"
+                    app:iconSize="32dp"
+                    app:iconPadding="0dp" />
+
+                <!-- Tabs -->
+                <HorizontalScrollView
+                    android:id="@+id/tabsScroller"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:scrollbars="none"
+                    android:overScrollMode="never"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/profileTabs"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tabHome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:textSize="12.5sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/profile_tab_home" />
+
+                        <TextView
+                            android:id="@+id/tabKeys"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:gravity="center"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:textSize="12.5sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/profile_tab_keys" />
+
+                        <TextView
+                            android:id="@+id/tabUsage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:gravity="center"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:textSize="12.5sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/profile_tab_usage" />
+
+                        <TextView
+                            android:id="@+id/tabSubscription"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:gravity="center"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:textSize="12.5sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/profile_tab_subscription" />
+
+                        <TextView
+                            android:id="@+id/tabStore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:gravity="center"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:textSize="12.5sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/profile_tab_store" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- ══════ TAB: HOME ══════ -->
+                <LinearLayout
+                    android:id="@+id/sectionHome"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/textGreeting"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_primary"
+                        android:textSize="17sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="10dp" />
+
+                    <!-- Balance -->
+                    <LinearLayout
+                        android:id="@+id/balanceCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/profile_card_bg">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:padding="18dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <ImageView
+                                        android:layout_width="15dp"
+                                        android:layout_height="15dp"
+                                        android:src="@drawable/ic_s_database"
+                                        android:tint="@color/text_hint"
+                                        android:contentDescription="@null" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="6dp"
+                                        android:text="@string/profile_balance"
+                                        android:textColor="@color/text_hint"
+                                        android:textSize="13sp"
+                                        android:fontFamily="sans-serif-medium" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/textTokensTotal"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="—"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="32sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/textTokensUnit"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/profile_tokens_word"
+                                    android:textColor="@color/text_hint"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnTopUp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="42dp"
+                                android:layout_marginStart="12dp"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
+                                android:text="@string/profile_top_up_caps"
+                                android:textColor="@color/icon_on_accent"
+                                android:textSize="12sp"
+                                android:letterSpacing="0.06"
+                                android:fontFamily="sans-serif-medium"
+                                app:backgroundTint="@color/accent"
+                                app:cornerRadius="12dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Account info -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/profile_card_bg"
+                        android:layout_marginTop="12dp"
+                        android:divider="@drawable/divider_subtle"
+                        android:showDividers="middle">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:paddingTop="13dp"
+                            android:paddingBottom="13dp">
+
+                            <ImageView
+                                android:layout_width="19dp"
+                                android:layout_height="19dp"
+                                android:src="@drawable/ic_s_database"
+                                android:tint="@color/icon_muted"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="14dp"
+                                android:text="@string/profile_row_billing"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/textTokensBilling"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:paddingTop="13dp"
+                            android:paddingBottom="13dp">
+
+                            <ImageView
+                                android:layout_width="19dp"
+                                android:layout_height="19dp"
+                                android:src="@drawable/ic_trending_up"
+                                android:tint="@color/icon_muted"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="14dp"
+                                android:text="@string/profile_stat_spent"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/textStatSpent"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:paddingTop="13dp"
+                            android:paddingBottom="13dp">
+
+                            <ImageView
+                                android:layout_width="19dp"
+                                android:layout_height="19dp"
+                                android:src="@drawable/ic_star"
+                                android:tint="@color/icon_muted"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="14dp"
+                                android:text="@string/profile_row_subscription"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/textTokensSubscription"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/text_hint"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Stats -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/profile_card_bg"
+                        android:layout_marginTop="12dp"
+                        android:divider="@drawable/divider_subtle"
+                        android:showDividers="middle">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:paddingTop="13dp"
+                            android:paddingBottom="13dp">
+
+                            <ImageView
+                                android:layout_width="19dp"
+                                android:layout_height="19dp"
+                                android:src="@drawable/ic_bolt"
+                                android:tint="@color/icon_muted"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="14dp"
+                                android:text="@string/profile_stat_requests"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/textStatRequests"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:paddingTop="13dp"
+                            android:paddingBottom="13dp">
+
+                            <ImageView
+                                android:layout_width="19dp"
+                                android:layout_height="19dp"
+                                android:src="@drawable/ic_key"
+                                android:tint="@color/icon_muted"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="14dp"
+                                android:text="@string/profile_stat_active_key"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/textStatKey"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/text_primary"
+                                android:textSize="13sp"
+                                android:fontFamily="monospace" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- ══════ TAB: API KEYS ══════ -->
+                <LinearLayout
+                    android:id="@+id/sectionKeys"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <ImageView
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:src="@drawable/ic_key"
+                            android:tint="@color/text_hint"
+                            android:contentDescription="@null" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="@string/profile_active_key"
+                            android:textColor="@color/text_hint"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/keysList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/keysEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/lay_keys_empty"
+                        android:textColor="@color/text_hint"
+                        android:textSize="14sp"
+                        android:padding="24dp"
+                        android:gravity="center"
+                        android:background="@drawable/profile_card_bg"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCreateKey"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:layout_weight="1"
+                            android:text="@string/lay_keys_create"
+                            android:textColor="@color/icon_on_accent"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
+                            app:backgroundTint="@color/accent"
+                            app:cornerRadius="12dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnClearSelect"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:text="@string/lay_keys_clear_select"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
+                            app:backgroundTint="@color/surface_tonal"
+                            app:strokeColor="@color/stroke"
+                            app:strokeWidth="1dp"
+                            app:cornerRadius="12dp" />
+                    </LinearLayout>
+
+                    <!-- Promo activation -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/profile_card_bg"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="15dp"
+                                android:layout_height="15dp"
+                                android:src="@drawable/ic_s_sparkle"
+                                android:tint="@color/text_hint"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="@string/profile_promo_title"
+                                android:textColor="@color/text_hint"
+                                android:textSize="13sp"
+                                android:fontFamily="sans-serif-medium" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginTop="10dp">
+
+                            <EditText
+                                android:id="@+id/promoInput"
+                                android:layout_width="0dp"
+                                android:layout_height="46dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/input_background"
+                                android:paddingStart="14dp"
+                                android:paddingEnd="14dp"
+                                android:inputType="textCapCharacters"
+                                android:maxLines="1"
+                                android:hint="@string/profile_promo_hint"
+                                android:textColorHint="@color/text_hint"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"
+                                android:importantForAutofill="no" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnActivatePromo"
+                                android:layout_width="wrap_content"
+                                android:layout_height="46dp"
+                                android:layout_marginStart="10dp"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
+                                android:text="@string/profile_promo_activate"
+                                android:textColor="@color/icon_on_accent"
+                                android:textSize="13sp"
+                                android:fontFamily="sans-serif-medium"
+                                app:backgroundTint="@color/accent"
+                                app:cornerRadius="12dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- ══════ TAB: USAGE ══════ -->
+                <LinearLayout
+                    android:id="@+id/sectionUsage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone">
+
+                    <!-- Overview -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:src="@drawable/ic_chart"
+                            android:tint="@color/text_hint"
+                            android:contentDescription="@null" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="7dp"
+                            android:text="@string/profile_usage_overview"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                    <!-- Metrics -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:background="@drawable/profile_card_bg"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_usage_month"
+                                android:textColor="@color/text_hint"
+                                android:textSize="10sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:maxLines="2" />
+
+                            <TextView
+                                android:id="@+id/usageMonthValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:textColor="@color/text_primary"
+                                android:textSize="20sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_usage_tokens_caps"
+                                android:textColor="@color/text_hint"
+                                android:textSize="9sp"
+                                android:letterSpacing="0.08"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <TextView
+                                android:id="@+id/usageMonthDelta"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:textSize="11sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:visibility="gone" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical"
+                            android:background="@drawable/profile_card_bg"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_usage_week"
+                                android:textColor="@color/text_hint"
+                                android:textSize="10sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:maxLines="2" />
+
+                            <TextView
+                                android:id="@+id/usageWeekValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:textColor="@color/text_primary"
+                                android:textSize="20sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_usage_tokens_caps"
+                                android:textColor="@color/text_hint"
+                                android:textSize="9sp"
+                                android:letterSpacing="0.08"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <TextView
+                                android:id="@+id/usageWeekDelta"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:textSize="11sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:visibility="gone" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical"
+                            android:background="@drawable/profile_card_bg"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_usage_day"
+                                android:textColor="@color/text_hint"
+                                android:textSize="10sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:maxLines="2" />
+
+                            <TextView
+                                android:id="@+id/usageDayValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:textColor="@color/text_primary"
+                                android:textSize="20sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_usage_tokens_caps"
+                                android:textColor="@color/text_hint"
+                                android:textSize="9sp"
+                                android:letterSpacing="0.08"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <TextView
+                                android:id="@+id/usageDayDelta"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:textSize="11sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:visibility="gone" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Dynamics -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:src="@drawable/ic_trending_up"
+                            android:tint="@color/text_hint"
+                            android:contentDescription="@null" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="7dp"
+                            android:text="@string/profile_usage_dynamics"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <LinearLayout
+                            android:id="@+id/btnUsagePeriod"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="10dp"
+                            android:background="@drawable/profile_card_bg"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <TextView
+                                android:id="@+id/textUsagePeriod"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_usage_period_month"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_marginStart="4dp"
+                                android:src="@drawable/ic_chevron_down"
+                                android:tint="@color/text_hint"
+                                android:contentDescription="@null" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/profile_card_bg">
+
+                        <app.multiai.mobile.views.UsageChartView
+                            android:id="@+id/usageChart"
+                            android:layout_width="match_parent"
+                            android:layout_height="215dp"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="10dp"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="6dp" />
+                    </LinearLayout>
+
+                    <!-- Structure -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:src="@drawable/ic_s_database"
+                            android:tint="@color/text_hint"
+                            android:contentDescription="@null" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="7dp"
+                            android:text="@string/profile_usage_structure"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/profile_card_bg"
+                        android:padding="16dp">
+
+                        <app.multiai.mobile.views.DonutChartView
+                            android:id="@+id/usageDonut"
+                            android:layout_width="128dp"
+                            android:layout_height="128dp" />
+
+                        <LinearLayout
+                            android:id="@+id/usageLegend"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="16dp"
+                            android:orientation="vertical" />
+                    </LinearLayout>
+
+                    <!-- Recent -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:src="@drawable/ic_history"
+                            android:tint="@color/text_hint"
+                            android:contentDescription="@null" />
+
+                        <TextView
+                            android:id="@+id/recentHeaderTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="7dp"
+                            android:text="@string/profile_usage_recent"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:id="@+id/btnAllSpends"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="4dp"
+                            android:text="@string/profile_all_spends"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:padding="6dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/recentList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/profile_card_bg"
+                        android:divider="@drawable/divider_subtle"
+                        android:showDividers="middle" />
+
+                    <!-- Payments -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:src="@drawable/ic_credit_card"
+                            android:tint="@color/text_hint"
+                            android:contentDescription="@null" />
+
+                        <TextView
+                            android:id="@+id/paymentsHeaderTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="7dp"
+                            android:text="@string/profile_sub_history"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:id="@+id/btnAllPayments"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="4dp"
+                            android:text="@string/profile_all_payments"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:padding="6dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/paymentHistoryList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/profile_card_bg"
+                        android:divider="@drawable/divider_subtle"
+                        android:showDividers="middle" />
+
+                </LinearLayout>
+
+                <!-- ══════ TAB: SUBSCRIPTION ══════ -->
+                <LinearLayout
+                    android:id="@+id/sectionSubscription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone">
+
+                    <!-- Current plan -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/profile_card_bg"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/profile_sub_current"
+                            android:textColor="@color/text_hint"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <LinearLayout
+                            android:id="@+id/planInactive"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_sub_inactive"
+                                android:textColor="@color/text_hint"
+                                android:textSize="26sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/planActive"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center_vertical"
+                            android:visibility="gone">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:id="@+id/textPlanName"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="26sp"
+                                    android:textStyle="bold"
+                                    android:maxLines="1"
+                                    android:ellipsize="end" />
+
+                                <TextView
+                                    android:id="@+id/badgePlanActive"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="10dp"
+                                    android:text="@string/profile_sub_active_badge"
+                                    android:textColor="@color/success"
+                                    android:textSize="11sp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:paddingStart="10dp"
+                                    android:paddingEnd="10dp"
+                                    android:paddingTop="3dp"
+                                    android:paddingBottom="3dp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:gravity="end">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/profile_sub_expires"
+                                    android:textColor="@color/text_hint"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/textPlanExpires"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:fontFamily="sans-serif-medium" />
+
+                                <TextView
+                                    android:id="@+id/textPlanDaysLeft"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:textColor="@color/text_hint"
+                                    android:textSize="11sp" />
+
+                                <ProgressBar
+                                    android:id="@+id/planProgress"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="110dp"
+                                    android:layout_height="5dp"
+                                    android:layout_marginTop="5dp"
+                                    android:max="100"
+                                    android:progress="0" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Plan limits -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/profile_card_bg"
+                        android:layout_marginTop="12dp"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/profile_sub_limits"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <TextView
+                                android:id="@+id/btnLimitDetails"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_sub_details"
+                                android:textSize="13sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:padding="4dp"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:background="?attr/selectableItemBackground" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:orientation="horizontal"
+                            android:baselineAligned="false">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="@string/profile_sub_limit_5h"
+                                        android:textColor="@color/text_hint"
+                                        android:textSize="10.5sp"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:maxLines="1" />
+
+                                    <TextView
+                                        android:id="@+id/pctFiveHour"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="11sp"
+                                        android:fontFamily="sans-serif-medium" />
+                                </LinearLayout>
+
+                                <ProgressBar
+                                    android:id="@+id/limitFiveHour"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="7dp"
+                                    android:layout_marginTop="5dp"
+                                    android:max="100"
+                                    android:progress="0" />
+
+                                <TextView
+                                    android:id="@+id/textLimitFiveHour"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:textColor="@color/text_hint"
+                                    android:textSize="10.5sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="10dp"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="@string/profile_sub_limit_week"
+                                        android:textColor="@color/text_hint"
+                                        android:textSize="10.5sp"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:maxLines="1" />
+
+                                    <TextView
+                                        android:id="@+id/pctWeekly"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="11sp"
+                                        android:fontFamily="sans-serif-medium" />
+                                </LinearLayout>
+
+                                <ProgressBar
+                                    android:id="@+id/limitWeekly"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="7dp"
+                                    android:layout_marginTop="5dp"
+                                    android:max="100"
+                                    android:progress="0" />
+
+                                <TextView
+                                    android:id="@+id/textLimitWeekly"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:textColor="@color/text_hint"
+                                    android:textSize="10.5sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="10dp"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="@string/profile_sub_limit_month"
+                                        android:textColor="@color/text_hint"
+                                        android:textSize="10.5sp"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:maxLines="1" />
+
+                                    <TextView
+                                        android:id="@+id/pctMonthly"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="11sp"
+                                        android:fontFamily="sans-serif-medium" />
+                                </LinearLayout>
+
+                                <ProgressBar
+                                    android:id="@+id/limitMonthly"
+                                    style="?android:attr/progressBarStyleHorizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="7dp"
+                                    android:layout_marginTop="5dp"
+                                    android:max="100"
+                                    android:progress="0" />
+
+                                <TextView
+                                    android:id="@+id/textLimitMonthly"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:textColor="@color/text_hint"
+                                    android:textSize="10.5sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Available plans (оформление как в Магазине) -->
+                    <LinearLayout
+                        android:id="@+id/plansTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:src="@drawable/ic_star"
+                            android:tint="@color/text_hint"
+                            android:contentDescription="@null" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="7dp"
+                            android:text="@string/profile_sub_available"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/subscriptionPlans"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                </LinearLayout>
+
+                <!-- Bottom spacing -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Navigation Drawer -->
+    <include layout="@layout/drawer_navigation" />
+
+    <include layout="@layout/sidebar_chatmode" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Explicit Russian overrides. The default values/strings.xml already contains
+     Russian, so this file mirrors it to guarantee the ru locale resolves to
+     Russian regardless of the device's default locale. Existing users and first
+     launches default to ru via AppSettings.KEY_LANGUAGE = "ru". -->
+<resources>
+    <string name="app_name">MultiAI</string>
+    <string name="hint_message">Напиши что-нибудь...</string>
+    <string name="send">Отправить</string>
+    <string name="menu">Меню</string>
+    <string name="chat">Чат</string>
+    <string name="terminal">Терминал</string>
+    <string name="files">Файлы</string>
+    <string name="editor">Редактор</string>
+    <string name="account">Аккаунт</string>
+    <string name="settings">Настройки</string>
+    <string name="work_access_whitelist_manage">Разрешённые команды</string>
+    <string name="work_access_whitelist_title">Разрешённые команды</string>
+    <string name="work_access_whitelist_description">Команды из списка выполняются без нового подтверждения. Совпадение должно быть точным.</string>
+    <string name="work_access_whitelist_empty">Пока нет разрешённых команд</string>
+    <string name="work_access_whitelist_add">Добавить команду</string>
+    <string name="work_access_whitelist_add_title">Добавить команду</string>
+    <string name="work_access_whitelist_edit">Изменить</string>
+    <string name="work_access_whitelist_edit_title">Изменить команду</string>
+    <string name="work_access_whitelist_input_hint">Введи команду целиком — именно она будет выполняться без нового подтверждения.</string>
+    <string name="work_access_whitelist_input_example">Например: npm run build</string>
+    <string name="work_access_whitelist_save">Сохранить</string>
+    <string name="work_access_whitelist_delete">Удалить</string>
+    <string name="work_access_whitelist_delete_title">Удалить из разрешённых?</string>
+    <string name="work_access_whitelist_delete_message">Команда снова будет запрашивать разрешение:\n%1$s</string>
+    <string name="work_access_whitelist_empty_error">Введи команду</string>
+    <string name="nav_history">История</string>
+
+    <!-- Drawer subtitles -->
+    <string name="nav_subtitle_chat">Общайтесь с AI</string>
+    <string name="nav_subtitle_terminal">Команды и скрипты</string>
+    <string name="nav_subtitle_files">Управление файлами</string>
+    <string name="nav_subtitle_editor">Создание и редактирование</string>
+    <string name="nav_subtitle_history">Недавние чаты</string>
+    <string name="nav_subtitle_settings">Приложение и аккаунт</string>
+    <string name="nav_subtitle_profile">Ваш профиль и данные</string>
+    <string name="nav_header_title">MultiAI</string>
+    <string name="nav_header_subtitle">Ваш универсальный AI-помощник</string>
+    <string name="profile">Профиль</string>
+    <string name="general_title">Общее</string>
+    <string name="language_title">Язык</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_english">English</string>
+    <string name="settings_home_title">Мой MultiAI</string>
+    <string name="personalization">Персонализация</string>
+    <string name="memory">Память</string>
+    <string name="email">Электронная почта</string>
+    <string name="data_controls">Элементы управления данными</string>
+    <string name="security">Безопасность</string>
+    <string name="report_bug">Сообщить об ошибке</string>
+    <string name="about">Информация</string>
+    <string name="logout">Выйти</string>
+    <string name="drawer_version">Версия 1.3</string>
+    <string name="archive_title">Архив</string>
+    <string name="archive_empty_title">Архив пуст</string>
+    <string name="archive_empty_subtitle">Архивированные чаты появятся здесь</string>
+    <string name="archive_view">Просмотр архивированных чатов</string>
+    <string name="archive_all_history">Архивировать историю чата</string>
+    <string name="clear_chat_history">Очистить историю чата</string>
+    <string name="archive_origin_chat">Чат режим</string>
+    <string name="archive_origin_project">Проект</string>
+    <string name="action_open">Открыть</string>
+    <string name="action_unarchive">Разархивировать</string>
+    <string name="action_delete">Удалить</string>
+    <string name="chat_search_hint">Поиск чатов</string>
+    <string name="close_search">Закрыть поиск</string>
+    <string name="ask_multiai">Спросить MultiAI</string>
+    <string name="voice">Голос</string>
+    <string name="stop">Стоп</string>
+    <string name="send_voice">Отправить голос</string>
+    <string name="transcribing">Расшифровка…</string>
+    <string name="attach">Вложить</string>
+    <string name="remove_attachment">Удалить вложение</string>
+    <string name="saved_memories">Воспоминания</string>
+    <string name="saved_memory_subtitle">Сохранённая память</string>
+    <string name="chat_history_title">История чатов</string>
+    <string name="chat_history_empty">Как только вы начнете общаться,\nваши обсуждения появятся здесь.</string>
+</resources>

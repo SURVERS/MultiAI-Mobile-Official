@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="56dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <LinearLayout
+        android:id="@+id/workflowArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginBottom="6dp">
+
+        <LinearLayout
+            android:id="@+id/workflowSummaryHeader"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
+            android:visibility="gone">
+
+            <app.multiai.mobile.ui.ThinkingWaveIconView
+                android:id="@+id/workflowSummaryIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_check"
+                android:tint="@color/icon_muted"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/workflowSummaryText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <ImageView
+                android:id="@+id/workflowSummaryToggle"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_chevron_down"
+                android:tint="@color/icon_muted"
+                android:contentDescription="@null" />
+        </LinearLayout>
+
+        <!-- Tool calls (Обзор) — перед thinking, чтобы порядок был:
+             Обзор → размышление → Обзор → размышление -->
+        <LinearLayout
+            android:id="@+id/toolCallsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone" />
+
+        <!-- Thinking Block (сворачиваемый) — после tool calls -->
+        <LinearLayout
+            android:id="@+id/thinkingContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="4dp">
+
+            <!-- Заголовок thinking (кликабельный) -->
+            <LinearLayout
+                android:id="@+id/thinkingHeader"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true">
+
+                <app.multiai.mobile.ui.ThinkingWaveIconView
+                    android:id="@+id/thinkingWaveIcon"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_reasoning_spark"
+                    android:layout_marginEnd="10dp"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:id="@+id/thinkingPreview"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="@string/lay_thinking_process"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif" />
+
+                <ImageView
+                    android:id="@+id/thinkingToggle"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_down"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@null" />
+            </LinearLayout>
+
+            <!-- Контент thinking (сворачиваемый и независимо прокручиваемый) -->
+            <app.multiai.mobile.views.MaxHeightNestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/reasoning_expanded_background"
+                app:maxHeightCompat="220dp"
+                android:scrollbars="vertical"
+                android:fillViewport="false"
+                android:overScrollMode="ifContentScrolls">
+
+                <TextView
+                    android:id="@+id/textThinking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif"
+                    android:textIsSelectable="true"
+                    android:lineSpacingExtra="3dp"
+                    android:visibility="visible" />
+            </app.multiai.mobile.views.MaxHeightNestedScrollView>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Unified bubble container for ALL content -->
+    <LinearLayout
+        android:id="@+id/bubbleContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:background="@drawable/message_ai_background"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
+
+        <!-- Text content (for streaming + simple text) -->
+        <TextView
+            android:id="@+id/textMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:gravity="start"
+            android:textAlignment="viewStart"
+            android:textDirection="ltr"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:lineSpacingExtra="4dp" />
+
+        <!-- Code blocks / mixed content container (inside bubble) -->
+        <LinearLayout
+            android:id="@+id/codeBlocksContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Action Bar -->
+    <LinearLayout
+        android:id="@+id/actionBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:paddingTop="4dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/btnCopy"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:padding="11dp"
+            android:src="@drawable/ic_copy"
+            android:contentDescription="@string/lay_cd_copy"
+            android:tooltipText="@string/lay_cd_copy"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <ImageView
+            android:id="@+id/btnLike"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:padding="11dp"
+            android:layout_marginStart="4dp"
+            android:src="@drawable/ic_like"
+            android:contentDescription="@string/lay_cd_like"
+            android:tooltipText="@string/lay_cd_like"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <ImageView
+            android:id="@+id/btnDislike"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:padding="11dp"
+            android:layout_marginStart="4dp"
+            android:src="@drawable/ic_dislike"
+            android:contentDescription="@string/lay_cd_dislike"
+            android:tooltipText="@string/lay_cd_dislike"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <ImageView
+            android:id="@+id/btnTts"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:padding="11dp"
+            android:layout_marginStart="4dp"
+            android:src="@drawable/ic_volume"
+            android:contentDescription="@string/lay_cd_tts"
+            android:tooltipText="@string/lay_cd_tts"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <ImageView
+            android:id="@+id/btnMore"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:padding="11dp"
+            android:layout_marginStart="4dp"
+            android:src="@drawable/ic_more_vert"
+            android:contentDescription="@string/lay_cd_more"
+            android:tooltipText="@string/lay_cd_more"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/variantPager"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_marginTop="2dp"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+        <ImageButton
+            android:id="@+id/variantPrev"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/chat_previous_variant"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            android:tint="@color/icon_muted" />
+        <TextView
+            android:id="@+id/variantIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+        <ImageButton
+            android:id="@+id/variantNext"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/chat_next_variant"
+            android:padding="8dp"
+            android:src="@drawable/ic_chevron_right"
+            android:tint="@color/icon_muted" />
+    </LinearLayout>
+
+</LinearLayout>

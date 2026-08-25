@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English overrides for chat UI strings (ChatActivity / ChatModeActivity). -->
+<resources>
+
+    <!-- ===== Generic chat UI ===== -->
+    <string name="chat_permission_denied">Permission denied</string>
+    <string name="chat_copied">Copied</string>
+    <string name="chat_thanks_for_rating">Thanks for the rating</string>
+    <string name="chat_feedback_sent">Feedback sent</string>
+    <string name="chat_share">Share</string>
+    <string name="chat_copy">Copy</string>
+    <string name="chat_retry">Retry</string>
+    <string name="chat_cancel">Cancel</string>
+    <string name="chat_new_chat">New chat</string>
+    <string name="chat_temporary_chat">Temporary chat</string>
+    <string name="chat_actions">Chat actions</string>
+    <string name="chat_share_user_prefix">You:</string>
+    <string name="chat_share_ai_prefix">MultiAI:</string>
+    <string name="chat_share_default_title">MultiAI chat</string>
+    <string name="chat_share_chooser">Share chat</string>
+    <string name="chat_no_files">No loaded files in this chat</string>
+    <string name="chat_files_title">Loaded files</string>
+    <string name="chat_shortcut_unsupported">Shortcuts are not supported on this device</string>
+    <string name="chat_shortcut_launcher_unsupported">Launcher does not support adding shortcuts</string>
+    <string name="chat_safe_title_default">New chat</string>
+    <string name="chat_message_label">Message</string>
+    <string name="chat_match_user_prefix">You ·</string>
+    <string name="chat_match_ai_prefix">MultiAI ·</string>
+    <string name="chat_find">Find</string>
+    <string name="chat_save">Save</string>
+    <string name="chat_not_now">Not now</string>
+    <string name="chat_allow">Allow</string>
+    <string name="chat_got_it">Got it</string>
+    <string name="chat_go">Go</string>
+    <string name="chat_later">Later</string>
+    <string name="chat_submit">Submit</string>
+
+    <!-- ===== Attach menu ===== -->
+    <string name="chat_camera">Camera</string>
+    <string name="chat_photo">Photo</string>
+    <string name="chat_files">Files</string>
+    <string name="chat_attach_title">Attach</string>
+
+    <!-- ===== Error / status toasts (formatted) ===== -->
+    <string name="chat_error_camera">Camera error: %1$s</string>
+    <string name="chat_error_image">Image error: %1$s</string>
+    <string name="chat_error_file">File error: %1$s</string>
+    <string name="chat_error_mic">Microphone error: %1$s</string>
+    <string name="chat_error_recognition">Recognition error: %1$s</string>
+    <string name="chat_error_read_file">File read error: %1$s</string>
+    <string name="chat_error_move">Move error: %1$s</string>
+    <string name="chat_error_load_image">Image load error: %1$s</string>
+    <string name="chat_error_generic">Error: %1$s</string>
+    <string name="chat_error_playback">Playback error</string>
+    <string name="chat_voice_unrecognized">MultiAI couldn\'t recognize it. Try again.</string>
+    <string name="chat_speech_not_recognized">Speech not recognized</string>
+    <string name="chat_voice_unavailable">Voice input unavailable</string>
+    <string name="chat_error_recognition_short">Recognition error</string>
+    <string name="chat_no_network">No network</string>
+
+    <!-- ===== TTS ===== -->
+    <string name="chat_tts_generating">Generating audio…</string>
+    <string name="chat_error_tts_code">TTS error: %1$d</string>
+    <string name="chat_tts_error">TTS: %1$s</string>
+    <string name="chat_tts_error_msg">TTS error: %1$s</string>
+
+    <!-- ===== Empty state / greetings (Chat Mode) ===== -->
+    <string name="chat_temp_chat_title">This is a temporary chat</string>
+    <string name="chat_temp_chat_subtitle">It won\'t appear in history and will disappear after you turn it off.</string>
+    <string name="chat_hello_name">Hi, %1$s!</string>
+    <string name="chat_friend">friend</string>
+
+    <!-- ===== Message / attachment labels ===== -->
+    <string name="chat_file_truncated">\n... [file truncated]</string>
+    <string name="chat_image_label">Image</string>
+    <string name="chat_file_label">File: %1$s</string>
+    <string name="chat_file_attached">File attached: %1$s</string>
+    <string name="chat_logs_prefix">Logs: %1$s</string>
+    <string name="chat_tool_running">Running…</string>
+
+    <!-- ===== Chat action sheet items ===== -->
+    <string name="chat_pin">Pin</string>
+    <string name="chat_unpin">Unpin</string>
+    <string name="chat_move_to_project">Move to project</string>
+    <string name="chat_move_to_chat_mode">Move to chat mode</string>
+    <string name="chat_downloaded_files">Downloaded files</string>
+    <string name="chat_find_in_chat">Find in chat</string>
+    <string name="chat_add_to_home">Add to home screen</string>
+    <string name="chat_archive">Archive</string>
+    <string name="chat_rename">Rename</string>
+
+    <!-- ===== Chat state toasts ===== -->
+    <string name="chat_chat_pinned">Chat pinned</string>
+    <string name="chat_chat_unpinned">Chat unpinned</string>
+    <string name="chat_chat_archived">Chat archived</string>
+    <string name="chat_chat_unarchived">Chat unarchived</string>
+    <string name="chat_chat_deleted">Chat deleted</string>
+    <string name="chat_chat_not_found">Chat not found</string>
+    <string name="chat_moved_to_project">Moved to project</string>
+    <string name="chat_moved_to_chat_mode">Moved to chat mode</string>
+
+    <!-- ===== Search in chat ===== -->
+    <string name="chat_search_text_hint">Text to search</string>
+    <string name="chat_no_matches">No matches found</string>
+    <string name="chat_found_count">Found: %1$d</string>
+    <string name="chat_search_in_chat">Search in chat</string>
+    <string name="chat_nothing_found">Nothing found</string>
+    <string name="chat_no_messages_yet">This chat has no messages yet</string>
+
+    <!-- ===== Rename / delete dialogs ===== -->
+    <string name="chat_chat_name_hint">Chat name</string>
+    <string name="chat_rename_chat">Rename chat</string>
+    <string name="chat_delete_chat_title">Delete chat?</string>
+    <string name="chat_delete_chat_body">\"%1$s\" will be permanently deleted.</string>
+    <string name="chat_chat_fallback">Chat</string>
+
+    <!-- ===== Model picker ===== -->
+    <string name="chat_loading_models">Loading models…</string>
+    <string name="chat_model_loading_dots">Loading models...</string>
+    <string name="chat_model_picker_title">Choose model</string>
+    <string name="chat_model_sheet_title">Model</string>
+    <string name="chat_model_not_selected">No model selected</string>
+    <string name="chat_model_unavailable">%1$s is temporarily unavailable</string>
+    <string name="chat_temporarily_unavailable">Temporarily unavailable</string>
+    <string name="chat_model_maintenance_title">Model under maintenance</string>
+    <string name="chat_model_maintenance_body">%1$s is temporarily unavailable. Try choosing another model or check back later!</string>
+
+    <!-- ===== Model catalog ===== -->
+    <string name="mc_tab_all">All</string>
+    <string name="mc_tab_free">Free</string>
+    <string name="mc_tab_openai">OpenAI</string>
+    <string name="mc_tab_anthropic">Anthropic</string>
+    <string name="mc_tab_google">Google</string>
+    <string name="mc_tab_chinese">Chinese</string>
+    <string name="mc_tab_other">Other</string>
+    <string name="mc_free">FREE</string>
+    <string name="mc_ctx">ctx</string>
+    <string name="mc_out">out</string>
+    <string name="mc_select_model">Select model</string>
+    <string name="mc_reasoning_effort">Reasoning effort</string>
+    <string name="mc_effort_none">None</string>
+    <string name="mc_effort_low">Low</string>
+    <string name="mc_effort_medium">Medium</string>
+    <string name="mc_effort_high">High</string>
+    <string name="mc_effort_max">Max</string>
+    <string name="mc_stat_context">Context window</string>
+    <string name="mc_stat_output">Max output</string>
+    <string name="mc_stat_input">Input</string>
+    <string name="mc_stat_output_mult">Output</string>
+    <string name="mc_stat_cached">Cached input</string>
+    <string name="mc_stat_modalities">Modalities</string>
+    <string name="mc_modality_text">Text</string>
+    <string name="mc_modality_image">Image</string>
+    <string name="mc_modality_audio">Audio</string>
+    <string name="mc_modality_video">Video</string>
+    <string name="mc_stat_kind">Kind</string>
+    <string name="mc_stat_reasoning">Reasoning</string>
+    <string name="mc_tokens_unit">tokens</string>
+
+    <!-- ===== Context usage sheet ===== -->
+    <string name="ctx_title">Context usage</string>
+    <string name="ctx_system_prompt">System Prompt</string>
+    <string name="ctx_messages">Messages</string>
+    <string name="ctx_tools">Tools</string>
+
+    <!-- ===== Location permission rationale ===== -->
+    <string name="chat_location_title">Location</string>
+    <string name="chat_location_message_chatmode">MultiAI can show precise weather and time for your city. Allow access to your location? Otherwise IP-based detection will be used.</string>
+    <string name="chat_location_message_project">MultiAI can show precise weather and time for your city if you allow location access. You can decline — weather will then be IP-based.</string>
+
+    <!-- ===== AI message more menu ===== -->
+    <string name="chat_branch_new_chat">Branch in new chat</string>
+    <string name="chat_search_web">Search the web</string>
+    <string name="chat_branch_created">Branch created</string>
+    <string name="chat_branch_context">AI response for branch</string>
+
+    <!-- ===== Dislike feedback ===== -->
+    <string name="chat_what_wrong_with_answer">What\'s wrong with the answer?</string>
+    <string name="chat_share_details_hint">Share details (optional)</string>
+    <string name="chat_feedback_info">Your conversation will be included in the feedback to help improve MultiAI.</string>
+    <string name="chat_thanks_for_feedback">Thanks for your feedback!</string>
+
+    <!-- ===== Notifications ===== -->
+    <string name="chat_notif_channel_name">AI responses</string>
+    <string name="chat_notif_channel_desc">Notifications when an AI response is ready</string>
+    <string name="chat_notif_default">Response ready</string>
+    <string name="chat_notif_title">MultiAI replied</string>
+
+    <!-- ===== Auth errors ===== -->
+    <string name="chat_not_authorized_google">Not signed in to MultiAI</string>
+
+    <!-- ===== Voice hints ===== -->
+    <string name="chat_speak_now">Speak…</string>
+    <string name="chat_recognizing">Recognizing speech…</string>
+    <string name="chat_message_hint">Message…</string>
+
+    <!-- ===== showChatStyleError (Project mode) ===== -->
+    <string name="chat_err_model_disabled_title">Model unavailable 🚫</string>
+    <string name="chat_err_model_disabled_body">%1$s is disabled on the server. Pick another model from the switcher above — there are plenty.</string>
+    <string name="chat_err_no_models_title">No models available 😶</string>
+    <string name="chat_err_no_models_body">The server returned an empty model list. Try again later or check your account in profile.</string>
+    <string name="chat_err_maintenance_title">Under maintenance 🔧</string>
+    <string name="chat_err_maintenance_body">The server is updating. Check back in a few minutes — we won\'t be long.</string>
+    <string name="chat_err_timeout_title">Time\'s up ⏰</string>
+    <string name="chat_err_timeout_body">The server did not respond after 10 reconnect attempts. Try the request again later.</string>
+    <string name="chat_err_folder_access_title">No folder access</string>
+    <string name="chat_err_folder_access_body">Check project folder permissions in settings.</string>
+    <string name="chat_err_file_not_found_title">File not found</string>
+    <string name="chat_err_file_not_found_body">Check the file path and folder structure.</string>
+    <string name="chat_err_tool_title">Tool broke 🛠️</string>
+    <string name="chat_err_tool_body">The tool call failed. Try again or rephrase your request.</string>
+    <string name="chat_err_tool_round_limit_title">Tool chain stopped</string>
+    <string name="chat_err_tool_round_limit_body">The model exceeded the safe limit: maximum 12 tool rounds per request. Start a new request or clarify the task.</string>
+    <string name="chat_err_client_unavailable">MultiAI client unavailable</string>
+    <string name="chat_err_followup">Follow-up error: %1$s</string>
+    <string name="chat_err_tool_results">Tool results processing error: %1$s</string>
+    <string name="chat_err_tool_loop_msg">**Tool chain stopped**\n\nThe model requested more than %1$d consecutive tool rounds. Try clarifying the request or starting a new response.</string>
+    <string name="chat_err_tool_loop_tool">Exceeded limit of %1$d consecutive tool rounds</string>
+    <string name="chat_err_limit_exhausted">Limit exhausted</string>
+    <string name="chat_err_firecrawl_limit">Firecrawl limit exhausted</string>
+    <string name="chat_attached_file_prefix">Attached file: %1$s</string>
+    <string name="chat_err_empty_tool_result">Empty tool result</string>
+    <string name="chat_err_server_title">Server is moody 🤖</string>
+    <string name="chat_err_server_body">The response came back with an error. Retry — it usually works the second time.</string>
+    <string name="chat_err_network_title">No connection 📡</string>
+    <string name="chat_err_network_body">Check your internet and tap retry. Even Wi-Fi gets tired sometimes.</string>
+    <string name="chat_err_generic_title">Something went wrong 🤔</string>
+    <string name="chat_err_generic_body">The request failed. Retry — it often fixes the issue. If not, contact support.</string>
+    <string name="chat_err_support_link">Contact support →</string>
+    <string name="chat_err_auth_title">Oops... 🫠</string>
+    <string name="chat_err_auth_body">It looks like your session has expired. It happens — tokens aren\'t forever. Tap the button below to sign back in.</string>
+    <string name="chat_err_not_authorized_title">Oops... 👀</string>
+    <string name="chat_err_not_authorized_body">You\'re not signed in yet. Without an account the AI stays silent, and we don\'t want to upset it. Tap the button below to sign in.</string>
+    <string name="chat_err_auth_button">Sign in with MultiAI</string>
+
+    <!-- ===== Vibe lines rotation (Chat Mode empty state) ===== -->
+    <string-array name="vibe_lines">
+        <item>What are we smashing today?</item>
+        <item>Where do we start, bro?</item>
+        <item>Drop a thought — we\'ll crank it up.</item>
+        <item>Got an idea worth leveling up?</item>
+        <item>Want to build something bold?</item>
+        <item>Shall we surprise the world today?</item>
+        <item>What\'s the plan? I\'m ready</item>
+        <item>Tell me — I\'ll listen and help.</item>
+        <item>Wanna cook something cool?</item>
+        <item>What\'s the plan for today?</item>
+        <item>Launch an idea — I\'ll catch it.</item>
+        <item>Brainstorm? Let\'s go.</item>
+        <item>Breaking patterns today?</item>
+        <item>I\'m listening. You\'re the boss.</item>
+        <item>Need help or just want to chat?</item>
+        <item>Throw a task — we\'ll figure it out.</item>
+        <item>Ready for anything. Well, almost</item>
+        <item>Let\'s make today productive?</item>
+        <item>Got a question? Got an answer.</item>
+        <item>Go hard — I\'m taking notes</item>
+        <item>Coding today?</item>
+        <item>Maybe we\'ll find something interesting online?</item>
+        <item>Want to check the weather or time?</item>
+        <item>I\'ve got tools — use them!</item>
+        <item>So, are we joking or working?</item>
+        <item>Check grammar? Or swipe to code?</item>
+        <item>Ask anything — don\'t be shy.</item>
+        <item>Let\'s dig deeper?</item>
+        <item>Need advice? I\'m here.</item>
+        <item>What\'s on your mind?</item>
+        <item>Drop a topic — let\'s set the vibe.</item>
+        <item>Translate something? Easy.</item>
+        <item>Math? Physics? Philosophy? Let\'s go!</item>
+        <item>I\'ll tell a tale or explain quantum physics.</item>
+        <item>Had your coffee? Then let\'s get to work.</item>
+        <item>I\'m chilling, but I switch to max anytime.</item>
+        <item>Proofread me or write an email?</item>
+        <item>Long story short, you talk — I do.</item>
+    </string-array>
+
+    <!-- ===== Project mode empty-state typing phrases ===== -->
+    <string-array name="chat_empty_phrases">
+        <item>Load your request, but before you start you can twist the knobs like an old radio — maybe you\'ll catch a different wave.</item>
+        <item>AI writes its answer like a contestant on Name That Tune, only with words instead of notes, and it never gives up, even when it\'s rambling.</item>
+        <item>Context is like notes on a napkin that the model reads until you close the bar counter. Close it — and it\'s gone.</item>
+        <item>Streaming is when the answer arrives in pieces, like TV show teasers, so you don\'t fall asleep while the neural network warms up.</item>
+        <item>Code from AI is like a cat in a bag: looks fluffy, but you still have to check it by hand, or you\'ll end up with an aquarium instead of a website.</item>
+    </string-array>
+
+    <!-- ===== Dislike feedback categories ===== -->
+    <string-array name="chat_dislike_categories">
+        <item>Select a problem</item>
+        <item>Inaccurate or incomplete</item>
+        <item>Not what I asked for</item>
+        <item>Slow or buggy</item>
+        <item>Style or tone</item>
+        <item>Safety or legal concerns</item>
+        <item>Other</item>
+    </string-array>
+
+</resources>

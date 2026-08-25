@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Пузырь пользователя (Work) в стиле ChatGPT: фото — отдельно над пузырём
+     (без бабла, со своими скруглениями), текст — в пузыре под фото. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="56dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- Image: отдельная скруглённая карточка над пузырём (без бабла) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/imageCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:cardPreventCornerOverlap="false"
+        app:cardUseCompatPadding="false">
+
+        <ImageView
+            android:id="@+id/imageAttachment"
+            android:layout_width="230dp"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:minHeight="80dp"
+            android:maxHeight="320dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/lay_cd_attached_image" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- File attachment: компактный чип над пузырём -->
+    <LinearLayout
+        android:id="@+id/fileAttachmentCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/attachment_chip_bg"
+        android:paddingStart="10dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_file_outline"
+            android:tint="@color/user_bubble_text"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/lay_cd_file" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/fileAttachmentName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/user_bubble_text"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:maxWidth="200dp" />
+
+            <TextView
+                android:id="@+id/fileAttachmentSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Текстовый пузырь -->
+    <LinearLayout
+        android:id="@+id/userBubbleContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:orientation="vertical"
+        android:background="@drawable/message_user_background">
+
+        <TextView
+            android:id="@+id/textMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="272dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:elevation="0dp"
+            android:visibility="visible"
+            android:textColor="@color/user_bubble_text"
+            android:textSize="15sp"
+            android:lineSpacingExtra="3dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

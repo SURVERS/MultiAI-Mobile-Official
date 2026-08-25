@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Переиспользуемый drawer navigation.
+     Custom rows replace NavigationView so each item can show
+     icon + title + subtitle + chevron. Row ids (nav_chat, nav_terminal,
+     nav_files, nav_editor, nav_settings, nav_profile) are wired by Java. -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawerFrame"
+    android:layout_width="300dp"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    android:background="@color/bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Header: logo + "MultiAI" with superscript WORK badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="22dp"
+            android:paddingBottom="16dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_multiai_logo"
+                android:tint="@color/icon"
+                android:background="@drawable/sidebar_logo_tile_bg"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/app_name" />
+
+            <!-- Title row: "MultiAI" + superscript WORK badge (badge is clickable) -->
+            <LinearLayout
+                android:id="@+id/drawerHeaderTitleRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                android:layout_marginTop="14dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <TextView
+                    android:id="@+id/drawerHeaderTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nav_header_title"
+                    android:textColor="@color/text_primary"
+                    android:textSize="22sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="-0.02" />
+
+                <!-- WORK badge: real superscript, medium size, orange pill.
+                     Tapping it opens the mode-switch dropdown. -->
+                <FrameLayout
+                    android:id="@+id/modeBadgeContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <TextView
+                        android:id="@+id/modeBadgeText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="WORK"
+                        android:textColor="@color/on_fixed_dark"
+                        android:textSize="10sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.06"
+                        android:includeFontPadding="false"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:minHeight="16dp"
+                        android:background="@drawable/mode_badge_work"
+                        android:translationY="-6dp" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/nav_header_subtitle"
+                android:textColor="@color/text_hint"
+                android:textSize="11sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <!-- Scrollable custom menu -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:scrollbars="none"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="2dp"
+                android:paddingBottom="8dp">
+
+                <include
+                    android:id="@+id/nav_chat"
+                    layout="@layout/drawer_nav_item" />
+
+                <include
+                    android:id="@+id/nav_terminal"
+                    layout="@layout/drawer_nav_item" />
+
+                <include
+                    android:id="@+id/nav_files"
+                    layout="@layout/drawer_nav_item" />
+
+                <include
+                    android:id="@+id/nav_editor"
+                    layout="@layout/drawer_nav_item" />
+
+                <include
+                    android:id="@+id/nav_history"
+                    layout="@layout/drawer_nav_item" />
+
+                <!-- Expandable chat-history list (revealed when История is tapped).
+                     Animated open/close handled in DrawerNavHelper. -->
+                <LinearLayout
+                    android:id="@+id/historyExpandContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="48dp"
+                    android:layout_marginEnd="12dp"
+                    android:visibility="gone" />
+
+                <!-- Thin divider between primary nav and settings/profile -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/divider" />
+
+                <include
+                    android:id="@+id/nav_access"
+                    layout="@layout/drawer_nav_item" />
+
+                <include
+                    android:id="@+id/nav_settings"
+                    layout="@layout/drawer_nav_item" />
+
+                <include
+                    android:id="@+id/nav_profile"
+                    layout="@layout/drawer_nav_item" />
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- Version -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="14dp"
+            android:text="@string/drawer_version"
+            android:textColor="@color/text_hint"
+            android:textSize="11sp"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+</FrameLayout>

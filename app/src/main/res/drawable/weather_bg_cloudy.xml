@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Облачно: серо-голубой. Fixed dark gradient so the always-white foreground
+     (weather_foreground token) keeps contrast in both light and dark themes. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="135"
+        android:startColor="#475569"
+        android:centerColor="#334155"
+        android:endColor="#1E293B" />
+    <corners android:radius="22dp" />
+</shape>

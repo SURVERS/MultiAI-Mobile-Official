@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24"
+    android:tint="?android:attr/textColorSecondary">
+    <!-- Java: coffee cup with steam -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4,19A2,2 0 0,0 6,21H16A2,2 0 0,0 18,19V16H4V19M19,16A3,3 0 0,0 22,13A3,3 0 0,0 19,10V11.5A1.5,1.5 0 0,1 20.5,13A1.5,1.5 0 0,1 19,14.5V16M3,3H21V5H3V3M5,7H19V9H5V7M5,10H19V14H5V10Z" />
+</vector>

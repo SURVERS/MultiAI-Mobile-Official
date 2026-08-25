@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Превью вложения внутри поля ввода — как в ChatGPT:
+     • фото: скруглённая картинка (~1/3 ширины экрана, пропорции сохранены),
+       без крестика — тап по превью открывает галерею заново
+     • файл: компактная карточка с иконкой и именем -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/attachmentPreviewCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="4dp"
+    android:visibility="gone">
+
+    <!-- Фото-режим: скруглённая плитка с сохранением пропорций -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/attachmentImageBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:visibility="visible"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp"
+        app:cardPreventCornerOverlap="false"
+        app:cardUseCompatPadding="false"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <ImageView
+            android:id="@+id/attachmentPreview"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:minHeight="72dp"
+            android:maxHeight="180dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/lay_cd_attached_image" />
+
+        <ProgressBar
+            android:id="@+id/attachmentLoading"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/accent"
+            android:visibility="gone" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Файл-режим: карточка иконка + имя -->
+    <LinearLayout
+        android:id="@+id/attachmentFileBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:minWidth="140dp"
+        android:maxWidth="260dp"
+        android:orientation="vertical"
+        android:gravity="start"
+        android:padding="12dp"
+        android:background="@drawable/attachment_chip_bg"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/attachmentFileIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_file_outline"
+            android:tint="@color/text_secondary"
+            android:contentDescription="@string/lay_cd_file" />
+
+        <TextView
+            android:id="@+id/attachmentFileName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+
+    <!-- Контейнер даёт удобную 48dp зону тапа, визуальный badge остаётся 24dp. -->
+    <FrameLayout
+        android:id="@+id/btnRemoveAttachment"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start|top"
+        android:layout_marginStart="100dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/remove_attachment">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top|center_horizontal"
+            android:background="@drawable/attachment_remove_badge"
+            android:src="@drawable/ic_close"
+            android:tint="@android:color/white"
+            android:padding="6dp"
+            android:scaleType="centerInside"
+            android:elevation="3dp"
+            android:contentDescription="@null" />
+    </FrameLayout>
+
+</FrameLayout>

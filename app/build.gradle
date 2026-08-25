@@ -1,0 +1,171 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'app.multiai.mobile'
+    compileSdk 35
+
+    signingConfigs {
+        release {
+            // The owner supplies the publishing keystore outside the repo.
+            // When these Gradle properties are present, release APKs are
+            // signed automatically; local builds remain reproducible unsigned.
+            def storePath = project.findProperty('MULTIAI_RELEASE_STORE_FILE')
+            if (storePath) {
+                storeFile file(storePath)
+                storePassword project.findProperty('MULTIAI_RELEASE_STORE_PASSWORD')
+                keyAlias project.findProperty('MULTIAI_RELEASE_KEY_ALIAS')
+                keyPassword project.findProperty('MULTIAI_RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId "app.multiai.mobile"
+        minSdk 28
+        targetSdk 35
+        versionCode 7
+        versionName "1.4.2"
+
+        // MultiAI OAuth client config. These are NOT secrets — a native public client
+        // has no client_secret. Replace the placeholders with the real values the
+        // MultiAI administrator registers in Dashboard → OAuth → Applications.
+        // See oauth-client-integration-ai.md (sections 2 & 3).
+        buildConfigField "String", "OAUTH_ISSUER", "\"https://multiai.store\""
+        buildConfigField "String", "OAUTH_CLIENT_ID", "\"ma-client-bg5vkrqi2dre7tee\""
+        buildConfigField "String", "OAUTH_REDIRECT_URI", "\"multiai-mobile://oauth/callback\""
+        // Full set per TZ §3: keys management + billing (live on prod 17.08).
+        buildConfigField "String", "OAUTH_SCOPES",
+                "\"openid profile email account:read keys:read keys:write billing:read ai:invoke chat:read chat:write\""
+    }
+
+    buildTypes {
+        release {
+            // Keep local release builds unsigned until the owner supplies a
+            // publishing keystore. When all four properties are present,
+            // sign automatically with the optional config above.
+            if (project.findProperty('MULTIAI_RELEASE_STORE_FILE')
+                    && project.findProperty('MULTIAI_RELEASE_STORE_PASSWORD')
+                    && project.findProperty('MULTIAI_RELEASE_KEY_ALIAS')
+                    && project.findProperty('MULTIAI_RELEASE_KEY_PASSWORD')) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            lint {
+                checkReleaseBuilds true
+                abortOnError true
+            }
+        }
+    }
+
+    lint {
+        // Existing legacy layouts use android:tint intentionally and the
+        // project ships Russian/English resource overlays incrementally.
+        // Keep these non-runtime migrations from blocking release lint while
+        // all Java/API/security checks remain enabled.
+        disable 'UseAppTint', 'MissingTranslation', 'ExtraTranslation'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+    
+    // Глобальное исключение конфликтующих зависимостей
+    configurations.all {
+        exclude group: 'org.jetbrains', module: 'annotations-java5'
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // Markwon - ПОЛНОЦЕННЫЙ Markdown для Android (поддерживает ВСЁ!)
+    def markwonVersion = '4.6.2'
+    implementation("io.noties.markwon:core:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    implementation("io.noties.markwon:ext-strikethrough:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    implementation("io.noties.markwon:ext-tables:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    implementation("io.noties.markwon:ext-tasklist:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    implementation("io.noties.markwon:html:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    implementation("io.noties.markwon:image:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    implementation("io.noties.markwon:linkify:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    implementation("io.noties.markwon:syntax-highlight:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    // LaTeX: $...$ / $$...$$ рендерятся в картинки через JLatexMath
+    implementation("io.noties.markwon:ext-latex:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    implementation('ru.noties:jlatexmath-android:0.2.0') {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    // inline-parser обязателен для inline-LaTeX ($...$) — без него
+    // JLatexMathPlugin с inlinesEnabled(true) падает на build().
+    implementation("io.noties.markwon:inline-parser:$markwonVersion") {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    
+    // Prism4j для подсветки синтаксиса в кодблоках
+    implementation('io.noties:prism4j:2.0.0') {
+        exclude group: 'org.jetbrains', module: 'annotations'
+    }
+    annotationProcessor 'io.noties:prism4j-bundler:2.0.0'
+    
+    // ViewPager2 for onboarding
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    // 📍 Fused Location (для точной геолокации через Wi-Fi/сотовые)
+    implementation 'com.google.android.gms:play-services-location:21.1.0'
+    
+    // Glide для загрузки аватарок
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+
+    // 🔐 BiometricPrompt — биометрия для входа (отпечаток / Face Unlock)
+    implementation 'androidx.biometric:biometric:1.1.0'
+
+    // 🔐 MultiAI OAuth — EncryptedSharedPreferences for refresh-token storage
+    // (OS keystore-backed; per integration doc section 11, refresh token must live
+    // in the OS secret store, never in plain SharedPreferences).
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // 🌐 Custom Tabs — opens the MultiAI authorize page in the SYSTEM browser
+    // (integration doc §1.3 & §5.2: never embed MultiAI in a WebView/iframe).
+    implementation 'androidx.browser:browser:1.8.0'
+
+    // 🎬 Lottie — for animated Telegram-style emoji (Telemoji)
+    implementation 'com.airbnb.android:lottie:6.4.0'
+
+    // 🧪 Unit tests for the pure-Java OAuth primitives (PKCE, ID-token validator).
+    testImplementation 'junit:junit:4.13.2'
+    // Real org.json on the JVM so JSONObject.put/get aren't the Android "not mocked"
+    // stubs (the validator tests build/parse JWTs client-side).
+    testImplementation 'org.json:json:20231013'
+}

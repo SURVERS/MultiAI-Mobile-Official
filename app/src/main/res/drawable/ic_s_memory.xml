@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Память: заметка/лист с галочками -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M6,3 L18,3 A2,2 0 0,1 20,5 L20,19 A2,2 0 0,1 18,21 L6,21 A2,2 0 0,1 4,19 L4,5 A2,2 0 0,1 6,3 Z"
+          android:strokeColor="@color/text_primary" android:strokeWidth="1.6"
+          android:fillColor="#00000000" android:strokeLineJoin="round"/>
+    <path android:pathData="M8,8 L16,8 M8,12 L13,12 M8,16 L11,16"
+          android:strokeColor="@color/text_primary" android:strokeWidth="1.6"
+          android:fillColor="#00000000" android:strokeLineCap="round"/>
+</vector>

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+    <!-- ══════════ IDLE ⇄ TYPING ══════════
+         [+] inside bar → [+] detached as circle outside (left) -->
+    <Transition
+        motion:constraintSetStart="@+id/scene_idle"
+        motion:constraintSetEnd="@+id/scene_typing"
+        motion:duration="340"
+        motion:motionInterpolator="easeInOut">
+        <KeyFrameSet>
+            <KeyAttribute
+                motion:motionTarget="@+id/btnAttach"
+                motion:framePosition="45"
+                android:scaleX="0.86"
+                android:scaleY="0.86" />
+            <KeyAttribute
+                motion:motionTarget="@+id/btnAttach"
+                motion:framePosition="82"
+                android:scaleX="1.05"
+                android:scaleY="1.05" />
+        </KeyFrameSet>
+    </Transition>
+
+    <!-- ══════════ IDLE ⇄ RECORDING ══════════
+         [+] inside bar → [×] detached as circle outside (left) -->
+    <Transition
+        motion:constraintSetStart="@+id/scene_idle"
+        motion:constraintSetEnd="@+id/scene_recording"
+        motion:duration="360"
+        motion:motionInterpolator="easeInOut">
+        <KeyFrameSet>
+            <!-- Rotation morph: + → × (45°) with gentle scale punch -->
+            <KeyAttribute
+                motion:motionTarget="@+id/btnAttach"
+                motion:framePosition="50"
+                android:scaleX="0.86"
+                android:scaleY="0.86" />
+            <KeyAttribute
+                motion:motionTarget="@+id/btnAttach"
+                motion:framePosition="85"
+                android:scaleX="1.08"
+                android:scaleY="1.08" />
+        </KeyFrameSet>
+    </Transition>
+
+    <!-- ══════════ TYPING ⇄ RECORDING ══════════
+         [+] already detached → rotation morph + → × -->
+    <Transition
+        motion:constraintSetStart="@+id/scene_typing"
+        motion:constraintSetEnd="@+id/scene_recording"
+        motion:duration="260"
+        motion:motionInterpolator="easeInOut">
+        <KeyFrameSet>
+            <KeyAttribute
+                motion:motionTarget="@+id/btnAttach"
+                motion:framePosition="50"
+                android:scaleX="0.88"
+                android:scaleY="0.88" />
+        </KeyFrameSet>
+    </Transition>
+
+    <!-- ════════ CONSTRAINT SETS ════════ -->
+
+    <!-- IDLE: inputBox full width, [+] inside (no circle bg) -->
+    <ConstraintSet android:id="@+id/scene_idle">
+
+        <Constraint android:id="@+id/inputBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="0dp"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
+        <Constraint android:id="@+id/btnAttachCircleBg"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="0.0"
+            motion:layout_constraintStart_toStartOf="@+id/btnAttach"
+            motion:layout_constraintEnd_toEndOf="@+id/btnAttach"
+            motion:layout_constraintTop_toTopOf="@+id/btnAttach"
+            motion:layout_constraintBottom_toBottomOf="@+id/btnAttach" />
+
+        <Constraint android:id="@+id/btnAttach"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="1.0"
+            android:rotation="0"
+            motion:layout_constraintStart_toStartOf="@+id/inputBox"
+            motion:layout_constraintBottom_toBottomOf="@+id/inputBox"
+            android:layout_marginStart="2dp"
+            android:layout_marginBottom="2dp" />
+    </ConstraintSet>
+
+    <!-- TYPING: inputBox shrinks, [+] flies out to the left as circle button -->
+    <ConstraintSet android:id="@+id/scene_typing">
+
+        <Constraint android:id="@+id/inputBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="60dp"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
+        <Constraint android:id="@+id/btnAttachCircleBg"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="1.0"
+            motion:layout_constraintStart_toStartOf="@+id/btnAttach"
+            motion:layout_constraintEnd_toEndOf="@+id/btnAttach"
+            motion:layout_constraintTop_toTopOf="@+id/btnAttach"
+            motion:layout_constraintBottom_toBottomOf="@+id/btnAttach" />
+
+        <Constraint android:id="@+id/btnAttach"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="1.0"
+            android:rotation="0"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintBottom_toBottomOf="@+id/inputBox"
+            android:layout_marginStart="2dp"
+            android:layout_marginBottom="2dp" />
+    </ConstraintSet>
+
+    <!-- RECORDING: inputBox shrinks, [×] as circle button outside -->
+    <ConstraintSet android:id="@+id/scene_recording">
+
+        <Constraint android:id="@+id/inputBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="60dp"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
+        <Constraint android:id="@+id/btnAttachCircleBg"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="1.0"
+            motion:layout_constraintStart_toStartOf="@+id/btnAttach"
+            motion:layout_constraintEnd_toEndOf="@+id/btnAttach"
+            motion:layout_constraintTop_toTopOf="@+id/btnAttach"
+            motion:layout_constraintBottom_toBottomOf="@+id/btnAttach" />
+
+        <Constraint android:id="@+id/btnAttach"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="1.0"
+            android:rotation="45"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintBottom_toBottomOf="@+id/inputBox"
+            android:layout_marginStart="2dp"
+            android:layout_marginBottom="2dp" />
+    </ConstraintSet>
+
+</MotionScene>

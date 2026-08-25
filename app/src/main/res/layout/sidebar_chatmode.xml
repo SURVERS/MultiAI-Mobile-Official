@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ═══ Чат-режимный сайдбар (тот же, что в ChatModeActivity) ═══
+     Переиспользуется ProfileActivity: в чат-режиме профиль открывает
+     эту шторку вместо ворк-дровера. Управление — ChatModeSidebar. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chatModeSidebarOverlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:visibility="gone"
+    android:clickable="true"
+    android:focusable="true"
+    android:translationX="-2000dp">
+
+    <!-- Main content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- ── Sidebar Header (logo + title + actions) ── -->
+        <FrameLayout
+            android:id="@+id/sidebarHeader"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:clipChildren="true"
+            android:clipToPadding="true"
+            android:paddingStart="20dp"
+            android:paddingEnd="16dp">
+
+            <ImageView
+                android:id="@+id/sidebarBrandLogo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="start|center_vertical"
+                android:src="@drawable/ic_multiai_logo"
+                android:tint="@color/icon"
+                android:background="@drawable/sidebar_logo_tile_bg"
+                android:scaleType="centerInside"
+                android:contentDescription="MultiAI" />
+
+            <LinearLayout
+                android:id="@+id/sidebarBrandBlock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="52dp"
+                android:layout_marginEnd="48dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="bottom|center_vertical"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+
+                    <TextView
+                        android:id="@+id/sidebarTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MultiAI"
+                        android:textColor="@color/text_primary"
+                        android:textSize="19sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="-0.02" />
+
+                    <FrameLayout
+                        android:id="@+id/modeBadgeContainerSidebar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless">
+
+                        <TextView
+                            android:id="@+id/modeBadgeTextSidebar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="CHAT"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="10sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.06"
+                            android:includeFontPadding="false"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:minHeight="16dp"
+                            android:background="@drawable/mode_badge_chat"
+                            android:translationY="-6dp" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nav_header_subtitle"
+                    android:textColor="@color/text_hint"
+                    android:textSize="11sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <!-- Search action (single round icon with gray circle bg) -->
+            <LinearLayout
+                android:id="@+id/sidebarSearchGroup"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="end|center_vertical"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@null"
+                android:translationY="1dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <EditText
+                    android:id="@+id/sidebarSearchInput"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:visibility="gone"
+                    android:background="@drawable/chat_mode_search_bg"
+                    android:hint="@string/chat_search_hint"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint"
+                    android:textSize="14sp"
+                    android:singleLine="true"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="10dp"
+                    android:inputType="text" />
+
+                <ImageButton
+                    android:id="@+id/sidebarSearch"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/chat_mode_circle_bg"
+                    android:src="@drawable/ic_magnify"
+                    android:tint="@color/icon"
+                    android:padding="7dp"
+                    android:scaleType="centerInside" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- ── Navigation items ── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <!-- Воспоминания -->
+            <LinearLayout
+                android:id="@+id/sidebarMore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/chat_mode_sidebar_row_bg"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_brain"
+                    android:tint="@color/icon"
+                    android:scaleType="centerInside" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/saved_memories"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/saved_memory_subtitle"
+                        android:textColor="@color/text_hint"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:tint="@color/text_hint"
+                    android:scaleType="centerInside" />
+            </LinearLayout>
+
+            <!-- Настройки -->
+            <LinearLayout
+                android:id="@+id/sidebarSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/chat_mode_sidebar_row_bg"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_settings"
+                    android:tint="@color/icon"
+                    android:scaleType="centerInside" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/chat_mode_settings_subtitle"
+                        android:textColor="@color/text_hint"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:tint="@color/text_hint"
+                    android:scaleType="centerInside" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ── Divider ── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="6dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp" />
+
+        <!-- ── Chat history section label ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginBottom="4dp"
+            android:text="@string/chat_history_title"
+            android:textColor="@color/text_hint"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:textAllCaps="false"
+            android:letterSpacing="0.04" />
+
+        <!-- ── Chat history (or empty state) ── -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/sidebarChatList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:requiresFadingEdge="vertical"
+                android:fadingEdgeLength="32dp"
+                android:overScrollMode="never"
+                android:paddingTop="4dp"
+                android:paddingBottom="80dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/sidebarEmptyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/chat_history_empty"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:lineSpacingExtra="4dp" />
+
+        </FrameLayout>
+
+        <!-- ── Footer ── -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="4dp"
+            android:text="@string/drawer_version"
+            android:textColor="@color/text_hint"
+            android:textSize="11sp"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/sidebarNewChatFab"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_gravity="start|bottom"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="44dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="22dp"
+        android:background="@drawable/chat_mode_new_chat_fab_bg"
+        android:elevation="8dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/chat_mode_ic_compose"
+            android:tint="@color/icon" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/chat"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium" />
+
+    </LinearLayout>
+
+    <!-- Profile avatar (circular, bottom-right of sidebar) -->
+    <ImageView
+        android:id="@+id/sidebarProfileAvatar"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="44dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/chat_mode_ic_user"
+        android:tint="@color/icon_muted"
+        android:background="@drawable/chat_mode_circle_bg"
+        android:padding="9dp"
+        android:elevation="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/profile" />
+
+</FrameLayout>

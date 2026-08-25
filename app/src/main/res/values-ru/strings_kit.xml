@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Russian overrides for kit/layouts/messages migration strings.
+     Mirrors the default values/strings_kit.xml so the ru locale resolves
+     to Russian regardless of the device default. -->
+<resources>
+
+    <!-- ═══════════════ ReportBugSheet (ReportBugSheet.java) ═══════════════ -->
+    <string name="kit_report_bug_title">Сообщить об ошибке</string>
+    <string name="kit_report_bug_subtitle">Что случилось?</string>
+    <string name="kit_report_bug_hint">Расскажите нам о проблеме, с которой вы столкнулись</string>
+    <string name="kit_report_bug_disclaimer">Ваш отзыв может использоваться для улучшения MultiAI. Подробнее.</string>
+    <string name="kit_report_bug_disclaimer_link">Подробнее.</string>
+    <string name="kit_report_bug_shake_title">Встряхните телефон, чтобы сообщить об ошибке</string>
+    <string name="kit_report_bug_shake_subtitle">Выключите, чтобы отключить встряхивание</string>
+    <string name="kit_report_bug_submitted">Спасибо! Отчёт отправлен</string>
+
+    <!-- ═══════════════ FilesAdapter (FilesAdapter.java) ═══════════════ -->
+    <string name="kit_file_unnamed">(без имени)</string>
+    <string name="kit_file_folder">Папка</string>
+    <string name="kit_file_file">Файл</string>
+
+    <!-- ═══════════════ MessagesAdapter (MessagesAdapter.java) ═══════════════ -->
+    <string name="kit_msg_error_title">Что-то пошло не так</string>
+    <string name="kit_msg_error_body">Попробуй еще раз чуть позже.</string>
+    <string name="kit_msg_error_code_prefix">Код:&#160;</string>
+    <string name="kit_msg_error_default_code">MULTIAI-UNKNOWN</string>
+    <string name="kit_msg_error_fallback_title">Ошибка</string>
+    <string name="kit_msg_error_fallback_code">MULTIAI-UNKNOWN</string>
+    <string name="kit_msg_error_share_support">Написать в поддержку</string>
+    <string name="kit_msg_error_retry">Повторить</string>
+    <string name="kit_msg_copied">Скопировано</string>
+    <string name="kit_msg_action_copy">Копировать</string>
+    <string name="kit_msg_action_select_text">Выбрать текст</string>
+    <string name="kit_msg_action_edit">Редактировать сообщение</string>
+    <string name="kit_unit_seconds">с</string>
+
+    <!-- ═══════════════ ToolWidgetRenderer (ToolWidgetRenderer.java) ═══════════════ -->
+    <string name="w_unit_ms">м/с</string>
+    <string name="w_search_results">Результаты</string>
+    <string name="w_url_fetch_loaded">Страница загружена</string>
+    <string name="w_url_fetch_chars_suffix">&#160;симв.</string>
+
+    <!-- ═══════════════ activity_biometric_gate.xml ═══════════════ -->
+    <string name="lay_biometric_cd">Биометрическая защита</string>
+    <string name="lay_biometric_title">Подтвердите вход.</string>
+    <string name="lay_biometric_status">Используйте отпечаток пальца или Face Unlock</string>
+    <string name="lay_biometric_retry">Повторить</string>
+    <string name="lay_biometric_open_settings">Открыть настройки устройства</string>
+    <string name="lay_biometric_data_on_device">Ваши данные остаются на устройстве</string>
+
+    <!-- ═══════════════ activity_editor.xml ═══════════════ -->
+    <string name="lay_back">Назад</string>
+    <string name="lay_search">Поиск</string>
+    <string name="lay_save">Сохранить</string>
+    <string name="lay_replace_with">Заменить на</string>
+    <string name="lay_find">Найти</string>
+    <string name="lay_replace">Заменить</string>
+    <string name="lay_all">Все</string>
+    <string name="lay_editor_audio_ready">Готово к воспроизведению</string>
+    <string name="lay_editor_prev_track">Предыдущий трек</string>
+    <string name="lay_editor_next_track">Следующий трек</string>
+    <string name="lay_editor_binary_hint">Долгое нажатие для действий с файлом</string>
+    <string name="lay_editor_empty_hint">Открой файл в Files, чтобы редактировать</string>
+    <string name="lay_editor_cd_album_bg">Фон пластинки</string>
+    <string name="lay_editor_cd_album_art">Обложка</string>
+    <string name="lay_editor_cd_music">Музыка</string>
+
+    <!-- ═══════════════ activity_chat.xml ═══════════════ -->
+    <string name="lay_chat_cd_image_preview">Превью изображения</string>
+    <string name="lay_chat_cd_remove_image">Удалить изображение</string>
+    <string name="lay_chat_attach_camera">Камера</string>
+    <string name="lay_chat_attach_photo">Фото</string>
+    <string name="lay_chat_cd_voice_input">Голосовой ввод</string>
+    <string name="lay_chat_cd_stop">Остановить</string>
+
+    <!-- ═══════════════ widget_weather.xml ═══════════════ -->
+    <string name="lay_weather_cd">Погода</string>
+    <string name="lay_weather_feels_like">Ощущается</string>
+    <string name="lay_weather_humidity">Влажность</string>
+    <string name="lay_weather_wind">Ветер</string>
+
+    <!-- ═══════════════ widget_search.xml ═══════════════ -->
+    <string name="lay_web_search">Web поиск</string>
+
+    <!-- ═══════════════ widget_save_memory.xml ═══════════════ -->
+    <string name="lay_memory_saved">Сохранил в память</string>
+
+    <!-- ═══════════════ item_chat_list.xml ═══════════════ -->
+    <string name="lay_new_chat">Новый чат</string>
+    <string name="lay_no_messages">Нет сообщений</string>
+    <string name="lay_cd_delete_chat">Удалить чат</string>
+
+    <!-- ═══════════════ item_chat_mode_message_tool.xml ═══════════════ -->
+    <string name="lay_cd_tool">Инструмент</string>
+
+    <!-- ═══════════════ item_archived_chat.xml ═══════════════ -->
+    <string name="lay_cd_chat">Чат</string>
+    <string name="lay_cd_chat_actions">Действия с чатом</string>
+
+    <!-- ═══════════════ item_file.xml ═══════════════ -->
+    <string name="lay_file_name">Имя файла</string>
+
+    <!-- ═══════════════ item_message_ai.xml ═══════════════ -->
+    <string name="lay_thinking_process">Процесс размышления</string>
+    <string name="chat_thinking_active">Размышления</string>
+    <string name="chat_thinking_finished">Размышления · %1$.1f с</string>
+    <string name="chat_workflow_completed">Выполнено за %1$s</string>
+    <string name="chat_workflow_working">Работает уже %1$s</string>
+    <string name="lay_cd_copy">Копировать</string>
+    <string name="lay_cd_like">Нравится</string>
+    <string name="lay_cd_dislike">Не нравится</string>
+    <string name="lay_cd_tts">Озвучить</string>
+    <string name="lay_cd_share">Поделиться</string>
+    <string name="lay_cd_more">Ещё</string>
+
+    <!-- ═══════════════ item_message_user.xml ═══════════════ -->
+    <string name="lay_cd_attached_image">Прикреплённое изображение</string>
+    <string name="lay_cd_file">Файл</string>
+
+    <!-- ═══════════════ item_memory.xml ═══════════════ -->
+    <string name="lay_cd_memory">Память</string>
+    <string name="lay_cd_delete">Удалить</string>
+
+    <!-- ═══════════════ item_message_error.xml ═══════════════ -->
+    <string name="lay_error_default_body">Попробуй повторить запрос</string>
+    <string name="lay_cd_retry">Повторить</string>
+
+    <!-- ═══════════════ activity_terminal.xml ═══════════════ -->
+    <string name="lay_cd_tools">Инструменты</string>
+    <string name="lay_storage_access_title">Доступ ко всем файлам</string>
+    <string name="lay_storage_access_subtitle">Пожалуйста, разрешите доступ ко всем файлам</string>
+    <string name="lay_grant_access">Разрешить доступ</string>
+    <string name="lay_terminal_command_hint">Введите команду…</string>
+    <string name="lay_terminal_seed">MultiAI Terminal v1.0\nВведите команду…\n\n$ </string>
+    <string name="lay_terminal_setup_title">Соберите свой dev‑набор</string>
+    <string name="lay_terminal_setup_subtitle">Только нужные модули. ARM64 · загрузка по требованию</string>
+    <string name="lay_terminal_basic_set">Базовый набор · 0 МБ</string>
+    <string name="lay_terminal_open_basic">Открыть базовый терминал</string>
+    <string name="lay_terminal_download_install">Скачать и установить</string>
+
+    <!-- ═══════════════ activity_profile.xml ═══════════════ -->
+    <string name="lay_not_authorized">Не авторизован</string>
+    <string name="lay_sign_in_multiai">Войти через MultiAI</string>
+    <string name="lay_account_section">АККАУНТ</string>
+    <string name="lay_google_id">Google ID</string>
+    <string name="lay_status">Статус</string>
+    <string name="lay_status_active">Активен</string>
+    <string name="lay_app_section">ПРИЛОЖЕНИЕ</string>
+    <string name="lay_version">Версия</string>
+    <string name="lay_sign_out">Выйти из аккаунта</string>
+    <string name="lay_delete_account">Удалить аккаунт</string>
+
+    <!-- ═══════════════ activity_files.xml ═══════════════ -->
+    <string name="lay_choose_project">Выбери проект для старта</string>
+    <string name="lay_cd_change_folder">Сменить папку</string>
+    <string name="lay_cd_folder">Папка</string>
+    <string name="lay_files_open_project">Открой проект и погнали</string>
+    <string name="lay_files_grant_hint">Выбери папку проекта, чтобы просматривать файлы и открывать их в редакторе.</string>
+    <string name="lay_files_open_folder">Открыть папку проекта</string>
+    <string name="lay_files_project">Проект</string>
+
+    <!-- ═══════════════ item_editor_tab.xml ═══════════════ -->
+    <string name="lay_cd_close_tab">Закрыть вкладку</string>
+
+    <!-- Accent color labels -->
+    <string name="kit_accent_default">По умолчанию</string>
+    <string name="kit_accent_blue">Синий</string>
+    <string name="kit_accent_green">Зелёный</string>
+    <string name="kit_accent_yellow">Жёлтый</string>
+    <string name="kit_accent_pink">Розовый</string>
+    <string name="kit_accent_orange">Оранжевый</string>
+    <string name="kit_accent_purple">Фиолетовый</string>
+    <string name="kit_accent_black">Чёрный</string>
+
+    <!-- Tool call labels -->
+    <string name="kit_tool_running">Выполняется…</string>
+    <string name="kit_tool_default">Инструмент</string>
+    <string name="kit_tool_weather">Погода</string>
+    <string name="kit_tool_time">Время</string>
+    <string name="kit_tool_web_search">Поиск в интернете</string>
+    <string name="kit_tool_url_fetch">Загрузка страницы</string>
+    <string name="kit_tool_save_memory">Сохраняю в память</string>
+
+    <!-- Save memory widget placeholders -->
+    <string name="w_memory_name_placeholder">имя</string>
+    <string name="w_memory_content_placeholder">контент</string>
+
+    <!-- MultiAI OAuth profile sections -->
+    <string name="lay_tokens_section">Токены</string>
+    <string name="lay_tokens_total">Всего токенов</string>
+    <string name="lay_tokens_subscription">Подписка</string>
+    <string name="lay_tokens_active">Активна</string>
+    <string name="lay_tokens_inactive">Нет</string>
+    <string name="lay_tokens_billing_mode">режим оплаты</string>
+    <string name="lay_tokens_selected_key">ключ</string>
+    <string name="lay_keys_section">API-ключи</string>
+    <string name="lay_keys_empty">Ключей пока нет</string>
+    <string name="lay_keys_create">Создать ключ</string>
+    <string name="lay_keys_delete">Удалить ключ</string>
+    <string name="lay_keys_clear_select">Очистить выбор</string>
+    <string name="lay_keys_select">Выбрать</string>
+    <string name="lay_keys_selected">Выбран</string>
+    <string name="lay_keys_masked">маскированный</string>
+    <string name="lay_usage_section">История расходов</string>
+    <string name="lay_usage_soon">Раздел в разработке</string>
+    <string name="lay_buy_section">Подписка и пакеты токенов</string>
+    <string name="lay_buy_button">Пополнить / купить подписку</string>
+    <string name="scr_email">Почта</string>
+    <string name="scr_telegram">Telegram</string>
+
+    <!-- IDE tool widgets -->
+    <string name="ide_tool_explore">Обзор</string>
+    <plurals name="ide_tool_run_count">
+        <item quantity="one">%1$d запуск</item>
+        <item quantity="few">%1$d запуска</item>
+        <item quantity="many">%1$d запусков</item>
+        <item quantity="other">%1$d запуска</item>
+    </plurals>
+    <plurals name="ide_tool_file_count">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файла</item>
+        <item quantity="many">%1$d файлов</item>
+        <item quantity="other">%1$d файла</item>
+    </plurals>
+    <string name="ide_tool_searching_query">Ищу «%1$s»</string>
+    <string name="ide_tool_searching_files">Ищу файлы «%1$s»</string>
+    <string name="ide_tool_running">Выполняю</string>
+    <string name="ide_tool_deleting">Удаляю</string>
+    <string name="ide_tool_deleted">Удалено</string>
+    <string name="ide_tool_moving">Перемещаю</string>
+    <string name="ide_tool_moved">Перемещено</string>
+    <string name="ide_tool_reading">Читаю</string>
+    <plurals name="ide_tool_searched_results">
+        <item quantity="one">Найден %1$d результат</item>
+        <item quantity="few">Найдено %1$d результата</item>
+        <item quantity="many">Найдено %1$d результатов</item>
+        <item quantity="other">Найдено %1$d результата</item>
+    </plurals>
+    <plurals name="ide_tool_searched_files">
+        <item quantity="one">Найден %1$d файл</item>
+        <item quantity="few">Найдено %1$d файла</item>
+        <item quantity="many">Найдено %1$d файлов</item>
+        <item quantity="other">Найдено %1$d файла</item>
+    </plurals>
+    <string name="ide_tool_failed">Ошибка</string>
+    <string name="ide_tool_ran">Выполнено</string>
+    <string name="ide_tool_read">Прочитано</string>
+    <string name="ide_tool_read_failed">Ошибка чтения</string>
+    <string name="ide_tool_editing">Редактирую</string>
+    <string name="ide_tool_edited">Изменено</string>
+    <string name="ide_tool_writing">Создаю</string>
+    <string name="ide_tool_wrote">Создано</string>
+    <string name="ide_tool_input">Ввод</string>
+    <string name="ide_tool_output">Вывод</string>
+    <string name="ide_tool_error">Ошибка</string>
+    <string name="ide_tool_content">Содержимое</string>
+    <string name="ide_tool_diff">Изменения</string>
+    <string name="ide_tool_command">команда</string>
+    <string name="ide_tool_exit_code">код %1$d</string>
+    <string name="ide_tool_execution_error">Ошибка выполнения</string>
+    <plurals name="ide_tool_hidden_lines">
+        <item quantity="one">— %1$d строка скрыта —</item>
+        <item quantity="few">— %1$d строки скрыто —</item>
+        <item quantity="many">— %1$d строк скрыто —</item>
+        <item quantity="other">— %1$d строки скрыто —</item>
+    </plurals>
+    <plurals name="ide_duration_seconds">
+        <item quantity="one">%1$d с</item>
+        <item quantity="few">%1$d с</item>
+        <item quantity="many">%1$d с</item>
+        <item quantity="other">%1$d с</item>
+    </plurals>
+    <plurals name="ide_duration_minutes">
+        <item quantity="one">%1$d мин</item>
+        <item quantity="few">%1$d мин</item>
+        <item quantity="many">%1$d мин</item>
+        <item quantity="other">%1$d мин</item>
+    </plurals>
+
+    <!-- Emoji style settings -->
+    <string name="settings_emoji_style">Стиль эмодзи</string>
+    <string name="settings_emoji_style_sub">Telegram-стиль из Telemoji</string>
+    <string name="emoji_mode_system">Классические (системные)</string>
+    <string name="emoji_mode_static">Статичные (Telemoji)</string>
+    <string name="emoji_mode_animated">Анимированные (Telemoji)</string>
+
+    <!-- Компактные подписи ошибок инструментов -->
+    <string name="tool_fail_read">Не удалось прочитать %1$s</string>
+    <string name="tool_fail_read_generic">Не удалось прочитать файл</string>
+    <string name="tool_fail_list_dir">Не удалось открыть папку %1$s</string>
+    <string name="tool_fail_list_dir_generic">Не удалось открыть папку</string>
+    <string name="tool_fail_search">Не удалось выполнить поиск по проекту</string>
+    <string name="tool_fail_find_files">Не удалось найти файлы</string>
+    <string name="tool_fail_command">Не удалось выполнить команду</string>
+    <string name="tool_fail_write">Не удалось записать %1$s</string>
+    <string name="tool_fail_edit">Не удалось изменить %1$s</string>
+    <string name="tool_fail_delete">Не удалось удалить %1$s</string>
+    <string name="tool_fail_move">Не удалось переместить</string>
+    <string name="tool_fail_web_search">Не удалось выполнить веб-поиск</string>
+    <string name="tool_fail_url_fetch">Не удалось загрузить страницу</string>
+    <string name="tool_fail_memory">Не удалось сохранить в память</string>
+    <string name="tool_fail_weather">Не удалось получить погоду</string>
+    <string name="tool_fail_time">Не удалось получить время</string>
+    <string name="tool_fail_subagent">Не удалось запустить сабагента</string>
+    <string name="tool_fail_summarize">Не удалось суммаризировать чат</string>
+    <string name="tool_fail_rules">Не удалось прочитать правила проекта</string>
+    <string name="tool_fail_generic">Не удалось выполнить «%1$s»</string>
+    <string name="tool_fail_reason">Причина</string>
+    <string name="tool_fail_unknown_reason">Причина неизвестна</string>
+
+    <!-- Компактный виджет веб-поиска -->
+    <string name="web_search_running">Ищу «%1$s»</string>
+    <string name="web_search_running_generic">Ищу в интернете</string>
+    <plurals name="web_search_sources">
+        <item quantity="one">Найден %1$d источник</item>
+        <item quantity="few">Найдено %1$d источника</item>
+        <item quantity="many">Найдено %1$d источников</item>
+        <item quantity="other">Найдено %1$d источника</item>
+    </plurals>
+    <string name="web_search_no_results">Ничего не нашлось</string>
+    <string name="url_fetch_loading">Загружаю страницу</string>
+    <string name="url_fetch_done">Страница загружена</string>
+
+    <string name="settings_command_whitelist_sub">Разрешать, запрещать и настраивать правила выполнения команд</string>
+
+    <!-- Тул суммаризации прошлого чата отдельной AI-моделью -->
+    <string name="summarize_running">Сжимаю историю диалога</string>
+    <string name="summarize_done">История чата сжата отдельной моделью</string>
+    <string name="summarize_skipped">История уже достаточно компактная</string>
+    <string name="summarize_summary">Сводка</string>
+
+    <!-- Тул чтения прошлого чата отдельной AI-моделью -->
+    <string name="past_chat_running">Изучаю прошлый чат</string>
+    <string name="past_chat_done">Прошлый чат изучен: «%1$s»</string>
+    <string name="past_chat_needs_selection">Нужно выбрать прошлый чат</string>
+    <string name="past_chat_empty">Прошлых чатов не найдено</string>
+    <string name="past_chat_summary">Выжимка прошлого чата</string>
+    <string name="tool_fail_past_chat">Не удалось изучить прошлый чат</string>
+
+    <!-- Экран правил команд -->
+    <string name="whitelist_screen_title">Правила команд</string>
+    <string name="whitelist_screen_description">Разрешённые команды выполняются без подтверждения, запрещённые — не выполняются вовсе. В режиме «Подтверждать за меня» опасные и неизвестные команды всё равно спросят. Совпадение точное; «*» в разрешениях разрешает любые shell-команды.</string>
+    <string name="whitelist_section_global">Глобально разрешены</string>
+    <string name="whitelist_section_global_note">Сохраняется навсегда и действует во всех чатах. «*» разрешает любые shell-команды.</string>
+    <string name="whitelist_section_blocked">Глобально запрещены</string>
+    <string name="whitelist_section_blocked_note">Запрет всегда сильнее любого разрешения и действует во всех чатах.</string>
+    <string name="whitelist_session_picker">Сессия</string>
+    <string name="whitelist_session_unnamed">Новая сессия</string>
+    <string name="whitelist_session_current">%1$s · текущая</string>
+    <string name="whitelist_section_session">Только в этой сессии</string>
+    <string name="whitelist_section_session_note">Действует только в выбранной сессии и сбрасывается после перезапуска приложения.</string>
+    <string name="whitelist_empty">Список пуст</string>
+    <string name="whitelist_add">Добавить команду</string>
+    <string name="whitelist_block_add">Запретить команду</string>
+    <string name="whitelist_clear">Очистить список</string>
+    <string name="whitelist_add_title">Новая команда</string>
+    <string name="whitelist_edit_title">Изменить команду</string>
+    <string name="whitelist_block_add_title">Запретить команду</string>
+    <string name="whitelist_block_edit_title">Изменить запрет</string>
+    <string name="whitelist_input_hint">Введите команду целиком. Совпадение точное; «*» разрешает любые shell-команды.</string>
+    <string name="whitelist_block_input_hint">Введите команду целиком. Глобальный запрет сильнее любого разрешения.</string>
+    <string name="whitelist_input_example">./gradlew.bat :app:assembleDebug</string>
+    <string name="whitelist_save">Сохранить</string>
+    <string name="whitelist_saved">Правило сохранено</string>
+    <string name="whitelist_deleted">Правило удалено</string>
+    <string name="whitelist_empty_error">Команда не может быть пустой</string>
+    <string name="whitelist_delete">Удалить</string>
+    <string name="whitelist_delete_title">Убрать разрешение?</string>
+    <string name="whitelist_delete_message">Команда «%1$s» снова будет спрашивать подтверждение.</string>
+    <string name="whitelist_block_delete_title">Снять запрет?</string>
+    <string name="whitelist_block_delete_message">Команда «%1$s» снова сможет выполняться, если её разрешит режим доступа.</string>
+    <string name="whitelist_clear_title">Очистить список?</string>
+    <string name="whitelist_clear_message">Будет удалено правил: %1$d. Файловые разрешения не затрагиваются.</string>
+    <string name="whitelist_block_clear_title">Снять все запреты?</string>
+    <string name="whitelist_block_clear_message">Будет снято глобальных запретов: %1$d.</string>
+</resources>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ideToolRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/ideToolHeader"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:foreground="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp">
+
+        <ImageView
+            android:id="@+id/ideToolIcon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:tint="@color/icon_muted"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/ideToolAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium" />
+
+        <ImageView
+            android:id="@+id/ideToolFileBadge"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="7dp"
+            android:gravity="center"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/ideToolTarget"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="7dp"
+            android:maxLines="1"
+            android:ellipsize="middle"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:fontFamily="monospace" />
+
+        <TextView
+            android:id="@+id/ideToolStats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="12sp"
+            android:fontFamily="monospace" />
+
+        <ProgressBar
+            android:id="@+id/ideToolProgress"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="8dp"
+            android:indeterminateTint="@color/icon_muted"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/ideToolChevron"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_chevron_down"
+            android:tint="@color/icon_muted"
+            android:contentDescription="@null" />
+    </LinearLayout>
+
+    <app.multiai.mobile.views.MaxHeightNestedScrollView
+        android:id="@+id/ideToolDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:maxHeightCompat="300dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/ide_tool_details_bg"
+        android:clipToOutline="true"
+        android:fillViewport="false"
+        android:overScrollMode="ifContentScrolls"
+        android:scrollbars="vertical"
+        android:visibility="gone">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="true"
+            android:overScrollMode="ifContentScrolls"
+            android:scrollbars="horizontal">
+
+            <LinearLayout
+                android:id="@+id/ideToolDetailsContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </HorizontalScrollView>
+    </app.multiai.mobile.views.MaxHeightNestedScrollView>
+</LinearLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Disabled-state background for the biometric retry button during lockout cooldown.
+     Uses the theme's control_disabled token so it stays consistent across themes. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/control_disabled" />
+    <corners android:radius="14dp" />
+</shape>

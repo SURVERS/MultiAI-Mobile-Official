@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Declares the app's supported locales so AppCompatDelegate's per-app language
+     API (setApplicationLocales) and Android 13's per-app language preference
+     resolve correctly. Default/fallback locale is ru (Russian), matching the
+     default values/strings.xml. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="ru" />
+    <locale android:name="en" />
+</locale-config>

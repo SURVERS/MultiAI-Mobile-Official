@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Brain icon (neuroscience/thinking) -->
+    <path
+        android:fillColor="@color/icon"
+        android:pathData="M12,2C8.69,2 6,4.69 6,8c0,1.62 0.64,3.09 1.69,4.17L9,13.5V17c0,0.55 0.45,1 1,1h4c0.55,0 1,-0.45 1,-1v-3.5l1.31,-1.33C17.36,11.09 18,9.62 18,8c0,-3.31 -2.69,-6 -6,-6zM14,15.5V17h-4v-1.5l-1.62,-1.65C7.52,12.97 7,11.54 7,10c0,-2.76 2.24,-5 5,-5s5,2.24 5,5c0,1.54 -0.52,2.97 -1.38,3.85L14,15.5z"/>
+    <path
+        android:fillColor="@color/icon"
+        android:pathData="M10,20h4v1c0,0.55 -0.45,1 -1,1h-2c-0.55,0 -1,-0.45 -1,-1v-1z"/>
+    <path
+        android:fillColor="@color/icon"
+        android:pathData="M12,4C9.79,4 8,5.79 8,8c0,1.1 0.45,2.1 1.17,2.83L10,11.66V16h4v-4.34l0.83,-0.83C15.55,10.1 16,9.1 16,8c0,-2.21 -1.79,-4 -4,-4z"/>
+</vector>

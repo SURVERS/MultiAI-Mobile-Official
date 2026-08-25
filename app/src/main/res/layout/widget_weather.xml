@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Погодный виджет: большая карточка с градиентным фоном по погоде -->
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="22dp"
+    app:cardElevation="0dp"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp">
+
+    <LinearLayout
+        android:id="@+id/weatherGradient"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/weather_bg_clear"
+        android:padding="20dp">
+
+        <!-- Top row: city + condition icon -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/weatherCity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Москва"
+                    android:textColor="@color/weather_foreground"
+                    android:textSize="19sp"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:id="@+id/weatherCondition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ясно"
+                    android:textColor="@color/weather_foreground"
+                    android:textSize="13sp"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/weatherIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:src="@drawable/ic_weather_sun"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/lay_weather_cd" />
+
+        </LinearLayout>
+
+        <!-- Temperature (big) -->
+        <TextView
+            android:id="@+id/weatherTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12°"
+            android:textColor="@color/weather_foreground"
+            android:textSize="56sp"
+            android:fontFamily="sans-serif-light"
+            android:layout_marginTop="8dp" />
+
+        <!-- Bottom stats row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="14dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/lay_weather_feels_like"
+                    android:textColor="@color/weather_foreground_muted"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/weatherFeelsLike"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="10°"
+                    android:textColor="@color/weather_foreground"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/lay_weather_humidity"
+                    android:textColor="@color/weather_foreground_muted"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/weatherHumidity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="65%"
+                    android:textColor="@color/weather_foreground"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/lay_weather_wind"
+                    android:textColor="@color/weather_foreground_muted"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/weatherWind"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5 м/с"
+                    android:textColor="@color/weather_foreground"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

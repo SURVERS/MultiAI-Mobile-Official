@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tabRoot"
+    android:layout_width="wrap_content"
+    android:layout_height="40dp"
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="8dp"
+    android:background="@drawable/editor_tab_inactive"
+    android:clickable="true"
+    android:focusable="true">
+
+    <TextView
+        android:id="@+id/textTabName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="file.java"
+        android:textSize="13sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="@color/text_primary"
+        android:fontFamily="sans-serif-medium" />
+
+    <TextView
+        android:id="@+id/textTabDirty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:text="●"
+        android:textSize="11sp"
+        android:textColor="@color/text_secondary"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/buttonCloseTab"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_close"
+        android:tint="@color/text_secondary"
+        android:contentDescription="@string/lay_cd_close_tab" />
+
+</LinearLayout>

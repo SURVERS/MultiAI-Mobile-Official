@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="subagents_title">Subagents</string>
+    <string name="subagents_subtitle">Configure specialized helpers for Work Mode.</string>
+    <string name="subagents_new">New</string>
+    <string name="subagents_search">Search subagents…</string>
+    <string name="subagents_installed">Installed</string>
+    <plurals name="subagents_installed_count"><item quantity="one">%1$d subagent installed</item><item quantity="other">%1$d subagents installed</item></plurals>
+    <string name="subagents_empty_title">No subagents found</string>
+    <string name="subagents_empty_subtitle">Fill in the name, tools and system prompt, then save your first preset.</string>
+    <string name="subagents_builtin">Built-in subagents</string>
+    <string name="subagents_general_name">general-purpose</string>
+    <string name="subagents_general_desc">General helper for complex research and multi-step tasks.</string>
+    <string name="subagents_explore_name">Explore</string>
+    <string name="subagents_explore_desc">Read-only helper for broad code and project exploration.</string>
+    <string name="subagents_all_tools">All tools</string>
+    <string name="subagents_read_tools">Read-only</string>
+    <string name="subagents_actions">Subagent actions</string>
+    <string name="subagents_edit">Edit</string>
+    <string name="subagents_duplicate">Duplicate</string>
+    <string name="subagents_no_description">No description</string>
+    <string name="subagents_scope_user">User</string>
+    <string name="subagents_scope_workspace">This project</string>
+    <string name="subagents_default_permissions">Default permissions</string>
+    <string name="subagents_custom_permissions">Custom permissions</string>
+    <plurals name="subagents_tool_count"><item quantity="one">%1$d tool</item><item quantity="other">%1$d tools</item></plurals>
+    <string name="subagent_new_title">New subagent</string>
+    <string name="subagent_edit_title">Edit subagent</string>
+    <string name="subagent_editor_subtitle">Set the role, model, tools and system prompt, then save the preset.</string>
+    <string name="subagent_identity_section">Profile</string>
+    <string name="subagent_runtime_section">Runtime</string>
+    <string name="subagent_name">Name</string>
+    <string name="subagent_name_hint">For example, code-reviewer</string>
+    <string name="subagent_name_required">Enter a subagent name</string>
+    <string name="subagent_description">Description</string>
+    <string name="subagent_description_hint">Briefly describe what this subagent is for</string>
+    <string name="subagent_color">Color</string>
+    <string name="subagent_model">Model</string>
+    <string name="subagent_model_inherit">Inherit current</string>
+    <string name="subagent_model_choose">Choose a model</string>
+    <string name="subagent_model_loading">Loading models…</string>
+    <string name="subagent_model_unavailable">Models are unavailable right now</string>
+    <string name="subagent_scope">Scope</string>
+    <string name="subagent_scope_workspace_missing">Select a project folder in Work Mode first</string>
+    <string name="subagent_allowed_tools">Allowed tools</string>
+    <string name="subagent_system_prompt">System prompt</string>
+    <string name="subagent_prompt_hint">Describe the subagent role, boundaries and response format…</string>
+    <string name="subagent_inject_agents">Inject AGENTS.md</string>
+    <string name="subagent_inject_agents_sub">Include instructions from the selected project’s AGENTS.md on every run.</string>
+    <string name="subagent_save">Save</string>
+    <string name="subagent_saved">Subagent saved</string>
+    <string name="subagent_delete">Delete subagent</string>
+    <string name="subagent_delete_confirm">Delete “%1$s”? This cannot be undone.</string>
+</resources>

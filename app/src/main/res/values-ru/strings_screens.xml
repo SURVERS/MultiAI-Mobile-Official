@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Explicit Russian overrides for screen-specific UI strings. The default
+     values/strings_screens.xml already contains Russian; this mirrors it so the
+     ru locale resolves to Russian regardless of the device default locale. -->
+<resources>
+
+    <!-- ═════════ Shared / cross-screen ═════════ -->
+    <string name="scr_cancel">Отмена</string>
+    <string name="scr_retry">Повторить</string>
+    <string name="scr_skip">Пропустить</string>
+    <string name="scr_save">Сохранить</string>
+    <string name="scr_saved">Сохранено</string>
+    <string name="scr_enabled">Включено</string>
+    <string name="scr_disabled">Выключено</string>
+    <string name="scr_share">Поделиться</string>
+    <string name="scr_remove">Удалить</string>
+    <string name="scr_done">Готово</string>
+    <string name="scr_user">Пользователь</string>
+    <string name="scr_signin_cancelled">Вход отменён</string>
+    <string name="scr_signin_error_code">Ошибка входа: %1$d</string>
+    <string name="scr_welcome_name">Добро пожаловать, %1$s!</string>
+
+    <!-- ═════════ OnboardingActivity ═════════ -->
+    <string name="scr_bio_use_fingerprint">Используйте отпечаток пальца или Face Unlock</string>
+    <string name="scr_bio_unavailable">Биометрия недоступна. Проверьте настройки устройства.</string>
+    <string name="scr_bio_not_recognized">Не удалось распознать. Попробуйте ещё раз.</string>
+    <string name="scr_bio_lockout">Слишком много попыток. Повторите через несколько секунд.</string>
+    <string name="scr_bio_wait">Подождите…</string>
+    <string name="scr_bio_cancelled">Подтверждение отменено. Нажмите «Повторить».</string>
+    <string name="scr_signin_google_error">Ошибка Google Sign-In (проверьте SHA-1)</string>
+    <string name="scr_signin_oauth_error">Ошибка конфигурации OAuth</string>
+
+    <string name="scr_onb_welcome_title">Привет!</string>
+    <string name="scr_onb_welcome_sub">Добро пожаловать в MultiAI</string>
+    <string name="scr_onb_welcome_desc">Мы первые, кто делаем полноценного ИИ агента на телефон.\nПеред началом — покажем, на что мы способны.</string>
+    <string name="scr_onb_start">Начать</string>
+    <string name="scr_onb_choose_mode">Выберите режим работы</string>
+    <string name="scr_onb_mode_chat_desc">Простое общение\nбез файлов</string>
+    <string name="scr_onb_mode_project_desc">Разработка проектов\nи вайбкодинг</string>
+    <string name="scr_onb_tap_to_select">Нажмите на карточку для выбора</string>
+    <string name="scr_onb_friend">друг</string>
+
+    <string-array name="scr_onboarding_phrases">
+        <item>Настраиваем ваше рабочее пространство...</item>
+        <item>Загружаем модели ИИ...</item>
+        <item>Синхронизируем данные с облаком...</item>
+        <item>Подключаемся к серверам MultiAI...</item>
+        <item>Проверяем подключение к сети...</item>
+        <item>Настраиваем инструменты разработки...</item>
+        <item>Оптимизируем производительность...</item>
+        <item>Подготавливаем чат-интерфейс...</item>
+        <item>Загружаем ваши настройки...</item>
+        <item>Почти готово...</item>
+        <item>Готово! Запускаем...</item>
+    </string-array>
+
+    <!-- ═════════ PersonalizationActivity / TraitsActivity ═════════ -->
+    <string name="scr_tone_default_title">По умолчанию</string>
+    <string name="scr_tone_default_desc">Предпочитаемый стиль и тон</string>
+    <string name="scr_tone_professional_title">Профессиональный</string>
+    <string name="scr_tone_professional_desc">Тактичный и точный</string>
+    <string name="scr_tone_friendly_title">Дружелюбный</string>
+    <string name="scr_tone_friendly_desc">Тёплый и разговорчивый</string>
+    <string name="scr_tone_candid_title">Откровенный</string>
+    <string name="scr_tone_candid_desc">Прямой и мотивирующий</string>
+    <string name="scr_tone_whimsical_title">Причудливый</string>
+    <string name="scr_tone_whimsical_desc">Весёлый и творческий</string>
+    <string name="scr_tone_efficient_title">Эффективный</string>
+    <string name="scr_tone_efficient_desc">Немногословный и чёткий</string>
+    <string name="scr_tone_sarcastic_title">Циничный</string>
+    <string name="scr_tone_sarcastic_desc">Критикующий и саркастичный</string>
+
+    <string name="scr_trait_warmth_short">Теплый</string>
+    <string name="scr_trait_excitement_short">Восторженный</string>
+    <string name="scr_trait_headers_short">Заголовки и списки</string>
+    <string name="scr_trait_emoji_short">Эмодзи</string>
+    <string name="scr_trait_warmth_more_t">Более радушный</string>
+    <string name="scr_trait_warmth_more_d">Более дружелюбный и располагающий</string>
+    <string name="scr_trait_warmth_less_t">Менее радушный</string>
+    <string name="scr_trait_warmth_less_d">Более профессиональный и основанный на фактах</string>
+    <string name="scr_trait_excitement_more_t">Более восторженный</string>
+    <string name="scr_trait_excitement_more_d">Более энергичный и воодушевлённый</string>
+    <string name="scr_trait_excitement_less_t">Менее восторженный</string>
+    <string name="scr_trait_excitement_less_d">Более спокойный и нейтральный</string>
+    <string name="scr_trait_headers_more_t">Меньше заголовков и списков</string>
+    <string name="scr_trait_headers_more_d">Больше абзацев вместо списков</string>
+    <string name="scr_trait_headers_less_t">Больше заголовков и списков</string>
+    <string name="scr_trait_headers_less_d">Чёткое форматирование и списки</string>
+    <string name="scr_trait_emoji_more_t">Больше смайликов</string>
+    <string name="scr_trait_emoji_more_d">Больше эмодзи</string>
+    <string name="scr_trait_emoji_less_t">Меньше смайликов</string>
+    <string name="scr_trait_emoji_less_d">Меньше эмодзи</string>
+
+    <string name="scr_level_more">Более</string>
+    <string name="scr_level_less">Менее</string>
+    <string name="scr_level_default">По умолчанию</string>
+    <string name="scr_trait_custom_more_d">Усилить эту черту</string>
+    <string name="scr_trait_custom_less_d">Ослабить эту черту</string>
+    <string name="scr_custom_trait">Своя характеристика</string>
+
+    <string name="scr_personalization_title">Персонализация</string>
+    <string name="scr_tone_card_title">Базовый стиль и тон</string>
+    <string name="scr_tone_desc">Это основной стиль общения и тон, который использует MultiAI в обсуждениях с вами. Это не влияет на функциональные возможности MultiAI.</string>
+    <string name="scr_traits_section">Характеристики</string>
+    <string name="scr_traits_hint">Выберите дополнительные параметры настройки в дополнение к основному стилю и тону.</string>
+    <string name="scr_add_traits">Добавить характеристики</string>
+    <string name="scr_custom_instructions">Пользовательские инструкции</string>
+    <string name="scr_custom_instructions_hint">Поделитесь чем-нибудь ещё, что вы хотели бы включить для рассмотрения в ответе MultiAI.</string>
+    <string name="scr_advanced_settings">Расширенные настройки</string>
+    <string name="scr_web_search">Веб-поиск</string>
+    <string name="scr_web_search_desc">Находить ответы с помощью веб-поиска</string>
+    <string name="scr_reset_traits">Сбросить характеристики</string>
+
+    <!-- ═════════ MemorySettingsActivity ═════════ -->
+    <string name="scr_memory_title">Память</string>
+    <string name="scr_memory_manage">Управление памятью</string>
+    <string name="scr_memory_ref_title">Ссылаться на сохранённую память</string>
+    <string name="scr_memory_ref_desc">Позволяет MultiAI сохранять и использовать память при ответе.</string>
+    <string name="scr_memory_chat_title">Использовать журналы чата</string>
+    <string name="scr_memory_chat_desc">Позвольте MultiAI ссылаться на недавние обсуждения при ответе.</string>
+    <string name="scr_memory_nick">Ваш псевдоним</string>
+    <string name="scr_memory_nick_hint">Пользователь</string>
+    <string name="scr_memory_prof">Ваша профессия</string>
+    <string name="scr_memory_prof_hint">Разработчик</string>
+    <string name="scr_memory_about">Больше о вас</string>
+    <string name="scr_memory_about_hint">Расскажи о себе: возраст, интересы, чем занимаешься…</string>
+
+    <!-- ═════════ SecuritySettingsActivity ═════════ -->
+    <string name="scr_security_title">Безопасность</string>
+    <string name="scr_sec_biometric_title">Биометрия для входа</string>
+    <string name="scr_sec_biometric_desc">Требовать отпечаток пальца / Face Unlock при запуске приложения.</string>
+    <string name="scr_sec_screenshot_title">Блокировать скриншоты</string>
+    <string name="scr_sec_screenshot_desc">Запретить скриншоты и запись экрана внутри приложения.</string>
+    <string name="scr_biometric_unavailable">Биометрия недоступна</string>
+    <string name="scr_bio_cancelled_short">Подтверждение отменено</string>
+    <string name="scr_bio_too_many_later">Слишком много попыток. Повторите позже</string>
+
+    <!-- ═════════ EditorActivity ═════════ -->
+    <string name="scr_editor_title">Редактор</string>
+    <string name="scr_editor_open_uri_error">Не удалось открыть URI файла</string>
+    <string name="scr_editor_read_error">Ошибка чтения файла: %1$s</string>
+    <string name="scr_editor_no_active_file">Нет активного файла</string>
+    <string name="scr_editor_not_editable">Этот файл нельзя редактировать</string>
+    <string name="scr_editor_write_open_error">Не удалось открыть файл для записи</string>
+    <string name="scr_editor_save_error">Ошибка сохранения: %1$s</string>
+    <string name="scr_editor_search_empty">Введи текст для поиска</string>
+    <string name="scr_editor_search_no_file">Сначала открой файл</string>
+    <string name="scr_editor_file_too_large">Файл слишком большой для редактора</string>
+    <string name="scr_editor_no_matches">Совпадений не найдено</string>
+    <string name="scr_editor_no_matches_short">Совпадений нет</string>
+    <string name="scr_editor_replaced_count">Заменено: %1$d</string>
+    <string name="scr_dont_save">Не сохранять</string>
+    <string name="scr_editor_save_changes">Сохранить изменения?</string>
+    <string name="scr_binary_install">Установить</string>
+    <string name="scr_binary_image">Изображение</string>
+    <string name="scr_binary_audio">Аудио</string>
+    <string name="scr_binary_pdf">PDF документ</string>
+    <string name="scr_binary_file">Файл</string>
+    <string name="scr_audio_ready">Готово к воспроизведению</string>
+    <string name="scr_audio_preparing">Подготовка...</string>
+    <string name="scr_audio_complete">Воспроизведение завершено</string>
+    <string name="scr_audio_error">Ошибка аудио</string>
+    <string name="scr_audio_paused">Пауза</string>
+    <string name="scr_audio_playing">Воспроизведение</string>
+    <string name="scr_audio_not_ready">Аудио еще не готово</string>
+    <string name="scr_playback_error">Ошибка воспроизведения</string>
+    <string name="scr_pdf_page_preview"> · превью страницы 1</string>
+    <string name="scr_pdf_render_error">Не удалось отрисовать PDF: %1$s</string>
+    <string name="scr_apk_preparing">Подготовка APK...</string>
+    <string name="scr_create_dir_error">Не удалось создать каталог</string>
+    <string name="scr_open_read_stream_error">Не удалось открыть поток чтения</string>
+    <string name="scr_installer_open_error">Не удалось открыть установщик: %1$s</string>
+    <string name="scr_apk_install_error">Не удалось установить APK: %1$s</string>
+    <string name="scr_share_apk">Поделиться APK</string>
+    <string name="scr_share_file_name">Поделиться %1$s</string>
+    <string name="scr_open_file">Открыть файл</string>
+    <string name="scr_no_app_to_open">Нет приложения для открытия</string>
+    <string name="scr_unsaved_tabs">Есть несохраненные вкладки</string>
+    <string name="scr_exit_without_save">Выйти без сохранения?</string>
+    <string name="scr_exit">Выйти</string>
+
+    <!-- ═════════ FilesActivity ═════════ -->
+    <string name="scr_folder_unavailable">Папка назначения недоступна</string>
+    <string name="scr_project">Проект</string>
+    <string name="scr_loading">Загрузка...</string>
+    <plurals name="scr_folders_count">
+        <item quantity="one">%1$d папка</item>
+        <item quantity="few">%1$d папки</item>
+        <item quantity="many">%1$d папок</item>
+        <item quantity="other">%1$d папок</item>
+    </plurals>
+    <plurals name="scr_files_count">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файла</item>
+        <item quantity="many">%1$d файлов</item>
+        <item quantity="other">%1$d файлов</item>
+    </plurals>
+    <plurals name="scr_n_selected">
+        <item quantity="one">%1$d выбран</item>
+        <item quantity="few">%1$d выбрано</item>
+        <item quantity="many">%1$d выбрано</item>
+        <item quantity="other">%1$d выбрано</item>
+    </plurals>
+    <string name="scr_file_not_found">Файл не найден</string>
+    <string name="scr_nothing_selected">Ничего не выбрано</string>
+    <string name="scr_deleted_count">Удалено: %1$d</string>
+    <string name="scr_delete_failed">Не удалось удалить</string>
+    <string name="scr_folder_picker_failed">Не удалось открыть выбор папки</string>
+    <string name="scr_folder_word">папка</string>
+    <string name="scr_moving">Перемещение</string>
+    <string name="scr_copying">Копирование</string>
+    <string name="scr_moved_to">Перемещено в: %1$s</string>
+    <string name="scr_copied_to">Скопировано в: %1$s</string>
+    <string name="scr_move_failed">Не удалось переместить</string>
+    <string name="scr_copy_failed">Не удалось скопировать</string>
+    <string name="scr_folder_default">Папка</string>
+    <string name="scr_file_default">Файл</string>
+    <string name="scr_copy_word">копия</string>
+
+    <!-- ═════════ TerminalActivity ═════════ -->
+    <string name="scr_term_storage_request">Пожалуйста, разрешите доступ ко всем файлам</string>
+    <string name="scr_term_starting_shell">Запускаем shell…</string>
+    <string name="scr_term_tools_title">Инструменты терминала</string>
+    <string name="scr_term_tools_subtitle">Устанавливайте и удаляйте модули</string>
+    <string name="scr_term_basic_shell">Базовый shell</string>
+    <string name="scr_term_basic_detail">Toybox команды · 0 МБ · готово</string>
+    <string name="scr_term_included">Включено</string>
+    <string name="scr_term_installed_format">Установлено · %1$s</string>
+    <string name="scr_term_download_summary">Скачать: %1$d · %2$s</string>
+    <string name="scr_term_remove_summary">Удалить: %1$d · %2$s</string>
+    <string name="scr_term_all_applied">Все изменения применены</string>
+    <string name="scr_term_apply_changes">Применить изменения</string>
+    <string name="scr_term_basic_set">Базовый набор · 0 МБ</string>
+    <string name="scr_term_n_tools">%1$d инструментов · %2$s</string>
+    <string name="scr_term_open_basic">Открыть базовый терминал</string>
+    <string name="scr_term_download_install">Скачать и установить</string>
+    <string name="scr_term_remove_tools_title">Удалить инструменты?</string>
+    <string name="scr_term_remove_count_msg">Будет удалено: %1$d. Базовый shell и ваши файлы останутся на месте.</string>
+    <string name="scr_term_applying">Применяем изменения</string>
+    <string name="scr_term_preparing_tools">Готовим инструменты</string>
+    <string name="scr_term_downloading">Скачиваем инструменты</string>
+    <string name="scr_term_verifying">Проверяем %1$s</string>
+    <string name="scr_term_extracting">Распаковываем файлы</string>
+    <string name="scr_term_removing_tools">Удаляем инструменты</string>
+    <string name="scr_term_configuring">Настраиваем терминал</string>
+    <string name="scr_term_setting_perms">Устанавливаем права</string>
+    <string name="scr_term_checking_cmds">Проверяем команды</string>
+    <string name="scr_term_install_failed">Не удалось установить</string>
+    <string name="scr_term_module_unavailable">Дополнительный модуль недоступен</string>
+    <string name="scr_term_unknown_error">Неизвестная ошибка</string>
+    <string name="scr_term_used_by">Используется: %1$s. Сначала удалите зависимый модуль.</string>
+    <string name="scr_term_cmd_not_found">Команда \'%1$s\' недоступна или не найдена.</string>
+    <string name="scr_unit_mb">МБ</string>
+    <string name="scr_unit_gb">ГБ</string>
+    <string name="scr_format_mb">%1$.1f %2$s</string>
+    <string name="scr_format_gb">%1$.2f %2$s</string>
+
+    <!-- ═════════ AboutActivity ═════════ -->
+    <string name="scr_about_title">Информация</string>
+    <string name="scr_about_help_center">Справочный центр</string>
+    <string name="scr_about_terms">Условия использования</string>
+    <string name="scr_about_privacy">Политика конфиденциальности</string>
+    <string name="scr_about_app_name">MultiAI для Android</string>
+    <string name="scr_about_open_link_error">Не удалось открыть ссылку</string>
+
+    <!-- ═════════ ProfileActivity ═════════ -->
+    <string name="scr_profile_signout_title">Выйти из аккаунта?</string>
+    <string name="scr_profile_signout_msg">Вы будете разлогинены из MultiAI.</string>
+    <string name="scr_profile_signed_out">Вы вышли из аккаунта</string>
+    <string name="scr_profile_signout_failed">Не удалось безопасно завершить выход. Попробуйте ещё раз.</string>
+    <string name="scr_profile_delete_title">Удалить аккаунт?</string>
+    <string name="scr_profile_delete_msg">Все данные будут удалены безвозвратно. Это действие нельзя отменить.</string>
+    <string name="scr_profile_deleted">Аккаунт удалён</string>
+    <string name="scr_profile_member_since">С нами с %1$s</string>
+    <string name="scr_profile_active">Активен</string>
+    <string name="scr_profile_not_authorized">Не авторизован</string>
+    <string name="scr_appearance">Внешний вид</string>
+    <string name="scr_workspace">Рабочая область</string>
+    <string name="scr_workspace_personal">Личная</string>
+    <string name="scr_workspace_work">Рабочая</string>
+    <string name="scr_workspace_personal_full">Личная  ·  Чат режим</string>
+    <string name="scr_workspace_work_full">Рабочая  ·  Режим проекта</string>
+    <string name="scr_theme_system">Системные установки</string>
+    <string name="scr_theme_light">Светлый</string>
+    <string name="scr_theme_dark">Тёмный</string>
+    <string name="scr_accent_color">Акцентный цвет</string>
+    <string name="scr_rename_dialog_title">Как тебя называть?</string>
+    <string name="scr_logout_dialog_title">Выйти из MultiAI?</string>
+    <string name="scr_logout_dialog_message">История чатов и настройки останутся на устройстве.</string>
+    <string name="scr_data_export">Экспорт данных</string>
+    <string name="scr_data_export_msg">Запрос отправит архив на привязанный e-mail. Если e-mail нет, архив придёт в привязанный Telegram через бота.</string>
+    <string name="scr_data_export_requested">Запрос отправлен</string>
+    <string name="scr_data_archive_confirm_title">Архивировать все чаты?</string>
+    <string name="scr_data_archive_confirm_msg">Активные чаты из режимов «Проект» и «Чат» будут перемещены в архив. Их можно восстановить в любой момент.</string>
+    <string name="scr_data_archive_button">Архивировать</string>
+    <string name="scr_data_archive_none">Активных чатов для архивации нет</string>
+    <string name="scr_data_archive_count">Архивировано чатов: %1$d</string>
+    <string name="scr_data_clear_confirm_title">Очистить всю историю?</string>
+    <string name="scr_data_clear_confirm_msg">Все активные и архивированные чаты будут удалены безвозвратно.</string>
+    <string name="scr_data_clear_button">Очистить</string>
+    <string name="scr_data_history_cleared">История очищена</string>
+
+    <!-- Saved memories / Memory management -->
+    <string name="scr_memories_title">Память</string>
+    <string name="scr_memories_back">Назад</string>
+    <string name="scr_memories_header">Сохранения</string>
+    <string name="scr_memories_subtitle">Память, которую AI сохраняет для вас</string>
+    <string name="scr_memories_empty_title">Здесь пока пусто</string>
+    <string name="scr_memories_empty_subtitle">Попросите AI запомнить что-то важное — и это появится здесь</string>
+
+    <!-- Archived chats -->
+    <string name="scr_archived_restored">Чат восстановлен</string>
+    <string name="scr_archived_deleted">Чат удалён</string>
+    <string name="scr_archived_delete_title">Удалить чат?</string>
+    <string name="scr_archived_delete_msg">\"%1$s\" будет удалён навсегда.</string>
+    <string name="scr_archived_cd_chat_mode">чат режим</string>
+    <string name="scr_archived_cd_project">проект</string>
+    <string name="scr_archived_cd_archived">в архиве</string>
+
+    <!-- Drawer history -->
+    <string name="scr_drawer_history_empty">История пуста</string>
+    <string name="scr_drawer_history_chat_default">Чат</string>
+    <string name="scr_drawer_history_more">Показать ещё (%1$d)</string>
+
+    <!-- Voice / TTS -->
+    <string name="voice_title">Голос</string>
+    <string name="voice_subtitle">Голос озвучки ответов</string>
+    <string name="voice_listen">Прослушать</string>
+    <string name="voice_selected">Выбран голос: %1$s</string>
+    <string name="voice_preview_generating">Генерирую превью…</string>
+    <string name="voice_preview_error">Не удалось воспроизвести голос</string>
+    <string name="voice_preview_fallback">Edge временно недоступен — включил Qwen-превью</string>
+    <string name="voice_stop">Остановить</string>
+
+    <!-- AI message action bar tooltips -->
+    <string name="act_copy">Копировать</string>
+    <string name="act_copied">Скопировано</string>
+    <string name="act_like">Нравится</string>
+    <string name="act_dislike">Не нравится</string>
+    <string name="act_listen">Озвучить</string>
+    <string name="act_share">Поделиться</string>
+    <string name="act_more">Ещё</string>
+</resources>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@color/error_bg"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+        <!-- Header: icon + title -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_error_warning"
+                android:contentDescription="@null"
+                android:tint="@color/error" />
+
+            <TextView
+                android:id="@+id/textErrorTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:text="@string/kit_msg_error_title"
+                android:textColor="@color/error_text"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+
+        <!-- Body -->
+        <TextView
+            android:id="@+id/textErrorBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/lay_error_default_body"
+            android:textColor="@color/error_text"
+            android:textSize="14sp"
+            android:lineSpacingExtra="3dp" />
+
+        <!-- Error code chip -->
+        <TextView
+            android:id="@+id/textErrorCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:background="@drawable/error_code_background"
+            android:text="@string/kit_msg_error_code_prefix"
+            android:textColor="@color/error_text_muted"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.04" />
+
+        <!-- Auth button (shown only for auth/session errors) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonAuth"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="14dp"
+            android:text="@string/chat_err_auth_button"
+            android:textColor="@color/icon_on_accent"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:visibility="gone"
+            app:backgroundTint="@color/accent"
+            app:cornerRadius="14dp"
+            app:icon="@drawable/ic_multiai_logo"
+            app:iconTint="@color/icon_on_accent"
+            app:iconGravity="textStart"
+            app:iconSize="32dp"
+            app:iconPadding="0dp" />
+
+        <!-- Actions row: retry + support -->
+        <LinearLayout
+            android:id="@+id/actionsRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- Retry button -->
+            <LinearLayout
+                android:id="@+id/buttonRetry"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/retry_button_background"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_retry_arrow"
+                    android:contentDescription="@null"
+                    android:tint="@color/error_text" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/kit_msg_error_retry"
+                    android:textColor="@color/error_text"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <!-- Spacing between actions -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp" />
+
+            <!-- Support button -->
+            <LinearLayout
+                android:id="@+id/buttonSupport"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/support_button_background"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_telegram"
+                    android:contentDescription="Telegram" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/kit_msg_error_share_support"
+                    android:textColor="@color/telegram"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+        </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

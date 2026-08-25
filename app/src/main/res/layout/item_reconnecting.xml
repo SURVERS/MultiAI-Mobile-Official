@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Reconnecting indicator used only by the retained Work Mode retry infrastructure. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <app.multiai.mobile.ui.WorkingLogoIconView
+        android:id="@+id/workingLogo"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="@null" />
+
+    <app.multiai.mobile.ui.WaveTextView
+        android:id="@+id/reconnectingText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-medium" />
+
+</LinearLayout>

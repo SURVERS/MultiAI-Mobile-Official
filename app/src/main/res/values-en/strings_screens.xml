@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English overrides for screen-specific UI strings. -->
+<resources>
+
+    <!-- ═════════ Shared / cross-screen ═════════ -->
+    <string name="scr_cancel">Cancel</string>
+    <string name="scr_retry">Try again</string>
+    <string name="scr_skip">Skip</string>
+    <string name="scr_save">Save</string>
+    <string name="scr_saved">Saved</string>
+    <string name="scr_enabled">Enabled</string>
+    <string name="scr_disabled">Disabled</string>
+    <string name="scr_share">Share</string>
+    <string name="scr_remove">Remove</string>
+    <string name="scr_done">Done</string>
+    <string name="scr_user">User</string>
+    <string name="scr_signin_cancelled">Sign-in cancelled</string>
+    <string name="scr_signin_error_code">Sign-in error: %1$d</string>
+    <string name="scr_welcome_name">Welcome, %1$s!</string>
+
+    <!-- ═════════ OnboardingActivity ═════════ -->
+    <string name="scr_bio_use_fingerprint">Use your fingerprint or Face Unlock</string>
+    <string name="scr_bio_unavailable">Biometrics unavailable. Check your device settings.</string>
+    <string name="scr_bio_not_recognized">Not recognized. Please try again.</string>
+    <string name="scr_bio_lockout">Too many attempts. Try again in a few seconds.</string>
+    <string name="scr_bio_wait">Please wait…</string>
+    <string name="scr_bio_cancelled">Authentication cancelled. Tap \"Try again\".</string>
+    <string name="scr_signin_google_error">Google Sign-In error (check SHA-1)</string>
+    <string name="scr_signin_oauth_error">OAuth configuration error</string>
+
+    <string name="scr_onb_welcome_title">Hi there!</string>
+    <string name="scr_onb_welcome_sub">Welcome to MultiAI</string>
+    <string name="scr_onb_welcome_desc">We\'re the first to build a full-fledged AI agent for your phone.\nBefore we start — let us show you what we can do.</string>
+    <string name="scr_onb_start">Get started</string>
+    <string name="scr_onb_signin_multiai">Sign in with MultiAI</string>
+    <string name="scr_onb_setup_title">Set it up your way.</string>
+    <string name="scr_onb_choose_theme">Choose a theme:</string>
+    <string name="scr_onb_theme_dark">Dark theme</string>
+    <string name="scr_onb_theme_dark_desc">The default theme for comfortable and enjoyable coding</string>
+    <string name="scr_onb_theme_light">Light theme</string>
+    <string name="scr_onb_theme_light_desc">A clean interface for comfortable daytime work</string>
+    <string name="scr_onb_choose_language">Choose a language:</string>
+    <string name="scr_onb_language_ru">Русский</string>
+    <string name="scr_onb_language_ru_desc">Интерфейс приложения на русском</string>
+    <string name="scr_onb_language_en">English</string>
+    <string name="scr_onb_language_en_desc">App interface in English</string>
+    <string name="scr_continue">Continue</string>
+    <string name="scr_onb_login_title">Sign in to MultiAI</string>
+    <string name="scr_onb_login_desc">Sign in to access AI models, synchronization, and cloud features.</string>
+    <string name="scr_onb_choose_mode">Choose your mode</string>
+    <string name="scr_onb_mode_chat_desc">Simple chat\nwithout files</string>
+    <string name="scr_onb_mode_project_desc">Build projects\nand vibe-code</string>
+    <string name="scr_onb_tap_to_select">Tap a card to select</string>
+    <string name="scr_onb_friend">friend</string>
+
+    <string-array name="scr_onboarding_phrases">
+        <item>Setting up your workspace…</item>
+        <item>Loading AI models…</item>
+        <item>Syncing data with the cloud…</item>
+        <item>Connecting to MultiAI servers…</item>
+        <item>Checking network connection…</item>
+        <item>Configuring development tools…</item>
+        <item>Optimizing performance…</item>
+        <item>Preparing the chat interface…</item>
+        <item>Loading your settings…</item>
+        <item>Almost there…</item>
+        <item>Done! Launching…</item>
+    </string-array>
+
+    <!-- ═════════ PersonalizationActivity / TraitsActivity ═════════ -->
+    <string name="scr_tone_default_title">Default</string>
+    <string name="scr_tone_default_desc">Preferred style and tone</string>
+    <string name="scr_tone_professional_title">Professional</string>
+    <string name="scr_tone_professional_desc">Tactful and precise</string>
+    <string name="scr_tone_friendly_title">Friendly</string>
+    <string name="scr_tone_friendly_desc">Warm and conversational</string>
+    <string name="scr_tone_candid_title">Candid</string>
+    <string name="scr_tone_candid_desc">Direct and motivating</string>
+    <string name="scr_tone_whimsical_title">Whimsical</string>
+    <string name="scr_tone_whimsical_desc">Playful and creative</string>
+    <string name="scr_tone_efficient_title">Efficient</string>
+    <string name="scr_tone_efficient_desc">Concise and clear</string>
+    <string name="scr_tone_sarcastic_title">Cynical</string>
+    <string name="scr_tone_sarcastic_desc">Critical and sarcastic</string>
+
+    <string name="scr_trait_warmth_short">Warmth</string>
+    <string name="scr_trait_excitement_short">Excitement</string>
+    <string name="scr_trait_headers_short">Headers &amp; lists</string>
+    <string name="scr_trait_emoji_short">Emoji</string>
+    <string name="scr_trait_warmth_more_t">Warmer</string>
+    <string name="scr_trait_warmth_more_d">More friendly and approachable</string>
+    <string name="scr_trait_warmth_less_t">Less warm</string>
+    <string name="scr_trait_warmth_less_d">More professional and fact-based</string>
+    <string name="scr_trait_excitement_more_t">More enthusiastic</string>
+    <string name="scr_trait_excitement_more_d">More energetic and inspired</string>
+    <string name="scr_trait_excitement_less_t">Less enthusiastic</string>
+    <string name="scr_trait_excitement_less_d">Calmer and more neutral</string>
+    <string name="scr_trait_headers_more_t">Fewer headers and lists</string>
+    <string name="scr_trait_headers_more_d">More paragraphs instead of lists</string>
+    <string name="scr_trait_headers_less_t">More headers and lists</string>
+    <string name="scr_trait_headers_less_d">Clear formatting and lists</string>
+    <string name="scr_trait_emoji_more_t">More emojis</string>
+    <string name="scr_trait_emoji_more_d">More emoji</string>
+    <string name="scr_trait_emoji_less_t">Fewer emojis</string>
+    <string name="scr_trait_emoji_less_d">Less emoji</string>
+
+    <string name="scr_level_more">More</string>
+    <string name="scr_level_less">Less</string>
+    <string name="scr_level_default">Default</string>
+    <string name="scr_trait_custom_more_d">Strengthen this trait</string>
+    <string name="scr_trait_custom_less_d">Soften this trait</string>
+    <string name="scr_custom_trait">Custom trait</string>
+
+    <string name="scr_personalization_title">Personalization</string>
+    <string name="scr_tone_card_title">Base style and tone</string>
+    <string name="scr_tone_desc">This is the primary style and tone MultiAI uses in conversations with you. It does not affect MultiAI\'s capabilities.</string>
+    <string name="scr_traits_section">Traits</string>
+    <string name="scr_traits_hint">Choose additional settings on top of the base style and tone.</string>
+    <string name="scr_add_traits">Add traits</string>
+    <string name="scr_custom_instructions">Custom instructions</string>
+    <string name="scr_custom_instructions_hint">Share anything else you\'d like included in MultiAI\'s responses.</string>
+    <string name="scr_advanced_settings">Advanced settings</string>
+    <string name="scr_web_search">Web search</string>
+    <string name="scr_web_search_desc">Find answers using web search</string>
+    <string name="scr_reset_traits">Reset traits</string>
+
+    <!-- ═════════ MemorySettingsActivity ═════════ -->
+    <string name="scr_memory_title">Memory</string>
+    <string name="scr_memory_manage">Memory management</string>
+    <string name="scr_memory_ref_title">Reference saved memory</string>
+    <string name="scr_memory_ref_desc">Lets MultiAI store and use memory when responding.</string>
+    <string name="scr_memory_chat_title">Use chat history</string>
+    <string name="scr_memory_chat_desc">Let MultiAI reference recent conversations when responding.</string>
+    <string name="scr_memory_nick">Your nickname</string>
+    <string name="scr_memory_nick_hint">User</string>
+    <string name="scr_memory_prof">Your profession</string>
+    <string name="scr_memory_prof_hint">Developer</string>
+    <string name="scr_memory_about">More about you</string>
+    <string name="scr_memory_about_hint">Tell us about yourself: age, interests, what you do…</string>
+
+    <!-- ═════════ SecuritySettingsActivity ═════════ -->
+    <string name="scr_security_title">Security</string>
+    <string name="scr_sec_biometric_title">Biometric sign-in</string>
+    <string name="scr_sec_biometric_desc">Require fingerprint / Face Unlock when launching the app.</string>
+    <string name="scr_sec_screenshot_title">Block screenshots</string>
+    <string name="scr_sec_screenshot_desc">Prevent screenshots and screen recording inside the app.</string>
+    <string name="scr_biometric_unavailable">Biometrics unavailable</string>
+    <string name="scr_bio_cancelled_short">Authentication cancelled</string>
+    <string name="scr_bio_too_many_later">Too many attempts. Try again later</string>
+
+    <!-- ═════════ EditorActivity ═════════ -->
+    <string name="scr_editor_title">Editor</string>
+    <string name="scr_editor_open_uri_error">Could not open file URI</string>
+    <string name="scr_editor_read_error">File read error: %1$s</string>
+    <string name="scr_editor_no_active_file">No active file</string>
+    <string name="scr_editor_not_editable">This file cannot be edited</string>
+    <string name="scr_editor_write_open_error">Could not open file for writing</string>
+    <string name="scr_editor_save_error">Save error: %1$s</string>
+    <string name="scr_editor_search_empty">Enter text to search</string>
+    <string name="scr_editor_search_no_file">Open a file first</string>
+    <string name="scr_editor_file_too_large">File is too large for the editor</string>
+    <string name="scr_editor_no_matches">No matches found</string>
+    <string name="scr_editor_no_matches_short">No matches</string>
+    <string name="scr_editor_replaced_count">Replaced: %1$d</string>
+    <string name="scr_dont_save">Don\'t save</string>
+    <string name="scr_editor_save_changes">Save changes?</string>
+    <string name="scr_binary_install">Install</string>
+    <string name="scr_binary_image">Image</string>
+    <string name="scr_binary_audio">Audio</string>
+    <string name="scr_binary_pdf">PDF document</string>
+    <string name="scr_binary_file">File</string>
+    <string name="scr_audio_ready">Ready to play</string>
+    <string name="scr_audio_preparing">Preparing…</string>
+    <string name="scr_audio_complete">Playback finished</string>
+    <string name="scr_audio_error">Audio error</string>
+    <string name="scr_audio_paused">Paused</string>
+    <string name="scr_audio_playing">Playing</string>
+    <string name="scr_audio_not_ready">Audio is not ready yet</string>
+    <string name="scr_playback_error">Playback error</string>
+    <string name="scr_pdf_page_preview"> · page 1 preview</string>
+    <string name="scr_pdf_render_error">Could not render PDF: %1$s</string>
+    <string name="scr_apk_preparing">Preparing APK…</string>
+    <string name="scr_create_dir_error">Could not create directory</string>
+    <string name="scr_open_read_stream_error">Could not open input stream</string>
+    <string name="scr_installer_open_error">Could not open installer: %1$s</string>
+    <string name="scr_apk_install_error">Could not install APK: %1$s</string>
+    <string name="scr_share_apk">Share APK</string>
+    <string name="scr_share_file_name">Share %1$s</string>
+    <string name="scr_open_file">Open file</string>
+    <string name="scr_no_app_to_open">No app available to open this</string>
+    <string name="scr_unsaved_tabs">You have unsaved tabs</string>
+    <string name="scr_exit_without_save">Exit without saving?</string>
+    <string name="scr_exit">Exit</string>
+
+    <!-- ═════════ FilesActivity ═════════ -->
+    <string name="scr_folder_unavailable">Destination folder unavailable</string>
+    <string name="scr_project">Project</string>
+    <string name="scr_loading">Loading…</string>
+    <plurals name="scr_folders_count">
+        <item quantity="one">%1$d folder</item>
+        <item quantity="other">%1$d folders</item>
+    </plurals>
+    <plurals name="scr_files_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+    <plurals name="scr_n_selected">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <string name="scr_file_not_found">File not found</string>
+    <string name="scr_nothing_selected">Nothing selected</string>
+    <string name="scr_deleted_count">Deleted: %1$d</string>
+    <string name="scr_delete_failed">Could not delete</string>
+    <string name="scr_folder_picker_failed">Could not open folder picker</string>
+    <string name="scr_folder_word">folder</string>
+    <string name="scr_moving">Moving</string>
+    <string name="scr_copying">Copying</string>
+    <string name="scr_moved_to">Moved to: %1$s</string>
+    <string name="scr_copied_to">Copied to: %1$s</string>
+    <string name="scr_move_failed">Could not move</string>
+    <string name="scr_copy_failed">Could not copy</string>
+    <string name="scr_folder_default">Folder</string>
+    <string name="scr_file_default">File</string>
+    <string name="scr_copy_word">copy</string>
+
+    <!-- ═════════ TerminalActivity ═════════ -->
+    <string name="scr_term_storage_request">Please grant access to all files</string>
+    <string name="scr_term_starting_shell">Starting shell…</string>
+    <string name="scr_term_tools_title">Terminal tools</string>
+    <string name="scr_term_tools_subtitle">Install and remove modules</string>
+    <string name="scr_term_basic_shell">Basic shell</string>
+    <string name="scr_term_basic_detail">Toybox commands · 0 MB · ready</string>
+    <string name="scr_term_included">Included</string>
+    <string name="scr_term_installed_format">Installed · %1$s</string>
+    <string name="scr_term_download_summary">Download: %1$d · %2$s</string>
+    <string name="scr_term_remove_summary">Remove: %1$d · %2$s</string>
+    <string name="scr_term_all_applied">All changes applied</string>
+    <string name="scr_term_apply_changes">Apply changes</string>
+    <string name="scr_term_basic_set">Basic set · 0 MB</string>
+    <string name="scr_term_n_tools">%1$d tools · %2$s</string>
+    <string name="scr_term_open_basic">Open basic terminal</string>
+    <string name="scr_term_download_install">Download and install</string>
+    <string name="scr_term_remove_tools_title">Remove tools?</string>
+    <string name="scr_term_remove_count_msg">Will remove: %1$d. The basic shell and your files will remain.</string>
+    <string name="scr_term_applying">Applying changes</string>
+    <string name="scr_term_preparing_tools">Preparing tools</string>
+    <string name="scr_term_downloading">Downloading tools</string>
+    <string name="scr_term_verifying">Verifying %1$s</string>
+    <string name="scr_term_extracting">Extracting files</string>
+    <string name="scr_term_removing_tools">Removing tools</string>
+    <string name="scr_term_configuring">Configuring terminal</string>
+    <string name="scr_term_setting_perms">Setting permissions</string>
+    <string name="scr_term_checking_cmds">Checking commands</string>
+    <string name="scr_term_install_failed">Failed to install</string>
+    <string name="scr_term_module_unavailable">Extra module unavailable</string>
+    <string name="scr_term_unknown_error">Unknown error</string>
+    <string name="scr_term_used_by">Used by: %1$s. Remove the dependent module first.</string>
+    <string name="scr_term_cmd_not_found">Command \'%1$s\' is unavailable or not found.</string>
+    <string name="scr_term_shell_not_ready">Shell is not ready yet</string>
+    <string name="scr_unit_mb">MB</string>
+    <string name="scr_unit_gb">GB</string>
+    <string name="scr_format_mb">%1$.1f %2$s</string>
+    <string name="scr_format_gb">%1$.2f %2$s</string>
+
+    <!-- ═════════ AboutActivity ═════════ -->
+    <string name="scr_about_title">About</string>
+    <string name="scr_about_help_center">Help center</string>
+    <string name="scr_about_terms">Terms of use</string>
+    <string name="scr_about_privacy">Privacy policy</string>
+    <string name="scr_about_app_name">MultiAI for Android</string>
+    <string name="scr_about_open_link_error">Could not open link</string>
+
+    <!-- ═════════ ProfileActivity ═════════ -->
+    <string name="scr_profile_signout_title">Sign out of your account?</string>
+    <string name="scr_profile_signout_msg">You will be logged out of MultiAI.</string>
+    <string name="scr_profile_signed_out">You\'ve been signed out</string>
+    <string name="scr_profile_signout_failed">Could not securely complete sign-out. Please try again.</string>
+    <string name="scr_profile_delete_title">Delete account?</string>
+    <string name="scr_profile_delete_msg">All data will be permanently deleted. This action cannot be undone.</string>
+    <string name="scr_profile_deleted">Account deleted</string>
+    <string name="scr_profile_member_since">Member since %1$s</string>
+    <string name="scr_profile_active">Active</string>
+    <string name="scr_profile_not_authorized">Not signed in</string>
+    <string name="scr_appearance">Appearance</string>
+    <string name="scr_workspace">Workspace</string>
+    <string name="scr_workspace_personal">Personal</string>
+    <string name="scr_workspace_work">Work</string>
+    <string name="scr_workspace_personal_full">Personal  ·  Chat mode</string>
+    <string name="scr_workspace_work_full">Work  ·  Project mode</string>
+    <string name="scr_theme_system">System default</string>
+    <string name="scr_theme_light">Light</string>
+    <string name="scr_theme_dark">Dark</string>
+    <string name="scr_accent_color">Accent color</string>
+    <string name="scr_rename_dialog_title">What should I call you?</string>
+    <string name="scr_logout_dialog_title">Log out of MultiAI?</string>
+    <string name="scr_logout_dialog_message">Chat history and settings will remain on this device.</string>
+    <string name="scr_data_export">Export data</string>
+    <string name="scr_data_export_msg">The archive will be sent to your linked email. If no email is linked, it will be delivered through the linked Telegram bot.</string>
+    <string name="scr_data_export_requested">Request sent</string>
+    <string name="scr_data_archive_confirm_title">Archive all chats?</string>
+    <string name="scr_data_archive_confirm_msg">Active chats from Project and Chat modes will be moved to the archive. You can restore them at any time.</string>
+    <string name="scr_data_archive_button">Archive</string>
+    <string name="scr_data_archive_none">No active chats to archive</string>
+    <string name="scr_data_archive_count">Archived chats: %1$d</string>
+    <string name="scr_data_clear_confirm_title">Clear all history?</string>
+    <string name="scr_data_clear_confirm_msg">All active and archived chats will be permanently deleted.</string>
+    <string name="scr_data_clear_button">Clear</string>
+    <string name="scr_data_history_cleared">History cleared</string>
+
+    <!-- Saved memories / Memory management -->
+    <string name="scr_memories_title">Memory</string>
+    <string name="scr_memories_back">Back</string>
+    <string name="scr_memories_header">Saved</string>
+    <string name="scr_memories_subtitle">Memory that AI saves for you</string>
+    <string name="scr_memories_empty_title">Nothing here yet</string>
+    <string name="scr_memories_empty_subtitle">Ask AI to remember something important — it will appear here</string>
+
+    <!-- Archived chats -->
+    <string name="scr_archived_restored">Chat restored</string>
+    <string name="scr_archived_deleted">Chat deleted</string>
+    <string name="scr_archived_delete_title">Delete chat?</string>
+    <string name="scr_archived_delete_msg">\"%1$s\" will be deleted permanently.</string>
+    <string name="scr_archived_cd_chat_mode">chat mode</string>
+    <string name="scr_archived_cd_project">project</string>
+    <string name="scr_archived_cd_archived">archived</string>
+
+    <!-- Drawer history -->
+    <string name="scr_drawer_history_empty">History is empty</string>
+    <string name="scr_drawer_history_chat_default">Chat</string>
+    <string name="scr_drawer_history_more">Show more (%1$d)</string>
+
+    <!-- Voice / TTS -->
+    <string name="voice_title">Voice</string>
+    <string name="voice_subtitle">Voice for reading answers aloud</string>
+    <string name="voice_listen">Listen</string>
+    <string name="voice_selected">Voice selected: %1$s</string>
+    <string name="voice_preview_generating">Generating preview…</string>
+    <string name="voice_preview_error">Couldn\'t play the voice</string>
+    <string name="voice_preview_fallback">Edge is unavailable — playing a Qwen preview instead</string>
+    <string name="voice_stop">Stop</string>
+
+    <!-- AI message action bar tooltips -->
+    <string name="act_copy">Copy</string>
+    <string name="act_copied">Copied</string>
+    <string name="act_like">Like</string>
+    <string name="act_dislike">Dislike</string>
+    <string name="act_listen">Read aloud</string>
+    <string name="act_share">Share</string>
+    <string name="act_more">More</string>
+</resources>
