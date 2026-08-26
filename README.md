@@ -30,7 +30,7 @@ MultiAi IDE/
 │   │   ├── res/                 (layout/, drawable/, values/, values-ru/, values-en/)
 │   │   └── AndroidManifest.xml
 │   └── build.gradle
-├── OAUTH_REGISTRATION.md        (инструкция регистрации для владельца MultiAI)
+├── OAUTH_REGISTRATION.md        (инструкция регистрации)
 ├── build.gradle
 └── settings.gradle
 ```

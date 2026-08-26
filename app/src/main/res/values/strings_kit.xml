@@ -533,8 +533,13 @@
     <string name="whitelist_section_blocked">Глобально запрещены</string>
     <string name="whitelist_section_blocked_note">Запрет всегда сильнее любого разрешения и действует во всех чатах.</string>
     <string name="whitelist_session_picker">Сессия</string>
+    <string name="whitelist_session_none">Нет сессий Work Mode</string>
     <string name="whitelist_session_unnamed">Новая сессия</string>
     <string name="whitelist_session_current">%1$s · текущая</string>
+    <string name="whitelist_session_archived">%1$s · архив</string>
+    <string name="whitelist_session_page">Сессии %1$d–%2$d из %3$d</string>
+    <string name="whitelist_session_previous">Назад</string>
+    <string name="whitelist_session_next">Далее</string>
     <string name="whitelist_section_session">Только в этой сессии</string>
     <string name="whitelist_section_session_note">Действует только в выбранной сессии и сбрасывается после перезапуска приложения.</string>
     <string name="whitelist_empty">Список пуст</string>

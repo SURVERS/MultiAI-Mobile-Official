@@ -60,19 +60,30 @@ public final class TtsEngine {
      */
     public static File synthesizeBlocking(Context ctx, String provider, String voice,
                                           String text, String rate) throws Exception {
-        return synthesizeWithFallback(ctx, provider, voice, text, rate).audioFile;
+        return synthesizeWithFallback(ctx, provider, voice, text, rate, "+0Hz", "+0%").audioFile;
     }
 
-    /** Синтез с информацией о том, удалось ли использовать выбранный провайдер. */
+    /** Backward-compatible overload: pitch and volume stay neutral. */
     public static SynthesisResult synthesizeWithFallback(Context ctx, String provider, String voice,
                                                          String text, String rate) throws Exception {
+        return synthesizeWithFallback(ctx, provider, voice, text, rate, "+0Hz", "+0%");
+    }
+
+    /**
+     * Synthesizes with every parameter supported by the Edge endpoint. Qwen3
+     * only accepts text, voice and language, so rate/pitch/volume are applied
+     * by its caller where possible (for rate, through MediaPlayer playback).
+     */
+    public static SynthesisResult synthesizeWithFallback(Context ctx, String provider, String voice,
+                                                         String text, String rate, String pitch,
+                                                         String volume) throws Exception {
         if (text == null || text.trim().isEmpty()) throw new Exception("empty_text");
         if (VoiceCatalog.PROVIDER_QWEN.equals(provider)) {
             return new SynthesisResult(synthesizeQwen(ctx, voice, text),
                     VoiceCatalog.PROVIDER_QWEN, false);
         }
         try {
-            return new SynthesisResult(synthesizeEdge(ctx, voice, text, rate),
+            return new SynthesisResult(synthesizeEdge(ctx, voice, text, rate, pitch, volume),
                     VoiceCatalog.PROVIDER_EDGE, false);
         } catch (Exception edgeError) {
             // If the selected Edge API is temporarily unavailable, Qwen keeps
@@ -90,15 +101,17 @@ public final class TtsEngine {
 
     // ─────────────────────────── EDGE ───────────────────────────
 
-    private static File synthesizeEdge(Context ctx, String voice, String text, String rate)
-            throws Exception {
+    private static File synthesizeEdge(Context ctx, String voice, String text, String rate,
+                                       String pitch, String volume) throws Exception {
         String voiceId = (voice == null || voice.trim().isEmpty())
                 ? VoiceCatalog.DEFAULT_EDGE_VOICE : voice;
         Log.i(TAG, "Edge synthesis requested for voice=" + voiceId);
         JSONObject body = new JSONObject();
         body.put("text", text);
         body.put("voice", voiceId);
-        body.put("rate", rate == null ? "+0%" : rate);
+        body.put("rate", rate == null || rate.trim().isEmpty() ? "+0%" : rate);
+        body.put("pitch", pitch == null || pitch.trim().isEmpty() ? "+0Hz" : pitch);
+        body.put("volume", volume == null || volume.trim().isEmpty() ? "+0%" : volume);
 
         RequestBody reqBody = RequestBody.create(
                 body.toString(), MediaType.get("application/json; charset=utf-8"));

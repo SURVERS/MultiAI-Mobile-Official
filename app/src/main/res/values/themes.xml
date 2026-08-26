@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.MultiAiIde" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.MultiAiIde" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/accent</item>
         <item name="colorPrimaryVariant">@color/accent</item>
         <item name="colorOnPrimary">@color/icon_on_accent</item>
@@ -12,12 +12,11 @@
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@drawable/ambient_background</item>
-        <!-- Android 15 otherwise forces transparent edge-to-edge system bars and
-             ignores statusBarColor, which exposes the system's purple scrim. -->
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
         <!-- Smooth cross-fade for all activity transitions -->
         <item name="android:windowAnimationStyle">@style/Animation.MultiAiIde.Activity</item>
     </style>
+
+    <style name="Theme.MultiAiIde" parent="Base.Theme.MultiAiIde" />
 
     <!-- Black launch window used only by the launcher activity. The Activity
          restores the normal semantic background after its custom logo cycle. -->

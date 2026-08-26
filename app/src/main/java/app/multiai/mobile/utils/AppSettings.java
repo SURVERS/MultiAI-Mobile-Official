@@ -145,6 +145,15 @@ public class AppSettings {
 
     public static final String TTS_EDGE = "edge";           // Microsoft Edge TTS (через бэкенд multiai.store)
     public static final String TTS_QWEN = "qwen";           // Qwen3 TTS (напрямую через HF Gradio)
+    private static final String KEY_TTS_SPEED = "tts_speed";
+    private static final String KEY_TTS_PITCH_HZ = "tts_pitch_hz";
+    private static final String KEY_TTS_VOLUME_OFFSET = "tts_volume_offset";
+    private static final float TTS_SPEED_MIN = 0.5f;
+    private static final float TTS_SPEED_MAX = 1.5f;
+    private static final int TTS_PITCH_MIN_HZ = -50;
+    private static final int TTS_PITCH_MAX_HZ = 50;
+    private static final int TTS_VOLUME_MIN_OFFSET = -50;
+    private static final int TTS_VOLUME_MAX_OFFSET = 50;
     // Устаревшие провайдеры — только для миграции старых настроек на edge.
     private static final String TTS_TERATTS = "teratts";
     private static final String TTS_OPENAI = "openai";
@@ -180,6 +189,61 @@ public class AppSettings {
 
     public void setTtsVoice(String voice) {
         prefs.edit().putString(KEY_TTS_VOICE + "_" + getTtsProvider(), voice).apply();
+    }
+
+    /** Скорость озвучки: 0.5x–1.5x. Edge получает rate, Qwen — скорость плеера. */
+    public float getTtsSpeed() {
+        return clampTtsSpeed(prefs.getFloat(KEY_TTS_SPEED, 1.3f));
+    }
+
+    public void setTtsSpeed(float speed) {
+        prefs.edit().putFloat(KEY_TTS_SPEED, clampTtsSpeed(speed)).apply();
+    }
+
+    /** Высота голоса Edge TTS: от -50 до +50 Hz. */
+    public int getTtsPitchHz() {
+        return clampTtsInt(prefs.getInt(KEY_TTS_PITCH_HZ, 0),
+                TTS_PITCH_MIN_HZ, TTS_PITCH_MAX_HZ);
+    }
+
+    public void setTtsPitchHz(int pitchHz) {
+        prefs.edit().putInt(KEY_TTS_PITCH_HZ, clampTtsInt(pitchHz,
+                TTS_PITCH_MIN_HZ, TTS_PITCH_MAX_HZ)).apply();
+    }
+
+    /** Громкость Edge TTS относительно обычной: от -50% до +50%. */
+    public int getTtsVolumeOffsetPercent() {
+        return clampTtsInt(prefs.getInt(KEY_TTS_VOLUME_OFFSET, 0),
+                TTS_VOLUME_MIN_OFFSET, TTS_VOLUME_MAX_OFFSET);
+    }
+
+    public void setTtsVolumeOffsetPercent(int volumeOffset) {
+        prefs.edit().putInt(KEY_TTS_VOLUME_OFFSET, clampTtsInt(volumeOffset,
+                TTS_VOLUME_MIN_OFFSET, TTS_VOLUME_MAX_OFFSET)).apply();
+    }
+
+    public String getTtsEdgeRate() {
+        return signedTtsValue(Math.round((getTtsSpeed() - 1f) * 100f), "%");
+    }
+
+    public String getTtsEdgePitch() {
+        return signedTtsValue(getTtsPitchHz(), "Hz");
+    }
+
+    public String getTtsEdgeVolume() {
+        return signedTtsValue(getTtsVolumeOffsetPercent(), "%");
+    }
+
+    private static float clampTtsSpeed(float value) {
+        return Math.max(TTS_SPEED_MIN, Math.min(TTS_SPEED_MAX, value));
+    }
+
+    private static int clampTtsInt(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private static String signedTtsValue(int value, String suffix) {
+        return (value >= 0 ? "+" : "") + value + suffix;
     }
 
     /**

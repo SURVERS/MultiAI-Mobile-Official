@@ -222,6 +222,36 @@ public final class WorkModeAccess {
     }
 
     /**
+     * Registers a Project chat for per-session rules without switching the chat
+     * currently used by tool execution. The rules screen uses this to expose
+     * saved Work Mode chats that have not yet run a tool during this process.
+     */
+    public static void ensureSession(String sessionId, String label) {
+        String normalizedId = sessionId == null ? "" : sessionId.trim();
+        if (normalizedId.isEmpty()) return;
+        String normalizedLabel = label == null ? "" : label.trim();
+        synchronized (SESSION_LOCK) {
+            ensureSessionLocked(normalizedId, normalizedLabel);
+        }
+    }
+
+    /** Returns the active Project-chat ID, or an empty string when none is active. */
+    public static String activeSessionId() {
+        return activeSessionId;
+    }
+
+    private static SessionScopeState ensureSessionLocked(String sessionId, String label) {
+        SessionScopeState scope = sessionScopes.get(sessionId);
+        if (scope == null) {
+            scope = new SessionScopeState(sessionId, label);
+            sessionScopes.put(sessionId, scope);
+        } else if (label != null && !label.isEmpty()) {
+            scope.label = label;
+        }
+        return scope;
+    }
+
+    /**
      * Makes a Project chat the active approval session. Switching chats keeps the
      * former in-memory bucket available for inspection in the rules screen, while
      * tool execution always uses only this chat's bucket.
@@ -231,25 +261,19 @@ public final class WorkModeAccess {
         if (normalizedId.isEmpty()) return;
         String normalizedLabel = label == null ? "" : label.trim();
         synchronized (SESSION_LOCK) {
-            SessionScopeState scope = sessionScopes.get(normalizedId);
-            if (scope == null) {
-                scope = new SessionScopeState(normalizedId, normalizedLabel);
-                sessionScopes.put(normalizedId, scope);
-            } else if (!normalizedLabel.isEmpty()) {
-                scope.label = normalizedLabel;
-            }
+            ensureSessionLocked(normalizedId, normalizedLabel);
             activeSessionId = normalizedId;
         }
     }
 
-    /** A snapshot of sessions available during this app process; active comes first. */
+    /** A snapshot of known sessions; active comes first and no placeholder is created. */
     public static java.util.List<SessionScope> sessionScopes() {
         synchronized (SESSION_LOCK) {
-            SessionScopeState active = activeSessionLocked();
+            SessionScopeState active = sessionScopes.get(activeSessionId);
             java.util.List<SessionScope> result = new java.util.ArrayList<>();
-            result.add(new SessionScope(active.id, active.label, true));
+            if (active != null) result.add(new SessionScope(active.id, active.label, true));
             for (SessionScopeState scope : sessionScopes.values()) {
-                if (!scope.id.equals(active.id)) {
+                if (active == null || !scope.id.equals(active.id)) {
                     result.add(new SessionScope(scope.id, scope.label, false));
                 }
             }

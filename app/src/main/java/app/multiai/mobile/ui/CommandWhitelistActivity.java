@@ -14,15 +14,18 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import app.multiai.mobile.R;
+import app.multiai.mobile.models.Chat;
 import app.multiai.mobile.ui.kit.ModernDialog;
-import app.multiai.mobile.ui.kit.ModernMenu;
 import app.multiai.mobile.ui.kit.ModernSheet;
 import app.multiai.mobile.ui.kit.ModernToast;
 import app.multiai.mobile.ui.settings.SettingsUI;
 import app.multiai.mobile.utils.AccentColor;
+import app.multiai.mobile.utils.ChatManager;
 import app.multiai.mobile.utils.WorkModeAccess;
 
 /**
@@ -33,10 +36,26 @@ import app.multiai.mobile.utils.WorkModeAccess;
  */
 public class CommandWhitelistActivity extends AppCompatActivity {
 
+    private static final int SESSION_PAGE_SIZE = 6;
+
     private enum RuleScope {
         GLOBAL_ALLOW,
         GLOBAL_BLOCK,
         SESSION_ALLOW
+    }
+
+    private static final class SessionOption {
+        final String id;
+        final String label;
+        final boolean active;
+        final boolean archived;
+
+        SessionOption(String id, String label, boolean active, boolean archived) {
+            this.id = id;
+            this.label = label;
+            this.active = active;
+            this.archived = archived;
+        }
     }
 
     private LinearLayout content;
@@ -88,57 +107,172 @@ public class CommandWhitelistActivity extends AppCompatActivity {
         addSection(RuleScope.GLOBAL_ALLOW, WorkModeAccess.persistentCommands(this));
         addSection(RuleScope.GLOBAL_BLOCK, WorkModeAccess.blockedCommands(this));
 
-        WorkModeAccess.SessionScope session = selectedSession();
+        SessionOption session = selectedSession();
         addSessionPicker(session);
         if (session != null) {
-            addSection(RuleScope.SESSION_ALLOW,
-                    WorkModeAccess.sessionCommands(session.getId()));
+            addSection(RuleScope.SESSION_ALLOW, WorkModeAccess.sessionCommands(session.id));
         }
         content.addView(SettingsUI.spacer(this, 24));
     }
 
-    private WorkModeAccess.SessionScope selectedSession() {
-        List<WorkModeAccess.SessionScope> scopes = WorkModeAccess.sessionScopes();
-        if (scopes.isEmpty()) return null;
-        for (WorkModeAccess.SessionScope scope : scopes) {
-            if (scope.getId().equals(selectedSessionId)) return scope;
+    /** Reads every stored Project (Work Mode) chat, then keeps an unsaved current draft visible. */
+    private List<SessionOption> workModeSessions() {
+        List<SessionOption> result = new ArrayList<>();
+        Set<String> knownIds = new HashSet<>();
+        String activeId = WorkModeAccess.activeSessionId();
+        SessionOption activeOption = null;
+
+        for (Chat chat : new ChatManager(this).loadChats()) {
+            if (chat == null || chat.getId() == null || chat.getId().trim().isEmpty()) continue;
+            String id = chat.getId().trim();
+            if (!knownIds.add(id)) continue;
+            String label = chat.getTitle() == null ? "" : chat.getTitle().trim();
+            WorkModeAccess.ensureSession(id, label);
+            SessionOption option = new SessionOption(id, label, id.equals(activeId),
+                    chat.isArchived());
+            if (option.active) activeOption = option;
+            else result.add(option);
         }
-        selectedSessionId = scopes.get(0).getId();
-        return scopes.get(0);
+
+        if (activeOption != null) {
+            result.add(0, activeOption);
+        } else if (!activeId.isEmpty()) {
+            String activeLabel = "";
+            for (WorkModeAccess.SessionScope scope : WorkModeAccess.sessionScopes()) {
+                if (activeId.equals(scope.getId())) {
+                    activeLabel = scope.getLabel();
+                    break;
+                }
+            }
+            result.add(0, new SessionOption(activeId, activeLabel, true, false));
+        }
+        return result;
     }
 
-    private void addSessionPicker(WorkModeAccess.SessionScope session) {
+    private SessionOption selectedSession() {
+        List<SessionOption> sessions = workModeSessions();
+        if (sessions.isEmpty()) return null;
+        for (SessionOption session : sessions) {
+            if (session.id.equals(selectedSessionId)) {
+                WorkModeAccess.ensureSession(session.id, session.label);
+                return session;
+            }
+        }
+        selectedSessionId = sessions.get(0).id;
+        WorkModeAccess.ensureSession(sessions.get(0).id, sessions.get(0).label);
+        return sessions.get(0);
+    }
+
+    private void addSessionPicker(SessionOption session) {
         content.addView(SettingsUI.sectionLabel(this,
                 getString(R.string.whitelist_session_picker)));
         LinearLayout card = SettingsUI.card(this);
-        String subtitle = session == null ? getString(R.string.whitelist_session_unnamed)
+        String subtitle = session == null ? getString(R.string.whitelist_session_none)
                 : sessionLabel(session);
-        card.addView(SettingsUI.row(this, R.drawable.ic_terminal_tools,
+        card.addView(SettingsUI.row(this, R.drawable.ic_chat,
                 getString(R.string.whitelist_session_picker), subtitle,
                 () -> showSessionPicker(card)));
         content.addView(card);
         content.addView(SettingsUI.spacer(this, 10));
     }
 
-    private String sessionLabel(WorkModeAccess.SessionScope session) {
-        String label = session.getLabel() == null ? "" : session.getLabel().trim();
+    private String sessionLabel(SessionOption session) {
+        String label = session.label == null ? "" : session.label.trim();
         if (label.isEmpty()) label = getString(R.string.whitelist_session_unnamed);
-        return session.isActive()
-                ? getString(R.string.whitelist_session_current, label) : label;
+        if (session.archived) label = getString(R.string.whitelist_session_archived, label);
+        return session.active ? getString(R.string.whitelist_session_current, label) : label;
     }
 
     private void showSessionPicker(View anchor) {
-        List<WorkModeAccess.SessionScope> scopes = WorkModeAccess.sessionScopes();
-        List<ModernSheet.MenuItem> entries = new ArrayList<>();
-        for (WorkModeAccess.SessionScope scope : scopes) {
-            entries.add(new ModernSheet.MenuItem(sessionLabel(scope)));
+        List<SessionOption> sessions = workModeSessions();
+        if (sessions.isEmpty()) {
+            ModernToast.show(this, getString(R.string.whitelist_session_none));
+            return;
         }
-        ModernMenu.show(anchor, getString(R.string.whitelist_session_picker), entries,
-                (index, item) -> {
-                    if (index < 0 || index >= scopes.size()) return;
-                    selectedSessionId = scopes.get(index).getId();
-                    render();
-                });
+        int selectedIndex = 0;
+        for (int i = 0; i < sessions.size(); i++) {
+            if (sessions.get(i).id.equals(selectedSessionId)) {
+                selectedIndex = i;
+                break;
+            }
+        }
+        int[] page = { selectedIndex / SESSION_PAGE_SIZE };
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        final android.app.Dialog[] sheet = new android.app.Dialog[1];
+        renderSessionPickerPage(body, sessions, page, sheet);
+        sheet[0] = ModernSheet.custom(this, getString(R.string.whitelist_session_picker), body);
+    }
+
+    private void renderSessionPickerPage(LinearLayout body, List<SessionOption> sessions,
+                                         int[] pageRef, android.app.Dialog[] sheetRef) {
+        body.removeAllViews();
+        int pageCount = Math.max(1, (sessions.size() + SESSION_PAGE_SIZE - 1) / SESSION_PAGE_SIZE);
+        pageRef[0] = Math.max(0, Math.min(pageRef[0], pageCount - 1));
+        int start = pageRef[0] * SESSION_PAGE_SIZE;
+        int end = Math.min(start + SESSION_PAGE_SIZE, sessions.size());
+
+        TextView counter = new TextView(this);
+        counter.setText(getString(R.string.whitelist_session_page, start + 1, end, sessions.size()));
+        counter.setTextColor(SettingsUI.colorSubtext(this));
+        counter.setTextSize(12);
+        counter.setPadding(0, 0, 0, SettingsUI.dp(this, 8));
+        body.addView(counter);
+
+        LinearLayout sessionsCard = SettingsUI.card(this);
+        for (int i = start; i < end; i++) {
+            SessionOption option = sessions.get(i);
+            sessionsCard.addView(SettingsUI.row(this, R.drawable.ic_chat, sessionLabel(option), null,
+                    () -> {
+                        selectedSessionId = option.id;
+                        WorkModeAccess.ensureSession(option.id, option.label);
+                        if (sheetRef[0] != null) sheetRef[0].dismiss();
+                        render();
+                    }));
+            if (i < end - 1) sessionsCard.addView(SettingsUI.divider(this));
+        }
+        body.addView(sessionsCard);
+
+        if (pageCount > 1) {
+            LinearLayout pager = new LinearLayout(this);
+            pager.setGravity(Gravity.CENTER_VERTICAL);
+            pager.setPadding(0, SettingsUI.dp(this, 12), 0, 0);
+            TextView previous = paginationButton(getString(R.string.whitelist_session_previous),
+                    pageRef[0] > 0, v -> {
+                        pageRef[0]--;
+                        renderSessionPickerPage(body, sessions, pageRef, sheetRef);
+                    });
+            TextView next = paginationButton(getString(R.string.whitelist_session_next),
+                    pageRef[0] < pageCount - 1, v -> {
+                        pageRef[0]++;
+                        renderSessionPickerPage(body, sessions, pageRef, sheetRef);
+                    });
+            pager.addView(previous, new LinearLayout.LayoutParams(
+                    0, SettingsUI.dp(this, 44), 1f));
+            View spacer = new View(this);
+            pager.addView(spacer, new LinearLayout.LayoutParams(SettingsUI.dp(this, 10), 1));
+            pager.addView(next, new LinearLayout.LayoutParams(
+                    0, SettingsUI.dp(this, 44), 1f));
+            body.addView(pager);
+        }
+    }
+
+    private TextView paginationButton(String label, boolean enabled, View.OnClickListener listener) {
+        TextView button = new TextView(this);
+        button.setText(label);
+        button.setGravity(Gravity.CENTER);
+        button.setTextSize(13);
+        button.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        button.setTextColor(enabled ? SettingsUI.colorAccent(this) : SettingsUI.colorSubtext(this));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(SettingsUI.colorSurfaceTonal(this));
+        background.setCornerRadius(SettingsUI.dp(this, 12));
+        background.setStroke(SettingsUI.dp(this, 1), SettingsUI.colorStroke(this));
+        button.setBackground(background);
+        button.setEnabled(enabled);
+        button.setAlpha(enabled ? 1f : 0.5f);
+        if (enabled) button.setOnClickListener(listener);
+        return button;
     }
 
     private void addSection(RuleScope scope, List<String> commands) {

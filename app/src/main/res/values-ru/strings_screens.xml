@@ -331,6 +331,17 @@
     <string name="voice_preview_error">Не удалось воспроизвести голос</string>
     <string name="voice_preview_fallback">Edge временно недоступен — включил Qwen-превью</string>
     <string name="voice_stop">Остановить</string>
+    <string name="voice_controls">Параметры озвучки</string>
+    <string name="voice_speed">Скорость речи</string>
+    <string name="voice_speed_hint">Темп чтения ответов</string>
+    <string name="voice_speed_value">%1$.1f×</string>
+    <string name="voice_pitch">Тон голоса</string>
+    <string name="voice_pitch_hint">Поддерживается Edge TTS</string>
+    <string name="voice_pitch_value">%1$d Hz</string>
+    <string name="voice_volume">Громкость</string>
+    <string name="voice_volume_hint">Поддерживается Edge TTS</string>
+    <string name="voice_volume_value">%1$d%%</string>
+    <string name="voice_qwen_controls_hint">Qwen3 TTS поддерживает только скорость при воспроизведении.</string>
 
     <!-- AI message action bar tooltips -->
     <string name="act_copy">Копировать</string>

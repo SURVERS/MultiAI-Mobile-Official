@@ -339,6 +339,17 @@
     <string name="voice_preview_error">Couldn\'t play the voice</string>
     <string name="voice_preview_fallback">Edge is unavailable — playing a Qwen preview instead</string>
     <string name="voice_stop">Stop</string>
+    <string name="voice_controls">Voice controls</string>
+    <string name="voice_speed">Speech speed</string>
+    <string name="voice_speed_hint">How fast answers are read aloud</string>
+    <string name="voice_speed_value">%1$.1f×</string>
+    <string name="voice_pitch">Voice pitch</string>
+    <string name="voice_pitch_hint">Supported by Edge TTS</string>
+    <string name="voice_pitch_value">%1$d Hz</string>
+    <string name="voice_volume">Volume</string>
+    <string name="voice_volume_hint">Supported by Edge TTS</string>
+    <string name="voice_volume_value">%1$d%%</string>
+    <string name="voice_qwen_controls_hint">Qwen3 TTS supports playback speed only.</string>
 
     <!-- AI message action bar tooltips -->
     <string name="act_copy">Copy</string>

@@ -247,8 +247,126 @@ public class VoiceSettingsActivity extends AppCompatActivity {
 
     // ─────────────────────────── VOICE LIST ───────────────────────────
 
+    private interface VoiceSliderFormatter {
+        String format(int progress);
+    }
+
+    private interface VoiceSliderSaver {
+        void save(int progress);
+    }
+
+    private View buildVoiceControls() {
+        LinearLayout section = new LinearLayout(this);
+        section.setOrientation(LinearLayout.VERTICAL);
+        section.addView(SettingsUI.sectionLabel(this, getString(R.string.voice_controls)));
+
+        LinearLayout card = SettingsUI.card(this);
+        float speed = settings.getTtsSpeed();
+        card.addView(buildVoiceSlider(
+                R.string.voice_speed,
+                R.string.voice_speed_hint,
+                10,
+                Math.round((speed - 0.5f) * 10f),
+                progress -> getString(R.string.voice_speed_value, 0.5f + progress / 10f),
+                progress -> settings.setTtsSpeed(0.5f + progress / 10f)));
+
+        if (VoiceCatalog.PROVIDER_EDGE.equals(settings.getTtsProvider())) {
+            card.addView(SettingsUI.divider(this));
+            int pitch = settings.getTtsPitchHz();
+            card.addView(buildVoiceSlider(
+                    R.string.voice_pitch,
+                    R.string.voice_pitch_hint,
+                    10,
+                    (pitch + 50) / 10,
+                    progress -> getString(R.string.voice_pitch_value, progress * 10 - 50),
+                    progress -> settings.setTtsPitchHz(progress * 10 - 50)));
+
+            card.addView(SettingsUI.divider(this));
+            int volumeOffset = settings.getTtsVolumeOffsetPercent();
+            card.addView(buildVoiceSlider(
+                    R.string.voice_volume,
+                    R.string.voice_volume_hint,
+                    10,
+                    (volumeOffset + 50) / 10,
+                    progress -> getString(R.string.voice_volume_value, 50 + progress * 10),
+                    progress -> settings.setTtsVolumeOffsetPercent(progress * 10 - 50)));
+        }
+
+        section.addView(card);
+        return section;
+    }
+
+    private View buildVoiceSlider(int titleRes, int hintRes, int max, int progress,
+                                  VoiceSliderFormatter formatter, VoiceSliderSaver saver) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(SettingsUI.dp(this, 16), SettingsUI.dp(this, 14),
+                SettingsUI.dp(this, 16), SettingsUI.dp(this, 10));
+
+        LinearLayout headline = new LinearLayout(this);
+        headline.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title = new TextView(this);
+        title.setText(titleRes);
+        title.setTextColor(SettingsUI.colorText(this));
+        title.setTextSize(15);
+        title.setTypeface(null, Typeface.BOLD);
+        headline.addView(title, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView value = new TextView(this);
+        value.setText(formatter.format(progress));
+        value.setTextColor(AccentColor.resolve(this));
+        value.setTextSize(14);
+        value.setTypeface(null, Typeface.BOLD);
+        headline.addView(value);
+        row.addView(headline);
+
+        TextView hint = new TextView(this);
+        hint.setText(hintRes);
+        hint.setTextColor(SettingsUI.colorSubtext(this));
+        hint.setTextSize(12);
+        LinearLayout.LayoutParams hintLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        hintLp.topMargin = SettingsUI.dp(this, 2);
+        row.addView(hint, hintLp);
+
+        android.widget.SeekBar slider = new android.widget.SeekBar(this);
+        slider.setMax(max);
+        slider.setProgress(progress);
+        android.content.res.ColorStateList accent = android.content.res.ColorStateList.valueOf(
+                AccentColor.resolve(this));
+        slider.setProgressTintList(accent);
+        slider.setThumbTintList(accent);
+        slider.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                SettingsUI.colorStroke(this)));
+        LinearLayout.LayoutParams sliderLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        sliderLp.topMargin = SettingsUI.dp(this, 2);
+        row.addView(slider, sliderLp);
+        slider.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(android.widget.SeekBar seekBar, int valueProgress,
+                                          boolean fromUser) {
+                value.setText(formatter.format(valueProgress));
+                if (fromUser) saver.save(valueProgress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
+            }
+        });
+        return row;
+    }
+
     private void buildList() {
         listContainer.removeAllViews();
+        listContainer.addView(buildVoiceControls());
+        listContainer.addView(SettingsUI.spacer(this, 16));
+
         TextView label = SettingsUI.sectionLabel(this,
                 VoiceCatalog.providerName(viewingProvider) + " · голоса");
         listContainer.addView(label);
@@ -378,10 +496,16 @@ public class VoiceSettingsActivity extends AppCompatActivity {
         updateHeader();
         ModernToast.show(this, getString(R.string.voice_preview_generating));
 
+        final String rate = settings.getTtsEdgeRate();
+        final String pitch = settings.getTtsEdgePitch();
+        final String volume = settings.getTtsEdgeVolume();
+        final float requestedSpeed = settings.getTtsSpeed();
         new Thread(() -> {
             try {
                 TtsEngine.SynthesisResult result = TtsEngine.synthesizeWithFallback(
-                        this, voice.provider, voice.id, voice.previewText(), "+0%");
+                        this, voice.provider, voice.id, voice.previewText(), rate, pitch, volume);
+                final float playbackSpeed = VoiceCatalog.PROVIDER_QWEN.equals(result.provider)
+                        ? requestedSpeed : 1f;
                 runOnUiThread(() -> {
                     previewLoading = false;
                     if (previewingId == null || !previewingId.equals(voice.id)) {
@@ -391,7 +515,7 @@ public class VoiceSettingsActivity extends AppCompatActivity {
                     if (result.fallbackUsed) {
                         ModernToast.show(this, getString(R.string.voice_preview_fallback));
                     }
-                    playPreview(result.audioFile, voice.id);
+                    playPreview(result.audioFile, voice.id, playbackSpeed);
                 });
             } catch (Exception e) {
                 android.util.Log.w("VoiceSettings", "Preview generation failed", e);
@@ -406,7 +530,7 @@ public class VoiceSettingsActivity extends AppCompatActivity {
         }, "voice-preview").start();
     }
 
-    private void playPreview(File audio, String voiceId) {
+    private void playPreview(File audio, String voiceId, float playbackSpeed) {
         try {
             previewAudioFile = audio;
             previewPlayer = new MediaPlayer();
@@ -420,6 +544,9 @@ public class VoiceSettingsActivity extends AppCompatActivity {
             });
             previewPlayer.setOnPreparedListener(mp -> {
                 try {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(playbackSpeed));
+                    }
                     mp.start();
                 } catch (Exception e) {
                     android.util.Log.w("VoiceSettings", "Preview start failed", e);

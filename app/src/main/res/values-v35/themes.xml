@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 15 otherwise forces transparent edge-to-edge system bars and
+         ignores statusBarColor, which exposes the system's purple scrim. -->
+    <style name="Theme.MultiAiIde" parent="Base.Theme.MultiAiIde">
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>

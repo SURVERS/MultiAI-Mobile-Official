@@ -5015,7 +5015,6 @@ public class ChatModeActivity extends AppCompatActivity {
 
     private android.media.MediaPlayer ttsPlayer;
     private boolean ttsLoading = false;
-    private static final float TTS_SPEED = 1.3f;
 
     private void speakMessage(Message message) {
         String text = message.getContent();
@@ -5037,11 +5036,21 @@ public class ChatModeActivity extends AppCompatActivity {
         AppSettings ttsSettings = new AppSettings(this);
         final String ttsProvider = ttsSettings.getTtsProvider();
         final String ttsVoice = ttsSettings.getTtsVoice();
+        final String ttsRate = ttsSettings.getTtsEdgeRate();
+        final String ttsPitch = ttsSettings.getTtsEdgePitch();
+        final String ttsVolume = ttsSettings.getTtsEdgeVolume();
+        final float requestedSpeed = ttsSettings.getTtsSpeed();
 
         new Thread(() -> {
             try {
-                final java.io.File tempFile = app.multiai.mobile.utils.TtsEngine.synthesizeBlocking(
-                        this, ttsProvider, ttsVoice, ttsText, "+30%");
+                final app.multiai.mobile.utils.TtsEngine.SynthesisResult synthesis =
+                        app.multiai.mobile.utils.TtsEngine.synthesizeWithFallback(
+                                this, ttsProvider, ttsVoice, ttsText, ttsRate, ttsPitch, ttsVolume);
+                final java.io.File tempFile = synthesis.audioFile;
+                // Edge applies rate while synthesizing. Qwen has no rate parameter,
+                // so its generated audio is sped up only at playback time.
+                final float playbackSpeed = app.multiai.mobile.utils.VoiceCatalog.PROVIDER_QWEN
+                        .equals(synthesis.provider) ? requestedSpeed : 1f;
 
                 runOnUiThread(() -> {
                     ttsLoading = false;
@@ -5063,8 +5072,8 @@ public class ChatModeActivity extends AppCompatActivity {
                         ttsPlayer.setOnPreparedListener(mp -> {
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                                 try {
-                                    mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(TTS_SPEED));
-                                } catch (Exception e) {}
+                                    mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(playbackSpeed));
+                                } catch (Exception ignored) {}
                             }
                             mp.start();
                         });
