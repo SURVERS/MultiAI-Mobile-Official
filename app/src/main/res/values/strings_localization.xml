@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Resources extracted while completing the Russian and English localization pass. -->
+<resources>
+    <!-- Layout defaults and accessibility labels -->
+    <string name="lay_default_chat_model" translatable="false">Claude Sonnet 4.5</string>
+    <string name="lay_default_chat_mode_model" translatable="false">Sonnet 4</string>
+    <string name="lay_preview_title">Предпросмотр</string>
+    <string name="lay_preview_image">Предпросмотр изображения</string>
+    <string name="lay_audio_play_pause">Воспроизвести или поставить на паузу</string>
+    <string name="lay_pdf_previous_page">Предыдущая страница</string>
+    <string name="lay_pdf_next_page">Следующая страница</string>
+    <string name="lay_pinned">Закреплён</string>
+    <string name="lay_datetime_placeholder_date">Понедельник, 11 мая</string>
+    <string name="lay_weather_placeholder_city">Москва</string>
+    <string name="lay_weather_placeholder_condition">Ясно</string>
+    <string name="lay_weather_placeholder_wind">5 м/с</string>
+    <string name="lay_profile_placeholder" translatable="false">—</string>
+    <string name="lay_editor_time_zero" translatable="false">0:00</string>
+    <string name="lay_editor_time_remaining_zero" translatable="false">-0:00</string>
+    <string name="lay_editor_tab_placeholder" translatable="false">file.java</string>
+    <string name="lay_editor_tab_dirty_marker" translatable="false">●</string>
+    <string name="lay_file_meta_placeholder" translatable="false">meta</string>
+    <string name="lay_datetime_placeholder_time" translatable="false">14:32</string>
+    <string name="lay_datetime_placeholder_timezone" translatable="false">Europe/Moscow · UTC+3</string>
+    <string name="lay_weather_placeholder_temperature" translatable="false">12°</string>
+    <string name="lay_weather_placeholder_feels_like" translatable="false">10°</string>
+    <string name="lay_weather_placeholder_humidity" translatable="false">65%</string>
+    <string name="store_quick_pick_1m" translatable="false">1M</string>
+    <string name="store_quick_pick_10m" translatable="false">10M</string>
+    <string name="store_quick_pick_100m" translatable="false">100M</string>
+    <string name="store_quick_pick_1b" translatable="false">1B</string>
+    <string name="store_quick_pick_10b" translatable="false">10B</string>
+    <string name="store_vendor_claude" translatable="false">Claude</string>
+    <string name="store_vendor_gpt" translatable="false">GPT</string>
+    <string name="store_plan_pro" translatable="false">Pro</string>
+    <string name="store_plan_premium" translatable="false">Premium</string>
+
+    <!-- Java UI messages -->
+    <string name="security_biometric_prompt_title">Вход в MultiAI</string>
+    <string name="security_biometric_prompt_subtitle">Подтвердите личность, чтобы продолжить</string>
+    <string name="markdown_mermaid_title">Диаграмма Mermaid</string>
+    <string name="markdown_mermaid_load_error">Не удалось загрузить диаграмму: %1$s</string>
+    <string name="tool_widget_included_rules">Включённые правила</string>
+    <string name="tool_widget_plan_mode">Режим плана</string>
+    <string name="tool_widget_enabling">Включается…</string>
+    <string name="tool_widget_active_read_only">Активен · только чтение</string>
+    <string name="tool_widget_plan">План</string>
+    <string name="voice_preview_content_description">Прослушать голос %1$s</string>
+    <string name="subagent_return_to_chat">Вернуться в чат</string>
+    <string name="chat_mode_gallery_unavailable">Галерея недоступна</string>
+    <string name="chat_mode_avatar_updated">Аватарка обновлена</string>
+    <string name="chat_mode_avatar_save_error">Не удалось сохранить аватарку</string>
+    <string name="chat_context_compacting">Сжимаю старый контекст…</string>
+    <string name="chat_branch_title">Ветка: %1$s</string>
+    <string name="profile_load_error">Профиль: не удалось загрузить данные</string>
+    <string name="profile_network_error">Профиль: нет связи с MultiAI</string>
+    <string name="profile_oauth_error">OAuth: %1$s</string>
+    <string name="scr_editor_file_not_loaded">Файл не загружен</string>
+    <string name="oauth_secure_storage_unavailable">Безопасное хранилище OAuth недоступно</string>
+
+    <!-- Dynamic UI formatting -->
+    <string name="ui_text_with_cursor">%1$s%2$s</string>
+    <string name="ui_counter_fraction">%1$d/%2$d</string>
+    <string name="chat_message_append">%1$s%2$s</string>
+    <string name="chat_plan_intro">План составлен на основе изучения проекта. Проверь детали перед продолжением.</string>
+    <string name="chat_plan_exit_question">Выйти из режима плана?</string>
+    <string name="chat_plan_exit_note">После выхода AI создаст todo и продолжит задачу в прежнем Work Mode.</string>
+    <string name="chat_plan_exit_action">Выйти</string>
+    <string name="chat_plan_mode_title">Режим плана</string>
+    <string name="chat_implementation_plan_title">План реализации</string>
+    <string name="kit_msg_error_code">Код:&#160;%1$s</string>
+    <string name="scr_page_indicator">%1$d / %2$d</string>
+    <string name="scr_pdf_preview_title">%1$s · превью страницы 1</string>
+    <string name="scr_audio_remaining_time">-%1$s</string>
+    <string name="scr_project_summary">%1$s · %2$s</string>
+    <string name="scr_progress_loading">%1$s…</string>
+    <string name="scr_progress_loading_with_count">%1$s… (%2$d/%3$d)</string>
+    <string name="profile_price_period"> / %1$s</string>
+    <string name="kit_report_bug_counter">%1$d / 2000</string>
+    <string name="store_price_rubles">%1$s ₽</string>
+    <string name="subagent_color_option_selected">✓  %1$s</string>
+    <string name="subagent_color_option">    %1$s</string>
+    <string name="subagents_meta">%1$s · %2$s · %3$s</string>
+    <string name="tool_widget_default_agent">универсальный</string>
+    <string name="tool_widget_subagent_working">Работает %1$s</string>
+    <string name="tool_widget_subagent_error">Ошибка %1$s</string>
+    <string name="tool_widget_subagent_completed">Готово · %1$s</string>
+    <string name="work_todo_chip_completed">✓  %1$s</string>
+    <string name="work_todo_chip_pending">○  %1$s</string>
+    <string name="work_todo_row_completed">✓  %1$s</string>
+    <string name="work_todo_row_in_progress">◉  %1$s</string>
+    <string name="work_todo_row_pending">○  %1$s</string>
+    <string name="tool_widget_file_directory_stats">%1$d ф. · %2$d пап.</string>
+    <string name="tool_widget_move_target">%1$s → %2$s</string>
+    <string name="tool_widget_patch_stats">+%1$d  -%2$d</string>
+    <string name="tool_widget_timezone">%1$s · %2$s</string>
+    <string name="voice_header_subtitle">%1$s · %2$s</string>
+    <string name="voice_header_preview">«%1$s»</string>
+</resources>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English completion for legacy resource coverage and extracted UI literals. -->
+<resources>
+    <!-- Work Mode and variants -->
+    <string name="work_access_title">Work Mode access</string>
+    <string name="work_access_subtitle">Tool permissions</string>
+    <string name="work_access_action">Allow tool: %1$s?</string>
+    <string name="work_access_type_command">Command</string>
+    <string name="work_access_type_write">File write</string>
+    <string name="work_access_type_edit">File edit</string>
+    <string name="work_access_type_delete">Delete file or folder</string>
+    <string name="work_access_type_move">Move file or folder</string>
+    <string name="work_access_mode_plan">Plan Mode</string>
+    <string name="work_access_mode_plan_sub">Review the project and show a plan before changing files</string>
+    <string name="work_access_mode_ask">Ask for permission</string>
+    <string name="work_access_mode_ask_sub">Always ask before changing files or using the internet</string>
+    <string name="work_access_mode_confirm">Confirm for me</string>
+    <string name="work_access_mode_confirm_sub">Automatically allow only known safe commands; dangerous or unknown ones will still ask</string>
+    <string name="work_access_mode_full">Full access</string>
+    <string name="work_access_mode_full_sub">Unlimited access to the internet and any files on your phone</string>
+    <string name="work_access_allow">Allow</string>
+    <string name="work_access_allow_always">Always</string>
+    <string name="work_access_allow_session">This session only</string>
+    <string name="work_access_reject">Reject</string>
+    <string name="work_question_title">Question from MultiAI</string>
+    <string name="work_question_free_text">Or enter your own answer</string>
+    <string name="work_question_submit">Answer</string>
+    <string name="work_question_next">Next</string>
+    <string name="work_question_empty">Choose an option or enter an answer</string>
+    <string name="work_todo_progress">Progress %1$d/%2$d</string>
+    <string name="work_question_waiting">Waiting for an answer…</string>
+    <string name="work_question_answered">Answer received</string>
+    <string name="chat_previous_variant">Previous variant</string>
+    <string name="chat_next_variant">Next variant</string>
+    <string name="chat_mode_settings_subtitle">Chat, tools, personality</string>
+
+    <!-- Existing chat/subagent coverage -->
+    <string name="chat_err_empty_title">The model did not reply 😴</string>
+    <string name="chat_err_empty_body">The server completed the request without a response. This can happen to free models under high load. Try again or choose another model.</string>
+    <string name="subagent_model_and_effort">Model and reasoning</string>
+    <string name="subagent_builtin_runtime_subtitle">Choose a separate model and reasoning level for the built-in subagent.</string>
+
+    <!-- Layout defaults and accessibility labels -->
+    <string name="lay_preview_title">Preview</string>
+    <string name="lay_preview_image">Preview image</string>
+    <string name="lay_audio_play_pause">Play or pause</string>
+    <string name="lay_pdf_previous_page">Previous page</string>
+    <string name="lay_pdf_next_page">Next page</string>
+    <string name="lay_pinned">Pinned</string>
+    <string name="lay_datetime_placeholder_date">Monday, May 11</string>
+    <string name="lay_weather_placeholder_city">Moscow</string>
+    <string name="lay_weather_placeholder_condition">Clear</string>
+    <string name="lay_weather_placeholder_wind">5 m/s</string>
+
+    <!-- Java UI messages -->
+    <string name="security_biometric_prompt_title">Sign in to MultiAI</string>
+    <string name="security_biometric_prompt_subtitle">Confirm your identity to continue</string>
+    <string name="markdown_mermaid_title">Mermaid diagram</string>
+    <string name="markdown_mermaid_load_error">Could not load diagram: %1$s</string>
+    <string name="tool_widget_included_rules">Included rules</string>
+    <string name="tool_widget_plan_mode">Plan Mode</string>
+    <string name="tool_widget_enabling">Enabling…</string>
+    <string name="tool_widget_active_read_only">Active · read-only</string>
+    <string name="tool_widget_plan">Plan</string>
+    <string name="voice_preview_content_description">Listen to voice %1$s</string>
+    <string name="subagent_return_to_chat">Return to chat</string>
+    <string name="chat_mode_gallery_unavailable">Gallery unavailable</string>
+    <string name="chat_mode_avatar_updated">Avatar updated</string>
+    <string name="chat_mode_avatar_save_error">Could not save avatar</string>
+    <string name="chat_context_compacting">Compacting old context…</string>
+    <string name="chat_branch_title">Branch: %1$s</string>
+    <string name="profile_load_error">Profile: failed to load data</string>
+    <string name="profile_network_error">Profile: no connection to MultiAI</string>
+    <string name="profile_oauth_error">OAuth: %1$s</string>
+    <string name="scr_editor_file_not_loaded">File not loaded</string>
+    <string name="oauth_secure_storage_unavailable">Secure OAuth storage is unavailable</string>
+
+    <!-- Dynamic UI formatting -->
+    <string name="ui_text_with_cursor">%1$s%2$s</string>
+    <string name="ui_counter_fraction">%1$d/%2$d</string>
+    <string name="chat_message_append">%1$s%2$s</string>
+    <string name="chat_plan_intro">The plan was prepared after reviewing the project. Check the details before continuing.</string>
+    <string name="chat_plan_exit_question">Exit plan mode?</string>
+    <string name="chat_plan_exit_note">After exiting, AI will create a todo list and continue the task in the previous Work Mode.</string>
+    <string name="chat_plan_exit_action">Exit</string>
+    <string name="chat_plan_mode_title">Plan Mode</string>
+    <string name="chat_implementation_plan_title">Implementation plan</string>
+    <string name="kit_msg_error_code">Code:&#160;%1$s</string>
+    <string name="scr_page_indicator">%1$d / %2$d</string>
+    <string name="scr_pdf_preview_title">%1$s · page 1 preview</string>
+    <string name="scr_audio_remaining_time">-%1$s</string>
+    <string name="scr_project_summary">%1$s · %2$s</string>
+    <string name="scr_progress_loading">%1$s…</string>
+    <string name="scr_progress_loading_with_count">%1$s… (%2$d/%3$d)</string>
+    <string name="profile_price_period"> / %1$s</string>
+    <string name="kit_report_bug_counter">%1$d / 2000</string>
+    <string name="store_price_rubles">%1$s ₽</string>
+    <string name="subagent_color_option_selected">✓  %1$s</string>
+    <string name="subagent_color_option">    %1$s</string>
+    <string name="subagents_meta">%1$s · %2$s · %3$s</string>
+    <string name="tool_widget_default_agent">general-purpose</string>
+    <string name="tool_widget_subagent_working">Working %1$s</string>
+    <string name="tool_widget_subagent_error">Error %1$s</string>
+    <string name="tool_widget_subagent_completed">Done · %1$s</string>
+    <string name="work_todo_chip_completed">✓  %1$s</string>
+    <string name="work_todo_chip_pending">○  %1$s</string>
+    <string name="work_todo_row_completed">✓  %1$s</string>
+    <string name="work_todo_row_in_progress">◉  %1$s</string>
+    <string name="work_todo_row_pending">○  %1$s</string>
+    <string name="tool_widget_file_directory_stats">%1$d files · %2$d folders</string>
+    <string name="tool_widget_move_target">%1$s → %2$s</string>
+    <string name="tool_widget_patch_stats">+%1$d  -%2$d</string>
+    <string name="tool_widget_timezone">%1$s · %2$s</string>
+    <string name="voice_header_subtitle">%1$s · %2$s</string>
+    <string name="voice_header_preview">“%1$s”</string>
+</resources>

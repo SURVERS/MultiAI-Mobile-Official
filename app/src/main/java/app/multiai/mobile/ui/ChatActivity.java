@@ -5705,7 +5705,7 @@ public class ChatActivity extends AppCompatActivity {
         final String previousSummary = targetChat.getContextSummary();
         final int finalEndExclusive = endExclusive;
         autoSummarizing = true;
-        ModernToast.show(this, "Сжимаю старый контекст…");
+        ModernToast.show(this, getString(R.string.chat_context_compacting));
 
         String summaryInstructions = app.multiai.mobile.utils.ConversationSummaryService
                 .buildSystemInstructions(previousSummary);
@@ -6120,7 +6120,7 @@ public class ChatActivity extends AppCompatActivity {
             branch.setModelId(currentChat.getModelId());
             branch.setModelEffort(currentChat.getModelEffort());
             branch.setMessages(new java.util.ArrayList<>());
-            branch.setTitle("Ветка: " + currentChat.getTitle());
+            branch.setTitle(getString(R.string.chat_branch_title, currentChat.getTitle()));
             chatManager.addChatIfAbsent(branch);
             allChats = chatManager.loadActiveChats();
             chatsAdapter.setChats(allChats);
@@ -6352,7 +6352,7 @@ public class ChatActivity extends AppCompatActivity {
         body.setOrientation(LinearLayout.VERTICAL);
 
         TextView intro = new TextView(this);
-        intro.setText("План составлен на основе изучения проекта. Проверь детали перед продолжением.");
+        intro.setText(getString(R.string.chat_plan_intro));
         intro.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
         intro.setTextSize(14);
         body.addView(intro);
@@ -6378,7 +6378,7 @@ public class ChatActivity extends AppCompatActivity {
         body.addView(scroll, scrollLp);
 
         TextView question = new TextView(this);
-        question.setText("Exit plan mode?");
+        question.setText(getString(R.string.chat_plan_exit_question));
         question.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
         question.setTextSize(16);
         question.setTypeface(question.getTypeface(), android.graphics.Typeface.BOLD);
@@ -6388,7 +6388,7 @@ public class ChatActivity extends AppCompatActivity {
         body.addView(question, questionLp);
 
         TextView note = new TextView(this);
-        note.setText("После выхода AI создаст todo и продолжит задачу в прежнем Work Mode.");
+        note.setText(getString(R.string.chat_plan_exit_note));
         note.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
         note.setTextSize(13);
         LinearLayout.LayoutParams noteLp = new LinearLayout.LayoutParams(
@@ -6399,7 +6399,7 @@ public class ChatActivity extends AppCompatActivity {
         com.google.android.material.button.MaterialButton exit =
                 new com.google.android.material.button.MaterialButton(this);
         int accent = AccentColor.resolve(this);
-        exit.setText("Exit");
+        exit.setText(getString(R.string.chat_plan_exit_action));
         exit.setAllCaps(false);
         exit.setTextColor(AccentColor.contrastForeground(accent));
         exit.setTextSize(15);
@@ -6412,7 +6412,7 @@ public class ChatActivity extends AppCompatActivity {
         exitLp.topMargin = dpToPx(14);
         body.addView(exit, exitLp);
 
-        android.app.Dialog sheet = ModernSheet.custom(this, "Plan Mode", body, true);
+        android.app.Dialog sheet = ModernSheet.custom(this, getString(R.string.chat_plan_mode_title), body, true);
         request.dialog.set(sheet);
         sheet.setCanceledOnTouchOutside(true);
         sheet.setOnDismissListener(d -> request.resolve("dismissed"));
@@ -6441,7 +6441,7 @@ public class ChatActivity extends AppCompatActivity {
         body.addView(scroll, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 Math.min(dpToPx(520), (int) (getResources().getDisplayMetrics().heightPixels * 0.68f))));
-        ModernSheet.custom(this, "Implementation plan", body, true);
+        ModernSheet.custom(this, getString(R.string.chat_implementation_plan_title), body, true);
     }
 
     private String executeMultiAiTool(ToolCall sourceCall, String name, JSONObject args,
