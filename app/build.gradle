@@ -166,4 +166,8 @@ dependencies {
     // Real org.json on the JVM so JSONObject.put/get aren't the Android "not mocked"
     // stubs (the validator tests build/parse JWTs client-side).
     testImplementation 'org.json:json:20231013'
+
+    // 📷 QR-code scanner for Desktop device linking (SecuritySettings → "Подключить устройство").
+    // zxing-android-embedded ships a ready-to-use CaptureActivity + IntentIntegrator.
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 }

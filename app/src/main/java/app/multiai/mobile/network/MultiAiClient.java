@@ -1643,4 +1643,96 @@ public class MultiAiClient {
                 .put("type", "boolean")
                 .put("description", description);
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // DEVICE LINKING (QR → Desktop IDE)
+    // See qr-link-tz.md §3. Mobile scans Desktop's QR, confirms via
+    // the user's access_token, backend issues a long-lived Desktop key.
+    // ═══════════════════════════════════════════════════════════════
+
+    /** Result of a QR device-link confirmation. */
+    public static final class DeviceLinkResult {
+        public final boolean ok;
+        public final String linkedDevice;
+        public final String error;
+
+        private DeviceLinkResult(boolean ok, String linkedDevice, String error) {
+            this.ok = ok;
+            this.linkedDevice = linkedDevice;
+            this.error = error;
+        }
+
+        static DeviceLinkResult ok(String linkedDevice) {
+            return new DeviceLinkResult(true, linkedDevice, null);
+        }
+
+        static DeviceLinkResult error(String error) {
+            return new DeviceLinkResult(false, null, error);
+        }
+    }
+
+    /**
+     * Confirms a Desktop device-linking session scanned from a QR code.
+     * Runs on a background thread; calls back on the main thread.
+     *
+     * @param sessionId  from QR payload ({@code session} param)
+     * @param nonce      from QR payload ({@code nonce} param)
+     * @param hmac       from QR payload ({@code hmac} param)
+     * @param deviceName human-readable name of the mobile device (sent to backend)
+     * @param callback   invoked on the main thread with {@link DeviceLinkResult}
+     */
+    public void confirmDeviceLink(String sessionId, String nonce, String hmac,
+                                  String deviceName,
+                                  final java.util.function.Consumer<DeviceLinkResult> callback) {
+        String accessToken = OAuthSession.get().getAccessToken();
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            mainHandler.post(() -> callback.accept(DeviceLinkResult.error("unauthorized")));
+            return;
+        }
+        AUTH_EXECUTOR.execute(() -> {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("nonce", nonce == null ? "" : nonce);
+                body.put("hmac", hmac == null ? "" : hmac);
+                body.put("device_name", deviceName == null ? "" : deviceName);
+
+                Request request = new Request.Builder()
+                        .url(BASE_URL + "/v1/device/link/" + sessionId + "/confirm")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .header("Content-Type", "application/json")
+                        .post(RequestBody.create(body.toString(), JSON))
+                        .build();
+                try (Response response = client.newCall(request).execute()) {
+                    String raw = response.body() != null ? response.body().string() : "";
+                    if (response.code() == 401) {
+                        mainHandler.post(() -> callback.accept(DeviceLinkResult.error("unauthorized")));
+                        return;
+                    }
+                    if (response.code() == 410) {
+                        mainHandler.post(() -> callback.accept(DeviceLinkResult.error("session_expired")));
+                        return;
+                    }
+                    if (response.code() == 400) {
+                        mainHandler.post(() -> callback.accept(DeviceLinkResult.error("invalid_qr")));
+                        return;
+                    }
+                    if (!response.isSuccessful()) {
+                        mainHandler.post(() -> callback.accept(DeviceLinkResult.error("http_" + response.code())));
+                        return;
+                    }
+                    JSONObject parsed = new JSONObject(raw);
+                    boolean ok = parsed.optBoolean("ok", false);
+                    if (ok) {
+                        String linked = parsed.optString("linked_device", "");
+                        mainHandler.post(() -> callback.accept(DeviceLinkResult.ok(linked)));
+                    } else {
+                        String err = parsed.optString("error", "unknown");
+                        mainHandler.post(() -> callback.accept(DeviceLinkResult.error(err)));
+                    }
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.accept(DeviceLinkResult.error("network_error")));
+            }
+        });
+    }
 }

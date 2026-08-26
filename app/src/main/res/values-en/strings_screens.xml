@@ -148,6 +148,22 @@
     <string name="scr_bio_cancelled_short">Authentication cancelled</string>
     <string name="scr_bio_too_many_later">Too many attempts. Try again later</string>
 
+    <!-- ═════════ Device linking (QR → Desktop IDE) ═════════ -->
+    <string name="scr_sec_link_device_title">Link device</string>
+    <string name="scr_sec_link_device_desc">Scan a QR code from Desktop IDE to sign in.</string>
+    <string name="scr_sec_link_scan_title">Scan QR code</string>
+    <string name="scr_sec_link_scan_hint">Point the camera at the QR code in MultiAI Desktop IDE</string>
+    <string name="scr_sec_link_confirm_title">Link Desktop?</string>
+    <string name="scr_sec_link_confirm_desc">Confirm the sign-in on Desktop IDE. Your MultiAI access will be shared.</string>
+    <string name="scr_sec_link_confirm_action">Link</string>
+    <string name="scr_sec_link_success">Device linked: %1$s</string>
+    <string name="scr_sec_link_err_invalid">Invalid QR code</string>
+    <string name="scr_sec_link_err_expired">Session expired. Generate a new QR on Desktop.</string>
+    <string name="scr_sec_link_err_unauthorized">Sign in to MultiAI first</string>
+    <string name="scr_sec_link_err_network">Network error. Check your connection.</string>
+    <string name="scr_sec_link_err_unknown">Failed to link device</string>
+    <string name="scr_sec_link_cancelled">Scan cancelled</string>
+
     <!-- ═════════ EditorActivity ═════════ -->
     <string name="scr_editor_title">Editor</string>
     <string name="scr_editor_open_uri_error">Could not open file URI</string>

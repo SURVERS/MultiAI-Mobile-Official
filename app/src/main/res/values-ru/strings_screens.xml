@@ -135,6 +135,22 @@
     <string name="scr_bio_cancelled_short">Подтверждение отменено</string>
     <string name="scr_bio_too_many_later">Слишком много попыток. Повторите позже</string>
 
+    <!-- ═════════ Device linking (QR → Desktop IDE) ═════════ -->
+    <string name="scr_sec_link_device_title">Подключить устройство</string>
+    <string name="scr_sec_link_device_desc">Сканировать QR-код с Desktop IDE для входа.</string>
+    <string name="scr_sec_link_scan_title">Сканировать QR-код</string>
+    <string name="scr_sec_link_scan_hint">Наведите камеру на QR-код в MultiAI Desktop IDE</string>
+    <string name="scr_sec_link_confirm_title">Подключить Desktop?</string>
+    <string name="scr_sec_link_confirm_desc">Подтвердите вход на Desktop IDE. Будет передан ваш доступ к MultiAI.</string>
+    <string name="scr_sec_link_confirm_action">Подключить</string>
+    <string name="scr_sec_link_success">Устройство подключено: %1$s</string>
+    <string name="scr_sec_link_err_invalid">QR-код недействителен</string>
+    <string name="scr_sec_link_err_expired">Сессия истекла. Сгенерируйте новый QR на Desktop.</string>
+    <string name="scr_sec_link_err_unauthorized">Войдите в MultiAI сначала</string>
+    <string name="scr_sec_link_err_network">Ошибка сети. Проверьте подключение.</string>
+    <string name="scr_sec_link_err_unknown">Не удалось подключить устройство</string>
+    <string name="scr_sec_link_cancelled">Сканирование отменено</string>
+
     <!-- ═════════ EditorActivity ═════════ -->
     <string name="scr_editor_title">Редактор</string>
     <string name="scr_editor_open_uri_error">Не удалось открыть URI файла</string>
