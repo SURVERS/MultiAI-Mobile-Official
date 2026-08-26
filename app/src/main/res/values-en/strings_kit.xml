@@ -264,7 +264,7 @@
     <string name="store_tokens_question">How many tokens do you need?</string>
     <string name="store_tokens_hint">Drag the slider or type the amount manually.</string>
     <string name="store_total">Total</string>
-    <string name="store_per_unit">%1$s ₽ / 1M tokens</string>
+    <string name="store_per_unit">%1$s / 1M tokens</string>
     <string name="store_tokens_suffix">tokens</string>
     <string name="store_min_max">Min: 1M tokens · Max: 10B tokens</string>
     <string name="store_buy_tokens">Buy selected amount</string>
