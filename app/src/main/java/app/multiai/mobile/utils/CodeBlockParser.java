@@ -120,7 +120,8 @@ public class CodeBlockParser {
             
             // Меняем иконку на галочку
             copyBtn.setImageResource(R.drawable.ic_check);
-            ModernToast.show((Activity) copyBtn.getContext(), "Скопировано!");
+            ModernToast.show((Activity) copyBtn.getContext(),
+                    context.getString(R.string.kit_msg_copied));
             
             // Возвращаем иконку копирования через 2 секунды
             copyBtn.postDelayed(() -> {

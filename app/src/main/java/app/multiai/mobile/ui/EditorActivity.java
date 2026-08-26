@@ -804,7 +804,8 @@ public class EditorActivity extends AppCompatActivity {
         }
 
         if (tab.isReadFailed()) {
-            ModernToast.show(this, getString(R.string.scr_editor_read_error, "file not loaded"), true);
+            ModernToast.show(this, getString(R.string.scr_editor_read_error,
+                    getString(R.string.scr_editor_file_not_loaded)), true);
             return;
         }
 

@@ -277,7 +277,7 @@ public class ProfileActivity extends AppCompatActivity {
             @Override public void onError(String error, String detail) {
                 String msg = "access_denied".equals(error)
                         ? getString(R.string.scr_signin_cancelled)
-                        : "OAuth: " + error;
+                        : getString(R.string.profile_oauth_error, error);
                 runOnUiThread(() -> Toast.makeText(ProfileActivity.this, msg, Toast.LENGTH_SHORT).show());
             }
         });
@@ -1422,11 +1422,11 @@ public class ProfileActivity extends AppCompatActivity {
                             }
                         } catch (Exception e) {
                             postAccountLoadUpdate(ui, generation, () ->
-                                    ModernToast.show(this, "Профиль: не удалось загрузить данные"));
+                                    ModernToast.show(this, getString(R.string.profile_load_error)));
                         }
                     }, "profile-account-load").start();
                 }, err -> postAccountLoadUpdate(ui, generation, () ->
-                        ModernToast.show(this, "Профиль: нет связи с MultiAI")));
+                        ModernToast.show(this, getString(R.string.profile_network_error))));
             } catch (Exception ignored) {
             }
         }, "profile-metadata-load").start();
@@ -1885,7 +1885,7 @@ public class ProfileActivity extends AppCompatActivity {
                             runOnUiThread(this::loadAccount);
                         } catch (Exception e) {
                             runOnUiThread(() -> ModernToast.show(this,
-                                    "OAuth: " + briefError(e)));
+                                    getString(R.string.profile_oauth_error, briefError(e))));
                         }
                     }).start();
                 });
@@ -1907,7 +1907,7 @@ public class ProfileActivity extends AppCompatActivity {
                         });
                     } catch (Exception e) {
                         runOnUiThread(() -> ModernToast.show(this,
-                                "OAuth: " + briefError(e)));
+                                getString(R.string.profile_oauth_error, briefError(e))));
                     }
                 }).start());
     }
@@ -1929,7 +1929,8 @@ public class ProfileActivity extends AppCompatActivity {
                 });
             } catch (Exception e) {
                 runOnUiThread(() ->
-                        ModernToast.show(this, "OAuth: " + e.getMessage()));
+                        ModernToast.show(this, getString(R.string.profile_oauth_error,
+                                e.getMessage())));
             }
         }).start();
     }
@@ -1947,7 +1948,8 @@ public class ProfileActivity extends AppCompatActivity {
                 });
             } catch (Exception e) {
                 runOnUiThread(() ->
-                        ModernToast.show(this, "OAuth: " + e.getMessage()));
+                        ModernToast.show(this, getString(R.string.profile_oauth_error,
+                                e.getMessage())));
             }
         }).start();
     }

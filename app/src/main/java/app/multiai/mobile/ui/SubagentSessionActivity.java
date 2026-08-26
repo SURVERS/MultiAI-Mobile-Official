@@ -49,8 +49,9 @@ public class SubagentSessionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         if (app.multiai.mobile.utils.AppLockManager.get(this).routeIfLocked(this)) return;
         sessionId = getIntent().getStringExtra(EXTRA_SESSION_ID);
-        scaffold = SettingsUI.createScaffold(this, "Вернуться в чат", false);
-        scaffold.backButton.setContentDescription("Вернуться в чат");
+        String returnToChat = getString(R.string.subagent_return_to_chat);
+        scaffold = SettingsUI.createScaffold(this, returnToChat, false);
+        scaffold.backButton.setContentDescription(returnToChat);
         renderSession();
     }
 

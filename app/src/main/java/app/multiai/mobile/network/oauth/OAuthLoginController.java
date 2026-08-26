@@ -79,11 +79,15 @@ public class OAuthLoginController {
     /** Creates a fresh one-shot PKCE attempt and opens the trusted system browser. */
     public void startLogin() {
         if (!store.isAvailable()) {
-            Toast.makeText(context, "Secure OAuth storage is unavailable", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context,
+                    context.getString(app.multiai.mobile.R.string.oauth_secure_storage_unavailable),
+                    Toast.LENGTH_SHORT).show();
             return;
         }
         ensureMetadataAsync(this::launchBrowser, error ->
-                Toast.makeText(context, "OAuth: " + error, Toast.LENGTH_SHORT).show());
+                Toast.makeText(context,
+                        context.getString(app.multiai.mobile.R.string.profile_oauth_error, error),
+                        Toast.LENGTH_SHORT).show());
     }
 
     private void launchBrowser() {

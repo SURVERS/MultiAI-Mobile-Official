@@ -62,11 +62,9 @@ android {
     }
 
     lint {
-        // Existing legacy layouts use android:tint intentionally and the
-        // project ships Russian/English resource overlays incrementally.
-        // Keep these non-runtime migrations from blocking release lint while
-        // all Java/API/security checks remain enabled.
-        disable 'UseAppTint', 'MissingTranslation', 'ExtraTranslation'
+        // Existing legacy layouts use android:tint intentionally. Translation
+        // coverage stays enforced so every user-facing string has both locales.
+        disable 'UseAppTint'
     }
 
     compileOptions {

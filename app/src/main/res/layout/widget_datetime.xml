@@ -34,7 +34,7 @@
                 android:id="@+id/timeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="14:32"
+                android:text="@string/lay_datetime_placeholder_time"
                 android:textColor="@color/text_primary"
                 android:textSize="30sp"
                 android:fontFamily="sans-serif-light" />
@@ -43,7 +43,7 @@
                 android:id="@+id/dateText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Понедельник, 11 мая"
+                android:text="@string/lay_datetime_placeholder_date"
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 android:layout_marginTop="4dp" />
@@ -52,7 +52,7 @@
                 android:id="@+id/timezoneText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Europe/Moscow · UTC+3"
+                android:text="@string/lay_datetime_placeholder_timezone"
                 android:textColor="@color/text_hint"
                 android:textSize="11sp"
                 android:layout_marginTop="2dp" />

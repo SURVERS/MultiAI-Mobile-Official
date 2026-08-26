@@ -293,7 +293,7 @@ public class ChatModeSettingsActivity extends AppCompatActivity {
         try {
             pickAvatarLauncher.launch(intent);
         } catch (Exception e) {
-            ModernToast.show(this, "Галерея недоступна");
+            ModernToast.show(this, getString(R.string.chat_mode_gallery_unavailable));
         }
     }
 
@@ -318,10 +318,11 @@ public class ChatModeSettingsActivity extends AppCompatActivity {
                         Glide.with(this).load(out).transform(new CircleCrop())
                                 .into(avatarView);
                     }
-                    ModernToast.show(this, "Аватарка обновлена");
+                    ModernToast.show(this, getString(R.string.chat_mode_avatar_updated));
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> ModernToast.show(this, "Не удалось сохранить аватарку"));
+                runOnUiThread(() -> ModernToast.show(this,
+                        getString(R.string.chat_mode_avatar_save_error)));
             }
         }).start();
     }

@@ -684,9 +684,9 @@ public class MarkdownRenderer {
         container.setBackgroundColor(resolve(context, R.color.code_bg));
         container.setPadding(dpToPx(context, 16), dpToPx(context, 16), dpToPx(context, 16), dpToPx(context, 16));
 
-        // Заголовок "Mermaid Diagram"
+        // Заголовок диаграммы Mermaid.
         TextView header = new TextView(context);
-        header.setText("Mermaid Diagram");
+        header.setText(R.string.markdown_mermaid_title);
         header.setTextColor(resolve(context, R.color.text_secondary));
         header.setTextSize(14);
         header.setTypeface(null, Typeface.BOLD);
@@ -817,7 +817,8 @@ public class MarkdownRenderer {
                 // Показываем ошибку
                 ((android.app.Activity) context).runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    errorText.setText("Не удалось загрузить диаграмму: " + e.getMessage());
+                    errorText.setText(context.getString(R.string.markdown_mermaid_load_error,
+                            e.getMessage()));
                     errorText.setVisibility(View.VISIBLE);
                 });
             }

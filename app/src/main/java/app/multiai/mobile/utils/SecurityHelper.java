@@ -84,9 +84,9 @@ public final class SecurityHelper {
         BiometricPrompt prompt = new BiometricPrompt(
                 host, ContextCompat.getMainExecutor(host), adapter);
         BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Вход в MultiAI")
-                .setSubtitle("Подтвердите личность, чтобы продолжить")
-                .setNegativeButtonText("Отмена")
+                .setTitle(host.getString(app.multiai.mobile.R.string.security_biometric_prompt_title))
+                .setSubtitle(host.getString(app.multiai.mobile.R.string.security_biometric_prompt_subtitle))
+                .setNegativeButtonText(host.getString(app.multiai.mobile.R.string.scr_cancel))
                 .setAllowedAuthenticators(
                         BiometricManager.Authenticators.BIOMETRIC_STRONG
                                 | BiometricManager.Authenticators.BIOMETRIC_WEAK)

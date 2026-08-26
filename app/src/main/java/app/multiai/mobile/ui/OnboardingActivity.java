@@ -349,7 +349,7 @@ public class OnboardingActivity extends AppCompatActivity {
             public void onError(@NonNull String error, String detail) {
                 String message = "access_denied".equals(error)
                         ? getString(R.string.scr_signin_cancelled)
-                        : "OAuth: " + error;
+                        : getString(R.string.profile_oauth_error, error);
                 runOnUiThread(() -> android.widget.Toast.makeText(
                         OnboardingActivity.this, message, android.widget.Toast.LENGTH_SHORT).show());
             }

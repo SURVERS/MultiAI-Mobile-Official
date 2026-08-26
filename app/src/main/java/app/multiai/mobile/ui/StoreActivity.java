@@ -595,7 +595,8 @@ public class StoreActivity extends AppCompatActivity {
         if (pricePer1m > 0) {
             double price = tokens / 1_000_000d * pricePer1m;
             textStorePrice.setText(formatRubles(price));
-            textStorePerUnit.setText(formatRubles(pricePer1m) + " / 1M токенов");
+            textStorePerUnit.setText(getString(R.string.store_per_unit,
+                    formatRubles(pricePer1m)));
         } else {
             textStorePrice.setText("—");
             textStorePerUnit.setText(getString(R.string.store_per_unit, "—"));

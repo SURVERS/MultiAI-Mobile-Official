@@ -50,7 +50,7 @@
                     android:layout_height="36dp"
                     android:layout_marginStart="4dp"
                     android:gravity="start|center_vertical"
-                    android:text="MultiAI"
+                    android:text="@string/app_name"
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:fontFamily="sans-serif-medium"
@@ -66,7 +66,7 @@
                     android:maxWidth="60dp"
                     android:layout_marginStart="6dp"
                     android:gravity="center"
-                    android:text="Sonnet 4"
+                    android:text="@string/lay_default_chat_mode_model"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:maxLines="1"
@@ -516,7 +516,7 @@
                     android:tint="@color/icon"
                     android:background="@drawable/sidebar_logo_tile_bg"
                     android:scaleType="centerInside"
-                    android:contentDescription="MultiAI" />
+                    android:contentDescription="@string/app_name" />
 
                 <LinearLayout
                     android:id="@+id/sidebarBrandBlock"
@@ -539,7 +539,7 @@
                             android:id="@+id/sidebarTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="MultiAI"
+                            android:text="@string/app_name"
                             android:textColor="@color/text_primary"
                             android:textSize="19sp"
                             android:fontFamily="sans-serif-medium"
@@ -558,7 +558,7 @@
                                 android:id="@+id/modeBadgeTextSidebar"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="CHAT"
+                                android:text="@string/mode_badge_chat"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="10sp"
                                 android:fontFamily="sans-serif-medium"

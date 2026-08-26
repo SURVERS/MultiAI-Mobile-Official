@@ -85,7 +85,7 @@
                 android:layout_height="22dp"
                 android:src="@drawable/ic_multiai_logo"
                 android:background="@null"
-                android:contentDescription="MultiAI" />
+                android:contentDescription="@string/app_name" />
         </LinearLayout>
 
         <FrameLayout
@@ -133,7 +133,7 @@
                             android:layout_height="28dp"
                             android:layout_marginTop="4dp"
                             android:src="@drawable/ic_multiai_logo"
-                            android:contentDescription="MultiAI" />
+                            android:contentDescription="@string/app_name" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 

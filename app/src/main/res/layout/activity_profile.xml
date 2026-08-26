@@ -330,7 +330,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
-                                    android:text="—"
+                                    android:text="@string/lay_profile_placeholder"
                                     android:textColor="@color/text_primary"
                                     android:textSize="32sp"
                                     android:textStyle="bold" />
@@ -401,7 +401,7 @@
                                 android:id="@+id/textTokensBilling"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="—"
+                                android:text="@string/lay_profile_placeholder"
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium" />
@@ -437,7 +437,7 @@
                                 android:id="@+id/textStatSpent"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="—"
+                                android:text="@string/lay_profile_placeholder"
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium" />
@@ -473,7 +473,7 @@
                                 android:id="@+id/textTokensSubscription"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="—"
+                                android:text="@string/lay_profile_placeholder"
                                 android:textColor="@color/text_hint"
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium" />
@@ -520,7 +520,7 @@
                                 android:id="@+id/textStatRequests"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="—"
+                                android:text="@string/lay_profile_placeholder"
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium" />
@@ -556,7 +556,7 @@
                                 android:id="@+id/textStatKey"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="—"
+                                android:text="@string/lay_profile_placeholder"
                                 android:textColor="@color/text_primary"
                                 android:textSize="13sp"
                                 android:fontFamily="monospace" />

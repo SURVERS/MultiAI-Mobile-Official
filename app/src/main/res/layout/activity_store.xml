@@ -190,7 +190,7 @@
                         android:gravity="center"
                         android:paddingTop="6dp"
                         android:paddingBottom="6dp"
-                        android:text="1M"
+                        android:text="@string/store_quick_pick_1m"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif-medium"
                         android:clickable="true"
@@ -204,7 +204,7 @@
                         android:gravity="center"
                         android:paddingTop="6dp"
                         android:paddingBottom="6dp"
-                        android:text="10M"
+                        android:text="@string/store_quick_pick_10m"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif-medium"
                         android:clickable="true"
@@ -218,7 +218,7 @@
                         android:gravity="center"
                         android:paddingTop="6dp"
                         android:paddingBottom="6dp"
-                        android:text="100M"
+                        android:text="@string/store_quick_pick_100m"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif-medium"
                         android:clickable="true"
@@ -232,7 +232,7 @@
                         android:gravity="center"
                         android:paddingTop="6dp"
                         android:paddingBottom="6dp"
-                        android:text="1B"
+                        android:text="@string/store_quick_pick_1b"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif-medium"
                         android:clickable="true"
@@ -246,7 +246,7 @@
                         android:gravity="center"
                         android:paddingTop="6dp"
                         android:paddingBottom="6dp"
-                        android:text="10B"
+                        android:text="@string/store_quick_pick_10b"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif-medium"
                         android:clickable="true"
@@ -364,7 +364,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="10dp"
-                        android:text="Claude"
+                        android:text="@string/store_vendor_claude"
                         android:textColor="@color/text_primary"
                         android:textSize="12.5sp" />
 
@@ -393,7 +393,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="10dp"
-                        android:text="GPT"
+                        android:text="@string/store_vendor_gpt"
                         android:textColor="@color/text_primary"
                         android:textSize="12.5sp" />
 
@@ -488,7 +488,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Pro"
+                        android:text="@string/store_plan_pro"
                         android:textColor="@color/text_primary"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -583,7 +583,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Premium"
+                    android:text="@string/store_plan_premium"
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />

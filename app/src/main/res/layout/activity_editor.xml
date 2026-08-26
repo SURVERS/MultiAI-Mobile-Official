@@ -214,7 +214,7 @@
                     android:id="@+id/textPreviewTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Preview"
+                    android:text="@string/lay_preview_title"
                     android:textColor="@color/code_text"
                     android:textSize="14sp"
                     android:fontFamily="sans-serif-medium" />
@@ -228,7 +228,7 @@
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter"
                     android:visibility="gone"
-                    android:contentDescription="Preview image" />
+                    android:contentDescription="@string/lay_preview_image" />
 
                 <VideoView
                     android:id="@+id/videoPreview"
@@ -324,7 +324,7 @@
                             android:id="@+id/audioTimeCurrent"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0:00"
+                            android:text="@string/lay_editor_time_zero"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"
                             android:fontFamily="monospace" />
@@ -342,7 +342,7 @@
                             android:id="@+id/audioTimeRemaining"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-0:00"
+                            android:text="@string/lay_editor_time_remaining_zero"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"
                             android:fontFamily="monospace"
@@ -376,7 +376,7 @@
                             android:src="@drawable/ic_play_circle_outline"
                             android:tint="@color/text_primary"
                             android:scaleType="centerInside"
-                            android:contentDescription="Play/Pause" />
+                            android:contentDescription="@string/lay_audio_play_pause" />
 
                         <ImageButton
                             android:id="@+id/btnAudioNext"
@@ -447,7 +447,7 @@
                     android:tint="@color/icon"
                     android:padding="8dp"
                     android:scaleType="centerInside"
-                    android:contentDescription="Previous page" />
+                    android:contentDescription="@string/lay_pdf_previous_page" />
 
                 <TextView
                     android:id="@+id/textPageIndicator"
@@ -468,7 +468,7 @@
                     android:tint="@color/icon"
                     android:padding="8dp"
                     android:scaleType="centerInside"
-                    android:contentDescription="Next page" />
+                    android:contentDescription="@string/lay_pdf_next_page" />
             </LinearLayout>
 
             <LinearLayout
@@ -483,7 +483,7 @@
                     android:layout_height="56dp"
                     android:src="@drawable/ic_code_tags"
                     android:tint="@color/text_hint"
-                    android:contentDescription="Editor" />
+                    android:contentDescription="@string/editor" />
 
                 <TextView
                     android:layout_width="wrap_content"

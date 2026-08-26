@@ -421,7 +421,8 @@ public class VoiceSettingsActivity extends AppCompatActivity {
         playBg.setColor(previewingId != null && previewingId.equals(voice.id)
                 ? ((accent & 0x00FFFFFF) | 0x33000000) : SettingsUI.colorSurfaceTonal(this));
         play.setBackground(new android.graphics.drawable.RippleDrawable(csl, playBg, null));
-        play.setContentDescription("Прослушать голос " + voice.display);
+        play.setContentDescription(getString(R.string.voice_preview_content_description,
+                voice.display));
         play.setClickable(true);
         play.setFocusable(true);
         play.setOnClickListener(v -> previewVoice(voice));

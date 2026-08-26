@@ -2028,7 +2028,7 @@ public class ChatModeActivity extends AppCompatActivity {
         final int finalEndExclusive = endExclusive;
         final String previousSummary = contextSummary(temporary, targetChat);
         autoSummarizing = true;
-        ModernToast.show(this, "Сжимаю старый контекст…");
+        ModernToast.show(this, getString(R.string.chat_context_compacting));
 
         String summaryInstructions = app.multiai.mobile.utils.ConversationSummaryService
                 .buildSystemInstructions(previousSummary);

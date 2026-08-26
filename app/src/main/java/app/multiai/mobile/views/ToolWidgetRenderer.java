@@ -184,7 +184,7 @@ public final class ToolWidgetRenderer {
         icon.setColorFilter(color(ctx, R.color.accent));
         header.addView(icon, new LinearLayout.LayoutParams((int) dp(ctx, 18), (int) dp(ctx, 18)));
         TextView title = new TextView(ctx);
-        title.setText("Included rules");
+        title.setText(R.string.tool_widget_included_rules);
         title.setTextColor(color(ctx, R.color.text_secondary));
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -450,7 +450,7 @@ public final class ToolWidgetRenderer {
         icon.setColorFilter(color(ctx, R.color.icon_muted));
         row.addView(icon, new LinearLayout.LayoutParams((int) dp(ctx, 18), (int) dp(ctx, 18)));
         TextView title = new TextView(ctx);
-        title.setText("Plan Mode");
+        title.setText(R.string.tool_widget_plan_mode);
         title.setTextColor(color(ctx, R.color.text_secondary));
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -459,7 +459,9 @@ public final class ToolWidgetRenderer {
         titleLp.leftMargin = (int) dp(ctx, 8);
         row.addView(title, titleLp);
         TextView state = new TextView(ctx);
-        state.setText("loading".equals(call.getStatus()) ? "Включается…" : "Активен · только чтение");
+        state.setText("loading".equals(call.getStatus())
+                ? R.string.tool_widget_enabling
+                : R.string.tool_widget_active_read_only);
         state.setTextColor(color(ctx, R.color.text_disabled));
         state.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         LinearLayout.LayoutParams stateLp = new LinearLayout.LayoutParams(
@@ -498,7 +500,7 @@ public final class ToolWidgetRenderer {
         root.addView(icon, new LinearLayout.LayoutParams((int) dp(ctx, 18), (int) dp(ctx, 18)));
 
         TextView title = new TextView(ctx);
-        title.setText("План");
+        title.setText(R.string.tool_widget_plan);
         title.setTextColor(color(ctx, R.color.text_secondary));
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
