@@ -18,6 +18,7 @@ public final class LogCollector {
 
     /** Собрать последние {@code maxLines} строк logcat, отфильтрованные по MultiAI. */
     public static String collect(int maxLines) {
+        Process process = null;
         try {
             // pid filter работает на Android 24+, на старых берём всё и фильтруем
             String pidFilter = Build.VERSION.SDK_INT >= 24
@@ -26,39 +27,42 @@ public final class LogCollector {
             ProcessBuilder pb = new ProcessBuilder(
                     "logcat", "-d", "-t", String.valueOf(maxLines * 2), pidFilter);
             pb.redirectErrorStream(true);
-            Process process = pb.start();
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
-            List<String> lines = new ArrayList<>();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // Выкидываем системный спам: ImeTracker и всё, что не относится к приложению.
-                if (line.contains("ImeTracker:") || line.contains("BufferQueueDump")
-                        || line.contains("SurfaceFlinger") || line.contains("InputMethodManager")) {
-                    continue;
+            process = pb.start();
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()))) {
+                List<String> lines = new ArrayList<>();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Выкидываем системный спам: ImeTracker и всё, что не относится к приложению.
+                    if (line.contains("ImeTracker:") || line.contains("BufferQueueDump")
+                            || line.contains("SurfaceFlinger") || line.contains("InputMethodManager")) {
+                        continue;
+                    }
+                    // Только MultiAI-теги, ошибки и варнинги.
+                    if (line.contains("MultiAI") || line.contains("multiai")
+                            || line.contains("AndroidRuntime") || line.contains("FATAL")
+                            || line.contains("OAuth") || line.contains("CloudSync")
+                            || line.contains("MultiAiClient") || line.contains("ChatActivity")
+                            || line.contains("ChatModeActivity")) {
+                        lines.add(cleanLogLine(line));
+                    }
                 }
-                // Только MultiAI-теги, ошибки и варнинги.
-                if (line.contains("MultiAI") || line.contains("multiai")
-                        || line.contains("AndroidRuntime") || line.contains("FATAL")
-                        || line.contains("OAuth") || line.contains("CloudSync")
-                        || line.contains("MultiAiClient") || line.contains("ChatActivity")
-                        || line.contains("ChatModeActivity")) {
-                    lines.add(cleanLogLine(line));
-                }
-            }
-            process.waitFor();
+                process.waitFor();
 
-            if (lines.isEmpty()) return "";
-            StringBuilder sb = new StringBuilder();
-            int start = Math.max(0, lines.size() - maxLines);
-            for (int i = start; i < lines.size(); i++) {
-                if (sb.length() > 0) sb.append("\\n");
-                sb.append(lines.get(i));
+                if (lines.isEmpty()) return "";
+                StringBuilder sb = new StringBuilder();
+                int start = Math.max(0, lines.size() - maxLines);
+                for (int i = start; i < lines.size(); i++) {
+                    if (sb.length() > 0) sb.append("\\n");
+                    sb.append(lines.get(i));
+                }
+                return sb.toString();
             }
-            return sb.toString();
         } catch (Exception e) {
             Log.d("LogCollector", "collect_failed: " + e.getMessage());
             return "";
+        } finally {
+            if (process != null) process.destroy();
         }
     }
 

@@ -306,32 +306,35 @@ public class StoreActivity extends AppCompatActivity {
             try {
                 okhttp3.OkHttpClient http = new okhttp3.OkHttpClient();
                 String token = app.multiai.mobile.network.oauth.OAuthSession.get().getAccessToken();
-                okhttp3.Response r = http.newCall(new okhttp3.Request.Builder()
+                if (token == null || token.trim().isEmpty()) return;
+                okhttp3.Request req = new okhttp3.Request.Builder()
                         .url("https://multiai.store/v1/models")
                         .header("Authorization", "Bearer " + token)
-                        .build()).execute();
-                org.json.JSONObject body = new org.json.JSONObject(r.body().string());
-                r.close();
-                org.json.JSONArray data = body.optJSONArray("data");
-                if (data == null) return;
-                synchronized (multipliers) {
-                    multipliers.clear();
-                    hasFreeModels = false;
-                    for (int i = 0; i < data.length(); i++) {
-                        org.json.JSONObject m = data.optJSONObject(i);
-                        if (m == null) continue;
-                        double k = m.optDouble("input_multiplier", 1);
-                        boolean free = m.optBoolean("billing_free", false);
-                        if (free) {
-                            hasFreeModels = true;
-                            continue;
+                        .build();
+                try (okhttp3.Response r = http.newCall(req).execute()) {
+                    if (!r.isSuccessful() || r.body() == null) return;
+                    org.json.JSONObject body = new org.json.JSONObject(r.body().string());
+                    org.json.JSONArray data = body.optJSONArray("data");
+                    if (data == null) return;
+                    synchronized (multipliers) {
+                        multipliers.clear();
+                        hasFreeModels = false;
+                        for (int i = 0; i < data.length(); i++) {
+                            org.json.JSONObject m = data.optJSONObject(i);
+                            if (m == null) continue;
+                            double k = m.optDouble("input_multiplier", 1);
+                            boolean free = m.optBoolean("billing_free", false);
+                            if (free) {
+                                hasFreeModels = true;
+                                continue;
+                            }
+                            if (k <= 0) continue;
+                            multipliers.put(m.optString("id", "?"), k);
                         }
-                        if (k <= 0) continue;
-                        multipliers.put(m.optString("id", "?"), k);
                     }
+                    valueLoaded = true;
+                    runOnUiThread(this::refreshValueByModels);
                 }
-                valueLoaded = true;
-                runOnUiThread(this::refreshValueByModels);
             } catch (Exception ignored) {
             }
         }).start();

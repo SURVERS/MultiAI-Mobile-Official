@@ -858,12 +858,10 @@ public class ChatModeActivity extends AppCompatActivity {
 
     private String getFileName(Uri uri) {
         String fileName = "attachment";
-        try {
-            android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null) {
                 int nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
                 if (nameIndex >= 0 && cursor.moveToFirst()) fileName = cursor.getString(nameIndex);
-                cursor.close();
             }
         } catch (Exception ignored) {}
         return fileName;

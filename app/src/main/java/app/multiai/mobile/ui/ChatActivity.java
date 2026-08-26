@@ -4357,27 +4357,32 @@ public class ChatActivity extends AppCompatActivity {
             conn.setReadTimeout(10000);
             conn.setInstanceFollowRedirects(true);
 
-            java.io.InputStream is = conn.getInputStream();
-            java.io.BufferedReader br = new java.io.BufferedReader(
-                new java.io.InputStreamReader(is, java.nio.charset.StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            int capped = 0;
-            while ((line = br.readLine()) != null && capped < 200000) {
-                sb.append(line).append('\n');
-                capped += line.length();
+            try {
+                java.io.InputStream is = conn.getInputStream();
+                java.io.BufferedReader br = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(is, java.nio.charset.StandardCharsets.UTF_8));
+                try {
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    int capped = 0;
+                    while ((line = br.readLine()) != null && capped < 200000) {
+                        sb.append(line).append('\n');
+                        capped += line.length();
+                    }
+                    String html = sb.toString();
+                    String title = extractTitle(html);
+                    String text = stripHtml(html);
+                    if (text.length() > 2500) text = text.substring(0, 2500) + "…";
+
+                    out.put("title", title);
+                    out.put("length", text.length());
+                    out.put("snippet", text);
+                } finally {
+                    br.close();
+                }
+            } finally {
+                conn.disconnect();
             }
-            br.close();
-            conn.disconnect();
-
-            String html = sb.toString();
-            String title = extractTitle(html);
-            String text = stripHtml(html);
-            if (text.length() > 2500) text = text.substring(0, 2500) + "…";
-
-            out.put("title", title);
-            out.put("length", text.length());
-            out.put("snippet", text);
         } catch (Exception e) {
             try { out.put("error", e.getMessage()); } catch (Exception ignored) {}
         }
@@ -4935,14 +4940,12 @@ public class ChatActivity extends AppCompatActivity {
      */
     private String getFileName(Uri uri) {
         String fileName = "image.jpg";
-        try {
-            android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null) {
                 int nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
                 if (nameIndex >= 0 && cursor.moveToFirst()) {
                     fileName = cursor.getString(nameIndex);
                 }
-                cursor.close();
             }
         } catch (Exception e) {
         }
