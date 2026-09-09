@@ -347,11 +347,17 @@ public class OnboardingActivity extends AppCompatActivity {
 
             @Override
             public void onError(@NonNull String error, String detail) {
-                String message = "access_denied".equals(error)
-                        ? getString(R.string.scr_signin_cancelled)
-                        : getString(R.string.profile_oauth_error, error);
+                String message;
+                if ("access_denied".equals(error)) {
+                    message = getString(R.string.scr_signin_cancelled);
+                } else if ("insufficient_scope".equals(error)
+                        && detail != null && !detail.trim().isEmpty()) {
+                    message = getString(R.string.oauth_missing_scopes, detail);
+                } else {
+                    message = getString(R.string.profile_oauth_error, error);
+                }
                 runOnUiThread(() -> android.widget.Toast.makeText(
-                        OnboardingActivity.this, message, android.widget.Toast.LENGTH_SHORT).show());
+                        OnboardingActivity.this, message, android.widget.Toast.LENGTH_LONG).show());
             }
         });
         if (handled) intent.setData(null);
@@ -663,17 +669,23 @@ public class OnboardingActivity extends AppCompatActivity {
         LinearLayout themeRow = setupOptionRow();
         themeRow.addView(buildSetupOption(R.drawable.ic_moon, null,
                 getString(R.string.scr_onb_theme_dark), getString(R.string.scr_onb_theme_dark_desc),
-                "dark".equals(settings.getTheme()), v -> animatePreferenceChange(() -> {
-                    settings.setTheme("dark");
-                    app.multiai.mobile.MultiAIApp.applyTheme("dark");
-                })));
+                "dark".equals(settings.getTheme()), v -> {
+                    if ("dark".equals(settings.getTheme())) return; // same-theme re-tap must not fade to black
+                    animatePreferenceChange(() -> {
+                        settings.setTheme("dark");
+                        app.multiai.mobile.MultiAIApp.applyTheme("dark");
+                    });
+                }));
         themeRow.addView(setupOptionGap());
         themeRow.addView(buildSetupOption(R.drawable.ic_s_sun, null,
                 getString(R.string.scr_onb_theme_light), getString(R.string.scr_onb_theme_light_desc),
-                "light".equals(settings.getTheme()), v -> animatePreferenceChange(() -> {
-                    settings.setTheme("light");
-                    app.multiai.mobile.MultiAIApp.applyTheme("light");
-                })));
+                "light".equals(settings.getTheme()), v -> {
+                    if ("light".equals(settings.getTheme())) return;
+                    animatePreferenceChange(() -> {
+                        settings.setTheme("light");
+                        app.multiai.mobile.MultiAIApp.applyTheme("light");
+                    });
+                }));
         root.addView(themeRow);
 
         root.addView(spacer(22));

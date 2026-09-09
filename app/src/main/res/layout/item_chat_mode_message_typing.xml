@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Typing indicator: анимированный логотип MultiAI (бегущая светяшка + флип) -->
+<!-- Typing indicator: анимированный логотип MultiAI (бегущая светяшка + флип).
+     Для генерации изображения логотип скрывается, показывается shimmer-заглушка. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -14,5 +15,31 @@
         android:layout_height="54dp"
         android:layout_gravity="start|center_vertical"
         android:contentDescription="@null" />
+
+    <LinearLayout
+        android:id="@+id/imageGenBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <app.multiai.mobile.ui.ImageGenShimmerView
+            android:id="@+id/imageGenShimmer"
+            android:layout_width="230dp"
+            android:layout_height="230dp"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/imageGenLabel"
+            android:layout_width="230dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="start"
+            android:text="@string/chat_image_generating"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
 
 </FrameLayout>

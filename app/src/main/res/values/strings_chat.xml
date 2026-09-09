@@ -74,6 +74,21 @@
     <!-- ===== Message / attachment labels ===== -->
     <string name="chat_file_truncated">\n... [файл обрезан]</string>
     <string name="chat_image_label">Изображение</string>
+    <string name="chat_image_generating">Генерирую изображение…</string>
+    <string name="mc_image_format">Формат</string>
+    <string name="mc_image_quality">Качество</string>
+    <string name="mc_q_low">Низкое</string>
+    <string name="mc_q_medium">Среднее</string>
+    <string name="mc_q_high">Высокое</string>
+    <string name="mc_q_standard">Стандартное</string>
+    <string name="image_viewer_close">Закрыть</string>
+    <string name="image_viewer_download">Скачать</string>
+    <string name="image_viewer_share">Поделиться</string>
+    <string name="image_viewer_content">Сгенерированное изображение</string>
+    <string name="image_viewer_saved">Изображение сохранено</string>
+    <string name="image_viewer_save_failed">Не удалось сохранить изображение</string>
+    <string name="image_viewer_open_failed">Не удалось открыть изображение</string>
+    <string name="image_viewer_chooser_title">Поделиться изображением</string>
     <string name="chat_file_label">Файл: %1$s</string>
     <string name="chat_file_attached">Файл прикреплён: %1$s</string>
     <string name="chat_logs_prefix">Логи: %1$s</string>
@@ -117,6 +132,21 @@
 
     <!-- ===== Model picker ===== -->
     <string name="chat_loading_models">Загрузка моделей…</string>
+    <string name="error_embedding_not_chat">Это эмбеддинг-модель: она работает только через /v1/embeddings и не поддерживает чат. Выберите другую модель.</string>
+    <string name="embed_summary">🧩 Эмбеддинг · %1$s\nВход: «%2$s»\nРазмерность: %3$s\nНорма: %4$s\nПервые значения: %5$s</string>
+    <string name="embed_input_tokens">Входные токены: %1$d</string>
+    <string name="embed_failed">Не удалось получить эмбеддинг: %1$s</string>
+
+    <!-- ===== Обновления приложения ===== -->
+    <string name="update_dialog_title">Доступно новое обновление!</string>
+    <string name="update_dialog_version">Версия: %1$s · Тип: %2$s</string>
+    <string name="update_type_major">мажор</string>
+    <string name="update_type_minor">минор</string>
+    <string name="update_not_now">Не сейчас</string>
+    <string name="update_install">Установить</string>
+    <string name="update_downloading">Скачиваем обновление…</string>
+    <string name="update_download_failed">Не удалось скачать обновление — открываем страницу релизов</string>
+    <string name="update_unsupported">Unsupported version. Please, update to actual version!/Не поддерживаемая версия. Пожалуйста, обновитесь до актуальной версии!</string>
     <string name="chat_model_loading_dots">Загрузка моделей...</string>
     <string name="chat_model_picker_title">Выбор модели</string>
     <string name="chat_model_sheet_title">Модель</string>
@@ -134,6 +164,7 @@
     <string name="mc_tab_google">Google</string>
     <string name="mc_tab_chinese">Китайские</string>
     <string name="mc_tab_other">Другие</string>
+    <string name="mc_source_multiai">MultiAI</string>
     <string name="mc_free">БЕСПЛАТНО</string>
     <string name="mc_ctx">конт.</string>
     <string name="mc_out">вывод</string>
@@ -155,6 +186,7 @@
     <string name="mc_modality_audio">Аудио</string>
     <string name="mc_modality_video">Видео</string>
     <string name="mc_stat_kind">Тип</string>
+    <string name="mc_kind_embedding">Эмбеддинг</string>
     <string name="mc_stat_reasoning">Размышления</string>
     <string name="mc_tokens_unit">токенов</string>
 
@@ -298,4 +330,6 @@
         <item>Другое</item>
     </string-array>
 
+    <string name="update_show_more">Развернуть</string>
+    <string name="update_show_less">Свернуть</string>
 </resources>

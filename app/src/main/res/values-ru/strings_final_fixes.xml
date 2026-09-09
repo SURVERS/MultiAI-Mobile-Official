@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_official_website">Официальный сайт</string>
+    <string name="profile_website_unavailable">Не удалось открыть браузер</string>
+    <string name="promo_reward_unsupported">Неподдерживаемый тип награды. Обнови приложение или обратись в поддержку.</string>
+    <string name="promo_reward_subscription">Подписка: %1$s\nСрок: %2$d дней</string>
+    <string name="promo_reward_discount">Скидка: %1$d%%</string>
+    <string name="promo_reward_invalid">Сервис вернул неполные данные награды. Проверь профиль перед повторной активацией.</string>
+</resources>

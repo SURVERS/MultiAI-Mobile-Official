@@ -180,7 +180,7 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
         if (holder instanceof TextViewHolder) {
             ((TextViewHolder) holder).bind(message);
         } else if (holder instanceof TypingViewHolder) {
-            ((TypingViewHolder) holder).bind();
+            ((TypingViewHolder) holder).bind(message);
         } else if (holder instanceof ReconnectingViewHolder) {
             ((ReconnectingViewHolder) holder).bind(message);
         } else if (holder instanceof ToolViewHolder) {
@@ -676,6 +676,40 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
             }
         }
 
+        /** Generated image on an AI message (image-model turns): shown above the text. */
+        private void bindAiImage(Message message) {
+            androidx.cardview.widget.CardView imageCard = itemView.findViewById(R.id.imageCard);
+            android.widget.ImageView imageView = itemView.findViewById(R.id.imageAttachment);
+            if (imageCard == null || imageView == null) return;
+            if (!message.hasImage()) {
+                imageCard.setVisibility(View.GONE);
+                return;
+            }
+            imageCard.setVisibility(View.VISIBLE);
+            imageView.setOnClickListener(v -> app.multiai.mobile.utils.GeneratedImageActions.show(itemView.getContext(), message));
+            final String cacheKey = message.getId() != null ? message.getId() : String.valueOf(message.hashCode());
+            android.graphics.Bitmap cached = thumbCache.get(cacheKey);
+            if (cached != null) {
+                imageView.setImageBitmap(cached);
+                return;
+            }
+            imageView.setImageDrawable(null);
+            final android.widget.ImageView target = imageView;
+            final int targetPos = getBindingAdapterPosition();
+            new Thread(() -> {
+                android.graphics.Bitmap bitmap = decodeImageThumbnail(message, THUMB_MAX_DIM);
+                if (bitmap != null) thumbCache.put(cacheKey, bitmap);
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    if (targetPos != getBindingAdapterPosition()) return;
+                    if (bitmap != null) {
+                        target.setImageBitmap(bitmap);
+                    } else {
+                        imageCard.setVisibility(View.GONE);
+                    }
+                });
+            }, "ai-img-decode").start();
+        }
+
         void bind(Message message) {
             String content = message.getContent() != null ? message.getContent() : "";
             if (message.getType() == Message.TYPE_ERROR) {
@@ -685,7 +719,12 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 textMessage.setTextColor(color(R.color.error));
             } else if (message.getType() == Message.TYPE_AI) {
                 textMessage.setTextColor(color(R.color.text_primary));
-                updateContent(message);
+                bindAiImage(message);
+                if (message.hasImage()) {
+                    hideAiContent();
+                } else {
+                    updateContent(message);
+                }
             } else {
                 textMessage.setTextColor(color(R.color.text_primary));
                 app.multiai.mobile.utils.Telemoji.apply(
@@ -736,9 +775,80 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                     showUserContextMenu(message);
                     return true;
                 });
+            } else if (message.getType() == Message.TYPE_AI && !message.isStreaming()) {
+                // O24: long-press на ответе AI — копировать/выделить (как в Telegram).
+                itemView.setOnLongClickListener(v -> {
+                    showAiContextMenu(message);
+                    return true;
+                });
             } else {
                 itemView.setOnLongClickListener(null);
             }
+        }
+
+        /**
+         * O24: контекст-меню для ответа AI (копировать целиком / выделить фрагмент).
+         */
+        private void showAiContextMenu(Message message) {
+            android.content.Context ctx = itemView.getContext();
+            android.widget.TextView target = resolveSelectableTarget();
+            if (target == null) {
+                return;
+            }
+            java.util.List<ModernSheet.MenuItem> items = java.util.Arrays.asList(
+                    new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_copy),
+                            R.drawable.ic_copy, false, null),
+                    new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_select_text),
+                            R.drawable.ic_select_text, false, null));
+            ModernSheet.menu(ctx, null, items, (idx, item) -> {
+                if (idx == 0) {
+                    android.content.ClipboardManager cm = (android.content.ClipboardManager)
+                            ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    if (cm != null) {
+                        String content = message.getContent();
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText(
+                                "message", content != null ? content : ""));
+                        if (ctx instanceof android.app.Activity) {
+                            ModernToast.show((android.app.Activity) ctx,
+                                    ctx.getString(R.string.kit_msg_copied));
+                        }
+                    }
+                } else if (idx == 1) {
+                    target.setTextIsSelectable(true);
+                    target.requestFocus();
+                }
+            });
+        }
+
+        /** Текстовое view ответа: приоритет у основного текста, иначе — внутри rich-контейнера. */
+        private android.widget.TextView resolveSelectableTarget() {
+            if (textMessage != null && textMessage.getVisibility() == android.view.View.VISIBLE
+                    && textMessage.getText() != null && textMessage.getText().length() > 0) {
+                return textMessage;
+            }
+            if (richContentContainer != null && richContentContainer.getVisibility() == android.view.View.VISIBLE) {
+                android.widget.TextView first = findFirstTextView(richContentContainer);
+                if (first != null) {
+                    return first;
+                }
+            }
+            return textMessage;
+        }
+
+        private android.widget.TextView findFirstTextView(android.view.ViewGroup root) {
+            for (int i = 0; i < root.getChildCount(); i++) {
+                android.view.View child = root.getChildAt(i);
+                if (child instanceof android.widget.TextView) {
+                    return (android.widget.TextView) child;
+                }
+                if (child instanceof android.view.ViewGroup) {
+                    android.widget.TextView nested = findFirstTextView((android.view.ViewGroup) child);
+                    if (nested != null) {
+                        return nested;
+                    }
+                }
+            }
+            return null;
         }
 
         /** Копировать / выделить текст сообщения пользователя (Chat Mode). */
@@ -813,7 +923,13 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
             if (message.getType() != Message.TYPE_USER) return;
 
             if (imageCard != null && imageAttachment != null) {
-                if (message.hasImage()) {
+                View oldStrip = imageCard.findViewWithTag("multi-image-strip");
+                if (oldStrip != null) ((android.view.ViewGroup) imageCard).removeView(oldStrip);
+                imageAttachment.setVisibility(View.VISIBLE);
+                String payload = message.getImageBase64();
+                if (payload != null && payload.startsWith("[")) {
+                    app.multiai.mobile.views.ImageAttachmentStrip.render(imageCard, payload, null);
+                } else if (message.hasImage()) {
                     imageCard.setVisibility(View.VISIBLE);
                     final String cacheKey = message.getId() != null ? message.getId() : String.valueOf(message.hashCode());
                     android.graphics.Bitmap cached = thumbCache.get(cacheKey);
@@ -939,7 +1055,8 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
             }
             textMessage.setVisibility(View.VISIBLE);
             app.multiai.mobile.utils.Telemoji.clearTracking(textMessage);
-            textMessage.setText(content);
+            app.multiai.mobile.utils.MarkdownRenderer.render(itemView.getContext(), textMessage,
+                    app.multiai.mobile.utils.StreamingMarkdown.prepare(content));
         }
 
         private void finishStreaming(Message message) {
@@ -1043,15 +1160,34 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
 
     static class TypingViewHolder extends RecyclerView.ViewHolder {
         private final app.multiai.mobile.ui.WorkingLogoIconView workingLogo;
+        private final View imageGenBox;
+        private final app.multiai.mobile.ui.ImageGenShimmerView imageGenShimmer;
 
         TypingViewHolder(View itemView) {
             super(itemView);
             workingLogo = itemView.findViewById(R.id.workingLogo);
+            imageGenBox = itemView.findViewById(R.id.imageGenBox);
+            imageGenShimmer = itemView.findViewById(R.id.imageGenShimmer);
         }
 
-        void bind() {
-            if (workingLogo != null) {
-                workingLogo.setRunning(true);
+        void bind(Message message) {
+            boolean imageGenerating = message != null && message.isImageGenerating();
+            if (imageGenerating) {
+                // Image-model turn: ChatGPT-style shimmer placeholder instead of
+                // the MultiAI logo.
+                if (workingLogo != null) {
+                    workingLogo.setRunning(false);
+                    workingLogo.setVisibility(View.GONE);
+                }
+                if (imageGenBox != null) imageGenBox.setVisibility(View.VISIBLE);
+                if (imageGenShimmer != null) imageGenShimmer.setRunning(true);
+            } else {
+                if (imageGenBox != null) imageGenBox.setVisibility(View.GONE);
+                if (imageGenShimmer != null) imageGenShimmer.setRunning(false);
+                if (workingLogo != null) {
+                    workingLogo.setVisibility(View.VISIBLE);
+                    workingLogo.setRunning(true);
+                }
             }
         }
     }
@@ -1241,6 +1377,7 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
     private static android.graphics.Bitmap decodeImageThumbnail(Message message, int maxDim) {
         try {
             String base64 = message.getImageBase64();
+            if (base64 != null && base64.startsWith("[")) base64 = app.multiai.mobile.utils.ImageAttachments.unpack(base64).get(0);
             byte[] bytes = null;
             if (base64 != null && !base64.isEmpty()) {
                 if (base64.startsWith("data:image")) {

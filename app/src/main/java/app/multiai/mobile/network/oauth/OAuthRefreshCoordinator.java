@@ -213,16 +213,22 @@ public final class OAuthRefreshCoordinator {
                         // The server may have consumed the old token: fail closed.
                         invalidateCurrentFamilyLocked(operationStore, session);
                     }
-                } else if (!validRotatedResponse(refreshedTokens)
-                        || !operationStore.storeRefreshTokenCas(
-                                refreshedTokens.refreshToken, expectedVersion)) {
-                    invalidateCurrentFamilyLocked(operationStore, session);
                 } else {
-                    tokenFamilyGeneration++;
-                    session.setAccessToken(refreshedTokens.accessToken,
-                            refreshedTokens.tokenType, refreshedTokens.expiresIn,
-                            refreshedTokens.scope, System.currentTimeMillis());
-                    success = true;
+                    String effectiveScope = refreshedTokens == null
+                            || isBlank(refreshedTokens.scope)
+                            ? operationStore.getScope() : refreshedTokens.scope;
+                    if (!validRotatedResponse(refreshedTokens)
+                            || !OAuthConfig.hasRequiredScopes(effectiveScope)
+                            || !operationStore.storeRefreshTokenCas(
+                                    refreshedTokens.refreshToken, expectedVersion, effectiveScope)) {
+                        invalidateCurrentFamilyLocked(operationStore, session);
+                    } else {
+                        tokenFamilyGeneration++;
+                        session.setAccessToken(refreshedTokens.accessToken,
+                                refreshedTokens.tokenType, refreshedTokens.expiresIn,
+                                effectiveScope, System.currentTimeMillis());
+                        success = true;
+                    }
                 }
             } finally {
                 refreshInFlight = false;
@@ -322,7 +328,9 @@ public final class OAuthRefreshCoordinator {
                 && profile != null
                 && !isBlank(profile.sub)
                 && !isBlank(tokens.accessToken)
+                && tokens.accessToken.startsWith("ma-oauth-at-")
                 && !isBlank(tokens.refreshToken)
+                && tokens.refreshToken.startsWith("ma-oauth-rt-")
                 && "Bearer".equalsIgnoreCase(tokens.tokenType)
                 && tokens.expiresIn > 0L
                 && tokens.expiresIn <= MAX_TOKEN_LIFETIME_SECONDS
@@ -332,7 +340,9 @@ public final class OAuthRefreshCoordinator {
     private static boolean validRotatedResponse(@Nullable OAuthClient.TokenResponse tokens) {
         return tokens != null
                 && !isBlank(tokens.accessToken)
+                && tokens.accessToken.startsWith("ma-oauth-at-")
                 && !isBlank(tokens.refreshToken)
+                && tokens.refreshToken.startsWith("ma-oauth-rt-")
                 && "Bearer".equalsIgnoreCase(tokens.tokenType)
                 && tokens.expiresIn > 0L
                 && tokens.expiresIn <= MAX_TOKEN_LIFETIME_SECONDS;

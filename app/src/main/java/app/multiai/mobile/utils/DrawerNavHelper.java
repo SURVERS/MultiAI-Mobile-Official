@@ -125,6 +125,39 @@ public final class DrawerNavHelper {
                     app.multiai.mobile.ui.kit.ModeSwitcher.showDropdown(host, badgeContainer, mode));
         }
 
+        // ── Brand avatar click: go to the chat of the current mode ──
+        // In Chat Mode → ChatModeActivity (chat-mode chat).
+        // In Work Mode → ChatActivity (work-mode chat).
+        // Only wired inside the drawer — nowhere else.
+        View brandAvatar = host.findViewById(R.id.drawerBrandAvatar);
+        if (brandAvatar != null) {
+            brandAvatar.setOnClickListener(v -> {
+                final View drawer = host.findViewById(R.id.drawerFrame);
+                final DrawerLayout parent = (drawer != null
+                        && drawer.getParent() instanceof DrawerLayout)
+                        ? (DrawerLayout) drawer.getParent() : null;
+                boolean isChatMode = new app.multiai.mobile.utils.AppSettings(host).isChatMode();
+                final Intent intent = new Intent(host,
+                        isChatMode ? app.multiai.mobile.ui.ChatModeActivity.class
+                                   : app.multiai.mobile.ui.ChatActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                if (parent != null) {
+                    DrawerLayout.SimpleDrawerListener closer =
+                            new DrawerLayout.SimpleDrawerListener() {
+                        @Override
+                        public void onDrawerClosed(View d) {
+                            parent.removeDrawerListener(this);
+                            host.startActivity(intent);
+                        }
+                    };
+                    parent.addDrawerListener(closer);
+                    parent.closeDrawer(drawer);
+                } else {
+                    host.startActivity(intent);
+                }
+            });
+        }
+
         // Dismiss the mode dropdown whenever the drawer starts closing, otherwise
         // the PopupWindow survives the drawer slide-out and floats over the
         // content as a stray white rectangle (the anchored badge is gone).
@@ -243,7 +276,11 @@ public final class DrawerNavHelper {
     public static void refreshHistory(Activity host) {
         if (host == null) return;
         ViewGroup container = (ViewGroup) host.findViewById(R.id.historyExpandContainer);
-        if (container == null || container.getVisibility() != View.VISIBLE) return;
+        // Обновляем и когда контейнер виден, и когда он ещё/уже наполнен строками
+        // (например, в момент анимации сворачивания): иначе удалённый/переименованный
+        // чат оставался в списке до ручного «свернуть → развернуть».
+        if (container == null) return;
+        if (container.getVisibility() != View.VISIBLE && container.getChildCount() == 0) return;
         container.removeAllViews();
         populateHistoryList(host, container);
     }

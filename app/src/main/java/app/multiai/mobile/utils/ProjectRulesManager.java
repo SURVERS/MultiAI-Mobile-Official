@@ -133,6 +133,49 @@ public final class ProjectRulesManager {
     public static Snapshot load(Context context) {
         DocumentFile root = projectRoot(context);
         if (root == null) return new Snapshot(Collections.emptyList(), false, false, false);
+        return loadForRoot(context, root);
+    }
+
+    // SAF-скан правил (DocumentFile через ContentResolver) — десятки мс IPC на файл.
+    // Без кэша гонялся на КАЖДОЙ отправке сообщения на main-thread → фриз. Кэш по
+    // project URI, TTL — чтобы правки правил подхватывались, инвалидируется при записи.
+    private static Snapshot cachedSnapshot;
+    private static String cachedProjectUri;
+    private static long cachedAt;
+    private static final long CACHE_TTL_MS = 20_000L;
+
+    /** Кэшированный load — то же самое, но SAF-скан не чаще раза в TTL. */
+    public static synchronized Snapshot loadCached(Context context) {
+        String uri = workspaceUri(context);
+        long now = System.currentTimeMillis();
+        if (cachedSnapshot != null && uri.equals(cachedProjectUri)
+                && now - cachedAt < CACHE_TTL_MS) {
+            return cachedSnapshot;
+        }
+        Snapshot fresh = load(context);
+        cachedSnapshot = fresh;
+        cachedProjectUri = uri;
+        cachedAt = now;
+        return fresh;
+    }
+
+    /** Сбросить кэш (после записи правила через project rules tool). */
+    public static synchronized void invalidateCache() {
+        cachedSnapshot = null;
+        cachedProjectUri = null;
+        cachedAt = 0L;
+    }
+
+    private static String workspaceUri(Context context) {
+        try {
+            return context.getSharedPreferences("multiaiide", Context.MODE_PRIVATE)
+                    .getString("project_folder_uri", "");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private static Snapshot loadForRoot(Context context, DocumentFile root) {
 
         // AGENTS.md is an explicit root-level contract. Load it before the
         // rules directory so a large rule set can never crowd it out of the

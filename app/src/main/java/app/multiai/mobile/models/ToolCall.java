@@ -40,6 +40,7 @@ public class ToolCall {
                 || "save_memory".equals(name)
                 || "summarize_chat_history".equals(name)
                 || "summarize_past_chat".equals(name)
+                || "read_skill".equals(name)
                 || "read_file".equals(name)
                 || "write_file".equals(name)
                 || "edit_file".equals(name)
@@ -216,13 +217,13 @@ public class ToolCall {
                     return "Путь перемещён";
                 case "list_dir":
                     return result != null && result.optJSONArray("entries") != null
-                            ? "Найдено объектов: " + result.optJSONArray("entries").length() : name;
+                            ? "Найдено объектов: " + result.optJSONArray("entries").length() : "Действие завершено";
                 case "search_grep":
                     return result != null && result.optJSONArray("matches") != null
-                            ? "Совпадений: " + result.optJSONArray("matches").length() : name;
+                            ? "Совпадений: " + result.optJSONArray("matches").length() : "Действие завершено";
                 case "find_files":
                     return result != null && result.optJSONArray("files") != null
-                            ? "Найдено файлов: " + result.optJSONArray("files").length() : name;
+                            ? "Найдено файлов: " + result.optJSONArray("files").length() : "Действие завершено";
                 case "execute_command":
                     return "Команда завершена";
                 case "invoke_subagent":
@@ -243,7 +244,7 @@ public class ToolCall {
             }
         } catch (Exception ignored) {
         }
-        return name;
+        return "Действие завершено";
     }
 
     public String getEmoji() {
@@ -275,6 +276,8 @@ public class ToolCall {
     @DrawableRes
     public int getIconRes() {
         switch (name) {
+            case "read_skill":
+                return R.drawable.ic_skill_flask;
             case "get_weather":
                 return R.drawable.ic_file_image_outline;
             case "web_search":

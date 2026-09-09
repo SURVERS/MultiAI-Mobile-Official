@@ -29,7 +29,7 @@ public final class PersonalizationPromptBuilder {
         Map<String, String> traitPhrases = new LinkedHashMap<>();
         traitPhrases.put("warmth", "будь теплее и дружелюбнее в общении");
         traitPhrases.put("excitement", "добавляй больше энергии и энтузиазма");
-        traitPhrases.put("headers", "структурируй ответ заголовками");
+        traitPhrases.put("headers", "структурируй ответ заголовками и списками");
         traitPhrases.put("emoji", "используй эмодзи в ответах");
 
         for (Map.Entry<String, String> e : traitPhrases.entrySet()) {
@@ -40,7 +40,7 @@ public final class PersonalizationPromptBuilder {
                 appendPhrase(sb, "минимизируй: " + e.getValue()
                         .replace("будь теплее и дружелюбнее", "будь сдержан")
                         .replace("добавляй больше энергии и энтузиазма", "будь спокойнее")
-                        .replace("структурируй ответ заголовками", "избегай заголовков")
+                        .replace("структурируй ответ заголовками и списками", "избегай заголовков и списков")
                         .replace("используй эмодзи", "избегай эмодзи"));
             }
         }
@@ -57,13 +57,15 @@ public final class PersonalizationPromptBuilder {
     private static String tonePhrase(String tone) {
         if (tone == null) return null;
         switch (tone) {
-            case "professional": return "деловом тоне";
+            case "professional": return "деловом тоне, без эмодзи";
             case "friendly": return "дружелюбном тоне";
             case "candid": return "прямом, откровенном тоне";
             case "whimsical": return "лёгком, игривом тоне";
-            case "efficient": return "максимально сжатом и делеовом тоне";
+            case "efficient": return "максимально сжатом и делеовом тоне, без эмодзи";
             case "sarcastic": return "ироничном тоне";
             case "default":
+                // Дефолт продукта: живой друг, а не сухой ассистент.
+                return "дружелюбном тоне: пиши тепло и неформально, как друг, уместно добавляй эмодзи";
             default: return null;
         }
     }

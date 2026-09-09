@@ -81,13 +81,19 @@
         android:paddingEnd="40dp"
         android:visibility="gone">
 
-        <ImageView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:src="@drawable/ic_s_memory"
-            android:tint="@color/text_hint"
-            android:alpha="0.5"
-            android:contentDescription="@string/scr_memories_title" />
+        <FrameLayout
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/memory_icon_bg">
+
+            <ImageView
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_s_memory"
+                android:tint="@color/text_hint"
+                android:contentDescription="@string/scr_memories_title" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="wrap_content"

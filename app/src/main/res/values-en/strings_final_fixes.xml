@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_official_website">Official website</string>
+    <string name="profile_website_unavailable">Could not open a browser</string>
+    <string name="promo_reward_unsupported">Unsupported reward type. Update the app or contact support.</string>
+    <string name="promo_reward_subscription">Subscription: %1$s\nDuration: %2$d days</string>
+    <string name="promo_reward_discount">Discount: %1$d%%</string>
+    <string name="promo_reward_invalid">The service returned incomplete reward details. Check your profile before redeeming again.</string>
+</resources>

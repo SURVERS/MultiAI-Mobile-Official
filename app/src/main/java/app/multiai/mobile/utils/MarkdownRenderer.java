@@ -454,8 +454,16 @@ public class MarkdownRenderer {
         addProjectFilePathSpans(context, content);
         boolean hasClickableSpan = content.getSpans(0, content.length(), ClickableSpan.class).length > 0;
         textView.setLinksClickable(hasClickableSpan);
-        textView.setHighlightColor(Color.TRANSPARENT);
+        // O24: выделение слов в ответе AI должно быть видимым (как в Telegram),
+        // поэтому вместо прозрачного highlight — акцентный цвет из темы.
+        textView.setHighlightColor(resolveSelectionHighlight(context));
         textView.setMovementMethod(hasClickableSpan ? LINK_ONLY_MOVEMENT_METHOD : null);
+    }
+
+    /** Accent-tinted, semi-transparent selection color that works on both themes. */
+    private static int resolveSelectionHighlight(Context context) {
+        int base = resolve(context, R.color.accent);
+        return androidx.core.graphics.ColorUtils.setAlphaComponent(base, 66);
     }
 
     private static void addProjectFilePathSpans(Context context, Spannable content) {

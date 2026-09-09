@@ -73,6 +73,21 @@
     <!-- ===== Message / attachment labels ===== -->
     <string name="chat_file_truncated">\n... [файл обрезан]</string>
     <string name="chat_image_label">Изображение</string>
+    <string name="chat_image_generating">Генерирую изображение…</string>
+    <string name="mc_image_format">Формат</string>
+    <string name="mc_image_quality">Качество</string>
+    <string name="mc_q_low">Низкое</string>
+    <string name="mc_q_medium">Среднее</string>
+    <string name="mc_q_high">Высокое</string>
+    <string name="mc_q_standard">Стандартное</string>
+    <string name="image_viewer_close">Закрыть</string>
+    <string name="image_viewer_download">Скачать</string>
+    <string name="image_viewer_share">Поделиться</string>
+    <string name="image_viewer_content">Сгенерированное изображение</string>
+    <string name="image_viewer_saved">Изображение сохранено</string>
+    <string name="image_viewer_save_failed">Не удалось сохранить изображение</string>
+    <string name="image_viewer_open_failed">Не удалось открыть изображение</string>
+    <string name="image_viewer_chooser_title">Поделиться изображением</string>
     <string name="chat_file_label">Файл: %1$s</string>
     <string name="chat_file_attached">Файл прикреплён: %1$s</string>
     <string name="chat_logs_prefix">Логи: %1$s</string>

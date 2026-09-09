@@ -59,6 +59,8 @@ public class DataControlsActivity extends AppCompatActivity {
                             new ChatManager(this).clearAllChats();
                             new ChatManager(this, "multiai_chatmode_chats").clearAllChats();
                             ModernToast.show(this, getString(R.string.scr_data_history_cleared));
+                            // Открытые чат-экраны сбрасываются в новый чат мгновенно.
+                            app.multiai.mobile.utils.ChatsClearedNotifier.notifyCleared();
                         })));
         root.addView(c4);
     }

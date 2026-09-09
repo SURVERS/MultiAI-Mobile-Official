@@ -194,6 +194,56 @@ public class AccountApi {
         store.clearSelectedKeyId();
     }
 
+    /** {@code GET /api/oauth/v1/devices} — all active OAuth sessions for this user. */
+    @NonNull public JSONObject devices() throws IOException, OAuthClient.OAuthException {
+        return get("devices");
+    }
+
+    /** {@code DELETE /api/oauth/v1/devices/{id}} — revoke one OAuth token family. */
+    public void revokeDevice(@Nullable String deviceId)
+            throws IOException, OAuthClient.OAuthException {
+        String id = deviceId == null ? "" : deviceId.trim();
+        if (id.isEmpty() || !id.matches("[A-Za-z0-9._~-]+")) {
+            throw new OAuthClient.OAuthException("invalid_request");
+        }
+        Request.Builder b = authorizedRequest("devices/" + id).delete();
+        execOnce(b, /*json*/false, /*retry*/true);
+    }
+
+    /** {@code DELETE /api/oauth/v1/devices/others} — revoke every family except current. */
+    @NonNull public JSONObject revokeOtherDevices()
+            throws IOException, OAuthClient.OAuthException {
+        Request.Builder b = authorizedRequest("devices/others").delete();
+        return execOnceAsJson(b, true);
+    }
+
+    /** {@code POST /api/oauth/v1/devices/current/heartbeat} — throttled server activity. */
+    public void heartbeatCurrentDevice() throws IOException, OAuthClient.OAuthException {
+        Request.Builder b = authorizedRequest("devices/current/heartbeat")
+                .post(RequestBody.create("{}", JSON));
+        execOnce(b, /*json*/false, /*retry*/true);
+    }
+
+    /** Optional v2 policy endpoint; 404/501 means the backend has not rolled it out yet. */
+    @NonNull public JSONObject deviceSettings()
+            throws IOException, OAuthClient.OAuthException {
+        return get("devices/settings");
+    }
+
+    /** {@code PUT /api/oauth/v1/devices/settings}. */
+    @NonNull public JSONObject updateInactiveDeviceTtl(int days)
+            throws IOException, OAuthClient.OAuthException {
+        JSONObject body = new JSONObject();
+        try {
+            body.put("inactive_ttl_days", days);
+        } catch (Exception ignored) {
+            throw new OAuthClient.OAuthException("invalid_inactive_ttl");
+        }
+        Request.Builder b = authorizedRequest("devices/settings")
+                .put(RequestBody.create(body.toString(), JSON));
+        return execOnceAsJson(b, true);
+    }
+
     // ─────────────────────────── HTTP + §10 retry ───────────────────────────
 
     @NonNull
@@ -282,8 +332,20 @@ public class AccountApi {
     @NonNull
     private static OAuthClient.OAuthException makeError(@NonNull String rb, int code) {
         String err = "invalid_request";
-        try { err = new JSONObject(rb).optString("error", err); } catch (Exception ignored) {}
-        return new OAuthClient.OAuthException(err, code, null);
+        String detail = null;
+        try {
+            JSONObject body = new JSONObject(rb);
+            JSONObject nested = body.optJSONObject("error");
+            if (nested != null) {
+                err = nested.optString("code", nested.optString("type", err));
+                detail = nested.optString("message", null);
+            } else {
+                err = body.optString("error", err);
+            }
+            if (detail == null) detail = body.optString("error_description",
+                    body.optString("message", body.optString("detail", null)));
+        } catch (Exception ignored) {}
+        return new OAuthClient.OAuthException(err, code, detail);
     }
 
     @NonNull

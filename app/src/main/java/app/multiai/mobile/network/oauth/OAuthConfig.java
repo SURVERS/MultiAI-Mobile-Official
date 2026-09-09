@@ -3,6 +3,14 @@ package app.multiai.mobile.network.oauth;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import app.multiai.mobile.BuildConfig;
 
@@ -20,12 +28,49 @@ import app.multiai.mobile.BuildConfig;
  */
 public final class OAuthConfig {
 
+    private static final List<String> REQUIRED_SCOPES = buildRequiredScopes();
+
     private OAuthConfig() {}
 
     @NonNull public static String getIssuer()      { return BuildConfig.OAUTH_ISSUER; }
     @NonNull public static String getClientId()     { return BuildConfig.OAUTH_CLIENT_ID; }
     @NonNull public static String getRedirectUri()  { return BuildConfig.OAUTH_REDIRECT_URI; }
-    @NonNull public static String getScopes()      { return BuildConfig.OAUTH_SCOPES; }
+    @NonNull public static String getScopes()       { return BuildConfig.OAUTH_SCOPES; }
+
+    /** Required scopes in authorization-request order, without duplicates. */
+    @NonNull
+    public static List<String> getRequiredScopes() {
+        return REQUIRED_SCOPES;
+    }
+
+    /** Missing required scopes in the same stable order shown to the user. */
+    @NonNull
+    public static List<String> getMissingScopes(@Nullable String grantedScopes) {
+        Set<String> granted = new HashSet<>();
+        if (grantedScopes != null) {
+            String trimmed = grantedScopes.trim();
+            if (!trimmed.isEmpty()) {
+                Collections.addAll(granted, trimmed.split("\\s+"));
+            }
+        }
+        List<String> missing = new ArrayList<>();
+        for (String required : REQUIRED_SCOPES) {
+            if (!granted.contains(required)) missing.add(required);
+        }
+        return missing;
+    }
+
+    public static boolean hasRequiredScopes(@Nullable String grantedScopes) {
+        return getMissingScopes(grantedScopes).isEmpty();
+    }
+
+    @NonNull
+    private static List<String> buildRequiredScopes() {
+        LinkedHashSet<String> scopes = new LinkedHashSet<>();
+        String configured = BuildConfig.OAUTH_SCOPES == null ? "" : BuildConfig.OAUTH_SCOPES.trim();
+        if (!configured.isEmpty()) Collections.addAll(scopes, configured.split("\\s+"));
+        return Collections.unmodifiableList(new ArrayList<>(scopes));
+    }
 
     /** Short human-readable label for the user's connected-devices list (§5.2):
      *  марка + модель телефона (например «Tecno KL7»), как в системных настройках. */

@@ -85,10 +85,29 @@ public class CloudSyncManager {
 
         String data = getCloud(token, "instructions");
         if (data == null) return false;
+        if (!looksLikeRealInstructions(data)) {
+            // Служебный мусор (например «fresh-<ts>») не должен затирать локальные
+            // пользовательские инструкции — пропускаем значение целиком.
+            android.util.Log.w(TAG, "instructions pull skipped: placeholder-looking payload");
+            return false;
+        }
 
         AppSettings settings = new AppSettings(context);
         settings.setUserInstructions(data);
         return true;
+    }
+
+    /**
+     * Эвристика «мусорного» значения инструкций: короткая строка вида
+     * слово-цифры (например fresh-1786983114506) — это служебный маркер,
+     * а не текст, который юзер осмысленно писал в настройках.
+     */
+    private static boolean looksLikeRealInstructions(String value) {
+        if (value == null) return false;
+        String trimmed = value.trim();
+        if (trimmed.length() >= 40) return true;
+        // «fresh-1786983114506» / «abc-1234567890123»: префикс + 10+ цифр
+        return !trimmed.matches("(?i)[a-z]{2,12}-\\d{10,}");
     }
 
     // ═══════════════════════════════════════════
@@ -162,7 +181,15 @@ public class CloudSyncManager {
             if (data.has("profession")) settings.setProfessionLocal(data.optString("profession", ""));
             if (data.has("about")) settings.setAboutLocal(data.optString("about", ""));
             if (data.has("tone")) settings.setPersonalizationToneLocal(data.optString("tone", ""));
-            if (data.has("instructions")) settings.setPersonalizationInstructionsLocal(data.optString("instructions", ""));
+            if (data.has("instructions")) {
+                String instructions = data.optString("instructions", "");
+                if (looksLikeRealInstructions(instructions)) {
+                    settings.setPersonalizationInstructionsLocal(instructions);
+                } else {
+                    // Служебный мусор («fresh-<ts>») не затирает локальные инструкции.
+                    android.util.Log.w(TAG, "personalization pull: skipped placeholder-looking instructions");
+                }
+            }
             return true;
         } catch (Exception e) {
             return false;

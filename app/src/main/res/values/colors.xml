@@ -10,12 +10,12 @@
     <color name="surface_elevated">#FFFFFFFF</color>
     <color name="surface_card">#FFFFFFFF</color>
     <color name="surface_tonal">#FFF0F0F2</color>
-    <color name="divider">#FFE2E2E5</color>
+    <color name="divider">#FFE8E8EB</color>
     <color name="ripple">#1A18181B</color>
     <color name="stroke">#FFDADADF</color>
-    <color name="shadow_ambient">#1F18181B</color>
-    <color name="shadow_spot">#2E18181B</color>
-    <color name="ambient_glow">#0A000000</color>
+    <color name="shadow_ambient">#1418181B</color>
+    <color name="shadow_spot">#2418181B</color>
+    <color name="ambient_glow">#0800000F</color>
 
     <!-- Text and icons. All muted values keep usable contrast on bg/card. -->
     <color name="text_primary">#FF09090B</color>
@@ -55,6 +55,18 @@
     <color name="error_bg">#FFFEE2E2</color>
     <color name="error_text">#FFB91C1C</color>
     <color name="error_text_muted">#FFDC2626</color>
+
+    <!-- Информативная карточка ошибки: нейтральная поверхность, как в референсах
+         (не «вайбкодерская» красная заливка). Светлая тема. -->
+    <color name="error_card_bg">#FFF6F6F7</color>
+    <color name="error_card_border">#FFE4E4E7</color>
+    <color name="error_card_text">#FF27272A</color>
+    <color name="error_card_muted">#FF71717A</color>
+    <color name="error_card_accent">#FF52525B</color>
+    <color name="error_technical_bg">#FFECECEE</color>
+    <color name="error_chip_bg">#FFFBFBFC</color>
+    <color name="error_accent_soft_bg">#33DC2626</color>
+    <color name="error_accent_soft_border">#66DC2626</color>
     <color name="success">#FF059669</color>
     <color name="success_bg">#FFD1FAE5</color>
     <color name="warning">#FFF5A623</color>

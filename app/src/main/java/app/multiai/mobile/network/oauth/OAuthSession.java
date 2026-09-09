@@ -71,6 +71,7 @@ public final class OAuthSession {
 
     public boolean isAccessTokenFresh(long nowMs) {
         return accessToken != null
+                && OAuthConfig.hasRequiredScopes(scope)
                 && (expiresAtMs == 0L || nowMs + 10_000L < expiresAtMs);
     }
 

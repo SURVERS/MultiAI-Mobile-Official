@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="custom_provider_title">Custom Provider</string>
+    <string name="custom_provider_subtitle">Add your own AI provider with an OpenAI-compatible or Anthropic API.</string>
+    <string name="custom_provider_settings_subtitle">Your own keys and API providers</string>
+    <string name="custom_provider_list_title">Providers</string>
+    <string name="custom_provider_empty">No providers added yet.\nTap + to add the first one.</string>
+    <string name="custom_provider_add">Add</string>
+    <string name="custom_provider_add_title">New Provider</string>
+    <string name="custom_provider_kind">API type</string>
+    <string name="custom_provider_type_openai">OpenAI-compatible</string>
+    <string name="custom_provider_type_anthropic">Anthropic</string>
+    <string name="custom_provider_name">Name (optional)</string>
+    <string name="custom_provider_name_hint">e.g. My Local LLM</string>
+    <string name="custom_provider_api_key">API key</string>
+    <string name="custom_provider_base_url">Base URL</string>
+    <string name="custom_provider_auto_fetch_note">Model list will be fetched automatically from /v1/models</string>
+    <string name="custom_provider_models">Models</string>
+    <string name="custom_provider_add_model">Add model</string>
+    <string name="custom_provider_model_hint">Model ID, e.g. gpt-4o</string>
+    <string name="custom_provider_no_models">No models — add manually or reload provider</string>
+    <string name="custom_provider_fetching">Adding provider…</string>
+    <string name="custom_provider_added">Provider added, %1$d models loaded</string>
+    <string name="custom_provider_added_no_models">Provider added (no models found — add manually)</string>
+    <string name="custom_provider_deleted">Provider deleted</string>
+    <string name="custom_provider_delete_title">Delete provider?</string>
+    <string name="custom_provider_delete_message">Delete \"%1$s\"? All its models will be removed too.</string>
+    <string name="custom_provider_error_key">Enter an API key</string>
+    <string name="custom_provider_error_url">Enter a valid Base URL</string>
+    <string name="custom_provider_edit_title">Provider</string>
+    <string name="custom_provider_edit_action">Edit</string>
+    <string name="custom_provider_save">Save</string>
+    <string name="custom_provider_updated">Provider updated</string>
+    <string name="custom_provider_reload_models">Refresh model list</string>
+    <string name="custom_provider_reloading">Loading models…</string>
+    <string name="custom_provider_reload_done">Loaded %1$d models</string>
+    <string name="custom_provider_reload_empty">No models found — check the key and Base URL</string>
+    <string name="custom_provider_show_key">Show key</string>
+    <string name="custom_provider_hide_key">Hide key</string>
+</resources>

@@ -74,7 +74,8 @@ import app.multiai.mobile.ui.kit.ModernMenu;
  * Только чат, без файлов/терминала/редактора.
  * Доступные инструменты: погода, время, веб-поиск, url_fetch.
  */
-public class ChatModeActivity extends AppCompatActivity {
+public class ChatModeActivity extends AppCompatActivity implements
+        app.multiai.mobile.utils.ChatsClearedNotifier.Listener {
 
     private static final String TAG = "ChatModeActivity";
     private static final String PREFS_NAME = "multiai_profile";
@@ -198,6 +199,9 @@ public class ChatModeActivity extends AppCompatActivity {
     private String selectedEffort;
     /** Персистентный клиент — хранит выбранный reasoning effort между запросами. */
     private final MultiAiClient multiAiClient = new MultiAiClient();
+    /** Отдельный клиент для моделей кастомных провайдеров — минует multiai.store. */
+    private final app.multiai.mobile.network.CustomProviderChatClient customProviderChatClient =
+            new app.multiai.mobile.network.CustomProviderChatClient();
     private Handler handler = new Handler(Looper.getMainLooper());
     private ActivityResultLauncher<Intent> pickImageLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
@@ -248,10 +252,83 @@ public class ChatModeActivity extends AppCompatActivity {
                 androidx.core.view.ViewCompat.requestApplyInsets(inputContainer));
     }
 
+    /**
+     * Роутит отправку сообщения: если {@code selectedModelId} принадлежит кастомному
+     * провайдеру — запрос уходит напрямую на его baseURL, минуя multiai.store.
+     * Tools-схема передаётся обоим путям (CustomProviderChatClient конвертирует
+     * её под формат провайдера — OpenAI tools или Anthropic input_schema).
+     */
+    /**
+     * Embedding-модели (bge-m3…) не умеют чат — прогоняем текст через
+     * /v1/embeddings и отдаём сводку вектора как обычный ответ. Фон-поток.
+     */
+    private boolean handleEmbeddingTurn(app.multiai.mobile.utils.CustomProviderStore.ResolvedCustomModel resolved,
+                                        String userMessage, MultiAiClient.StreamCallback callback) {
+        if (resolved == null || !resolved.isEmbeddingModel()) return false;
+        final app.multiai.mobile.utils.CustomProviderStore.ResolvedCustomModel fr = resolved;
+        final String input = userMessage == null ? "" : userMessage.trim();
+        new Thread(() -> {
+            try {
+                app.multiai.mobile.network.CustomProviderClient.EmbeddingResult r =
+                        app.multiai.mobile.network.CustomProviderClient.embed(
+                                fr.provider, fr.requestName, input);
+                runOnUiThread(() -> {
+                    String summary = app.multiai.mobile.network.CustomProviderClient
+                            .formatEmbeddingSummary(this, fr.requestName, input, r);
+                    callback.onContent(summary);
+                    callback.onComplete();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> callback.onError(getString(
+                        R.string.embed_failed, e.getMessage() != null ? e.getMessage() : String.valueOf(e))));
+            }
+        }, "embedding-turn").start();
+        return true;
+    }
+
+    private void routeSendMessage(String systemPrompt, List<Message> history, String userMessage,
+                                  String imageBase64, boolean useTools, boolean stream,
+                                  MultiAiClient.StreamCallback callback) {
+        app.multiai.mobile.utils.CustomProviderStore.ResolvedCustomModel resolved =
+                app.multiai.mobile.utils.CustomProviderStore.resolve(this, selectedModelId);
+        if (resolved != null) {
+            if (handleEmbeddingTurn(resolved, userMessage, callback)) return;
+            customProviderChatClient.syncToolsFrom(multiAiClient);
+            customProviderChatClient.sendMessageStream(resolved.provider, resolved.requestName,
+                    systemPrompt, history, userMessage, imageBase64, useTools, stream,
+                    MultiAiClient.ToolPolicy.FULL, callback);
+            return;
+        }
+        multiAiClient.sendMessageStream(selectedModelId, systemPrompt, history, userMessage,
+                imageBase64, useTools, stream, callback);
+    }
+
+    /** Тот же роутинг для продолжения разговора из уже собранного JSONArray (после тула). */
+    private void routeSendMessage(String systemPrompt, JSONArray messages, boolean useTools,
+                                  boolean stream, MultiAiClient.StreamCallback callback) {
+        app.multiai.mobile.utils.CustomProviderStore.ResolvedCustomModel resolved =
+                app.multiai.mobile.utils.CustomProviderStore.resolve(this, selectedModelId);
+        if (resolved != null) {
+            if (resolved.isEmbeddingModel()) {
+                callback.onError(getString(R.string.error_embedding_not_chat));
+                return;
+            }
+            customProviderChatClient.syncToolsFrom(multiAiClient);
+            customProviderChatClient.sendMessageStream(resolved.provider, resolved.requestName,
+                    systemPrompt, messages, useTools, stream,
+                    MultiAiClient.ToolPolicy.FULL, callback);
+            return;
+        }
+        multiAiClient.sendMessageStream(selectedModelId, systemPrompt, messages, useTools, stream, callback);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (app.multiai.mobile.utils.AppLockManager.get(this).routeIfLocked(this)) return;
+        app.multiai.mobile.utils.ChatsClearedNotifier.register(this);
+        // Обязательные обновления: проверка релиза + диалог (в т.ч. блокирующий).
+        app.multiai.mobile.utils.UpdateManager.checkOnLaunch(this);
         setContentView(R.layout.activity_chat_mode);
         configureInputInsets();
         // Apply FLAG_SECURE if the user enabled «Блокировать скриншоты».
@@ -304,9 +381,6 @@ public class ChatModeActivity extends AppCompatActivity {
         loadChats();
         handleOpenChatIntent(getIntent());
 
-        // 📍 При первом запуске спрашиваем разрешение на геолокацию (для точной погоды)
-        maybePromptForLocation();
-
         // 🌍 Заполняем кэш местоположения при старте (IP всегда доступен)
         // Сбрасываем TTL если кэш пуст — гарантирует что fetchLocationSync сработает
         SharedPreferences locPrefs = getSharedPreferences("multiaiide_location", MODE_PRIVATE);
@@ -354,7 +428,10 @@ public class ChatModeActivity extends AppCompatActivity {
             case MotionEvent.ACTION_DOWN:
                 sidebarSwipeStartX = event.getX();
                 sidebarSwipeStartY = event.getY();
-                sidebarSwipeTracking = true;
+                // Начинаем трекинг только у левого края — иначе глобальный
+                // перехват touch-событий ломает выделение текста в чате:
+                // после свайпа ActionMode больше не поднимается.
+                sidebarSwipeTracking = sidebarSwipeStartX <= dp(28);
                 sidebarSwipeDragging = false;
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -413,8 +490,7 @@ public class ChatModeActivity extends AppCompatActivity {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        Uri imageUri = result.getData().getData();
-                        if (imageUri != null) loadImage(imageUri);
+                        for (Uri uri : app.multiai.mobile.utils.PhotoPicker.results(result.getData())) loadImage(uri);
                     }
                 });
 
@@ -428,8 +504,7 @@ public class ChatModeActivity extends AppCompatActivity {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        Uri fileUri = result.getData().getData();
-                        if (fileUri != null) loadFileAsText(fileUri);
+                        for (Uri uri : app.multiai.mobile.utils.PhotoPicker.results(result.getData())) loadFileAsText(uri);
                     }
                 });
 
@@ -697,20 +772,13 @@ public class ChatModeActivity extends AppCompatActivity {
     }
 
     private void attachPhoto() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-            pendingPermissionAction = "gallery";
-            requestPermissionLauncher.launch(android.Manifest.permission.READ_MEDIA_IMAGES);
-            return;
-        }
         openGallery();
     }
 
     private void openGallery() {
         if (isPickerOpening) return;
         isPickerOpening = true;
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+        Intent intent = app.multiai.mobile.utils.PhotoPicker.intent();
         pickImageLauncher.launch(intent);
         handler.postDelayed(() -> isPickerOpening = false, 1000);
     }
@@ -739,6 +807,17 @@ public class ChatModeActivity extends AppCompatActivity {
     /** Режим превью как в ChatGPT: фото — скруглённая плитка без крестика
      *  (тап по превью открывает галерею), файл — карточка с иконкой и именем. */
     private void showAttachmentInline(boolean isImage) {
+        if (isImage) {
+            app.multiai.mobile.views.ImageAttachmentStrip.render(attachmentPreviewCard, selectedImageBase64, index -> {
+                selectedImageBase64 = app.multiai.mobile.utils.ImageAttachments.remove(selectedImageBase64, index);
+                showAttachmentInline(true);
+                updateSendMicVisibility();
+            });
+            return;
+        }
+        View strip = attachmentPreviewCard.findViewWithTag("multi-image-strip");
+        if (strip != null) ((android.view.ViewGroup) attachmentPreviewCard).removeView(strip);
+        if (btnRemoveAttachment != null) btnRemoveAttachment.setVisibility(View.VISIBLE);
         if (attachmentImageBox != null) attachmentImageBox.setVisibility(isImage ? View.VISIBLE : View.GONE);
         if (attachmentFileBox != null) attachmentFileBox.setVisibility(isImage ? View.GONE : View.VISIBLE);
         if (attachmentPreviewCard != null) attachmentPreviewCard.setVisibility(View.VISIBLE);
@@ -765,14 +844,15 @@ public class ChatModeActivity extends AppCompatActivity {
         filePickerLauncher.launch(intent);
     }
 
+    private int loadingImages;
+
     private void loadImage(Uri imageUri) {
+        loadingImages++;
         if (attachmentPreviewCard != null) attachmentPreviewCard.setVisibility(View.VISIBLE);
         if (attachmentLoading != null) attachmentLoading.setVisibility(View.VISIBLE);
         new Thread(() -> {
             try {
-                InputStream inputStream = getContentResolver().openInputStream(imageUri);
-                android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeStream(inputStream);
-                if (inputStream != null) inputStream.close();
+                android.graphics.Bitmap bitmap = app.multiai.mobile.utils.AttachmentImageLoader.decode(getContentResolver(), imageUri);
                 if (bitmap == null) throw new Exception("Не удалось открыть изображение");
                 android.graphics.Bitmap resized = resizeImage(bitmap, 1024, 1024);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -782,7 +862,13 @@ public class ChatModeActivity extends AppCompatActivity {
                 String fileName = getFileName(imageUri);
                 long fileSize = bytes.length;
                 runOnUiThread(() -> {
-                    selectedImageBase64 = base64;
+                    if (app.multiai.mobile.utils.ImageAttachments.unpack(selectedImageBase64).size() >= 10) {
+                        if (attachmentLoading != null) attachmentLoading.setVisibility(View.GONE);
+                        loadingImages--;
+                        ModernToast.show(this, "Максимум 10 фото");
+                        return;
+                    }
+                    selectedImageBase64 = app.multiai.mobile.utils.ImageAttachments.append(selectedImageBase64, base64);
                     selectedImageName = fileName;
                     attachedFileName = null;
                     attachedFileContent = null;
@@ -793,12 +879,13 @@ public class ChatModeActivity extends AppCompatActivity {
                     }
                     if (attachmentFileName != null) attachmentFileName.setText(fileName);
                     showAttachmentInline(true);
-                    if (attachmentLoading != null) attachmentLoading.setVisibility(View.GONE);
+                    if (--loadingImages <= 0 && attachmentLoading != null) attachmentLoading.setVisibility(View.GONE);
                     updateSendMicVisibility();
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
                     if (attachmentLoading != null) attachmentLoading.setVisibility(View.GONE);
+                    loadingImages--;
                     ModernToast.show(this, getString(R.string.chat_error_image, e.getMessage()));
                 });
             }
@@ -1486,6 +1573,15 @@ public class ChatModeActivity extends AppCompatActivity {
         sidebarBrandLogo = findViewById(R.id.sidebarBrandLogo);
         sidebarBrandBlock = findViewById(R.id.sidebarBrandBlock);
         sidebarSearchGroup = findViewById(R.id.sidebarSearchGroup);
+        // Brand avatar click in chat-mode sidebar → stay in chat (already here).
+        // Per user request: tapping brand icon in burger goes to chat of current mode.
+        // In chat mode we're already in ChatModeActivity → just close sidebar.
+        if (sidebarBrandLogo != null) {
+            sidebarBrandLogo.setOnClickListener(v -> closeSidebar());
+        }
+        if (sidebarBrandBlock != null) {
+            sidebarBrandBlock.setOnClickListener(v -> closeSidebar());
+        }
         // CHAT badge in personal-mode sidebar → opens mode switcher dropdown.
         View badgeSidebar = findViewById(R.id.modeBadgeContainerSidebar);
         if (badgeSidebar != null) {
@@ -1531,9 +1627,8 @@ public class ChatModeActivity extends AppCompatActivity {
     }
 
     /**
-     * Аватарка в сайдбаре чат-режима. XML-заглушка несёт android:tint + padding,
-     * поэтому перед реальной картинкой tint list снимается именно через
-     * setImageTintList(null) — setColorFilter его не очищает.
+     * Аватарка в сайдбаре чат-режима. У fallback drawable собственный inset,
+     * поэтому он сохраняет безопасный размер даже после сброса padding для фото.
      */
     private void loadSidebarAvatar() {
         if (sidebarProfile == null) return;
@@ -1546,26 +1641,25 @@ public class ChatModeActivity extends AppCompatActivity {
         }
         if (photoUrl != null && !photoUrl.trim().isEmpty() && !"null".equals(photoUrl)) {
             try {
-                // Реальная аватарка: убрать tint/padding заглушки-иконки.
+                // Реальная аватарка заполняет весь круг без tint и внешнего padding.
                 sidebarProfile.setImageTintList(null);
                 sidebarProfile.setPadding(0, 0, 0, 0);
                 sidebarProfile.setTag(true);
                 com.bumptech.glide.Glide.with(this).load(photoUrl)
                         .transform(new com.bumptech.glide.load.resource.bitmap.CircleCrop())
-                        .placeholder(R.drawable.chat_mode_ic_user)
-                        .error(R.drawable.chat_mode_ic_user)
+                        .placeholder(R.drawable.chat_mode_ic_user_sidebar)
+                        .error(R.drawable.chat_mode_ic_user_sidebar)
                         .into(sidebarProfile);
             } catch (Exception ignored) {}
         } else if (sidebarProfile.getTag() != null) {
-            // URL пропал (разлогин) — вернуть заглушку-иконку с её tint/padding.
+            // URL пропал (разлогин) — вернуть заглушку с intrinsic inset и tint.
             com.bumptech.glide.Glide.with(this).clear(sidebarProfile);
             sidebarProfile.setTag(null);
-            sidebarProfile.setImageResource(R.drawable.chat_mode_ic_user);
+            sidebarProfile.setImageResource(R.drawable.chat_mode_ic_user_sidebar);
             sidebarProfile.setImageTintList(
                     android.content.res.ColorStateList.valueOf(
                             ContextCompat.getColor(this, R.color.icon_muted)));
-            int pad = (int) (9 * getResources().getDisplayMetrics().density);
-            sidebarProfile.setPadding(pad, pad, pad, pad);
+            sidebarProfile.setPadding(0, 0, 0, 0);
         }
     }
 
@@ -1823,6 +1917,13 @@ public class ChatModeActivity extends AppCompatActivity {
                     }
                     // Validate selected model
                     boolean valid = false;
+                    // Кастомная модель провайдера не входит в каталог MultiAI —
+                    // считаем валидной, пока резолвится в существующего провайдера.
+                    if (selectedModelId != null
+                            && app.multiai.mobile.utils.CustomProviderStore.resolve(
+                                    this, selectedModelId) != null) {
+                        valid = true;
+                    }
                     for (app.multiai.mobile.models.ModelInfo mi : modelCatalog) {
                         if (mi.id.equals(selectedModelId)) {
                             valid = true;
@@ -2419,6 +2520,7 @@ public class ChatModeActivity extends AppCompatActivity {
             clearRetryState();
             try {
                 if (multiAiClient != null) multiAiClient.cancel();
+                customProviderChatClient.cancel();
             } catch (Exception ignored) {
             }
         }
@@ -2450,7 +2552,10 @@ public class ChatModeActivity extends AppCompatActivity {
         } else {
             streamEpoch++;
             clearRetryState();
-            try { multiAiClient.cancel(); } catch (Exception ignored) {}
+            try {
+                multiAiClient.cancel();
+                customProviderChatClient.cancel();
+            } catch (Exception ignored) {}
         }
         // Незасейвленный черновик не теряем — фиксируем, если в нём есть сообщения.
         if (!temporaryChatEnabled && currentChat != null && !currentChat.getMessages().isEmpty()) {
@@ -2479,6 +2584,12 @@ public class ChatModeActivity extends AppCompatActivity {
         // Fade animation
         emptyState.setAlpha(0f);
         emptyState.animate().alpha(1f).setDuration(300).start();
+    }
+
+    /** Все чаты очищены из Data Controls — мгновенно уходим в новый чат. */
+    @Override
+    public void onAllChatsCleared() {
+        runOnUiThread(this::createNewChat);
     }
 
     // 🔥 Character-by-character streaming animation (как в Project mode)
@@ -2678,7 +2789,7 @@ public class ChatModeActivity extends AppCompatActivity {
                 attachedFileContent = restoredFileContent;
                 if (selectedImageBase64 != null && !selectedImageBase64.isEmpty()) {
                     try {
-                        byte[] data = Base64.decode(selectedImageBase64, Base64.DEFAULT);
+                        byte[] data = Base64.decode(app.multiai.mobile.utils.ImageAttachments.unpack(selectedImageBase64).get(0), Base64.DEFAULT);
                         android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(
                                 data, 0, data.length);
                         if (bitmap != null && attachmentPreview != null) {
@@ -2689,6 +2800,7 @@ public class ChatModeActivity extends AppCompatActivity {
                         // The request still carries the original image even if its preview cannot decode.
                     }
                     if (attachmentFileName != null) attachmentFileName.setText(selectedImageName);
+                    showAttachmentInline(true);
                     showAttachmentInline(true);
                 } else if (attachedFileContent != null || attachedFileName != null) {
                     if (attachmentFileName != null) attachmentFileName.setText(attachedFileName);
@@ -2720,7 +2832,92 @@ public class ChatModeActivity extends AppCompatActivity {
         }
     }
 
+    /** Image models reject /chat/completions — route them to /v1/images/generations. */
+    private boolean isImageGenerationModel(String modelId) {
+        if (modelId == null) return false;
+        for (app.multiai.mobile.models.ModelInfo model : modelCatalog) {
+            if (model != null && modelId.equals(model.id) && "image_generation".equals(model.modelKind)) return true;
+        }
+        String s = modelId.toLowerCase(java.util.Locale.ROOT);
+        if (s.startsWith("ma-")) s = s.substring(3);
+        return s.contains("image") || s.contains("banana") || s.contains("dall-e")
+                || s.contains("imagen") || s.contains("flux");
+    }
+
+    /**
+     * Direct image-model turn in Chat Mode: reuse the typing message as the
+     * "generating" card, then swap it to the finished image (Message.imageBase64).
+     */
+    private void runImageGenerationTurn(String prompt, Message typingMsg, boolean isTemporary,
+                                        String attachedImage) {
+        final int epoch = streamEpoch;
+        // Iterative editing: this turn's attachment wins, otherwise the previous
+        // generated picture travels with the prompt (ChatGPT-style continuity).
+        String inputImage = attachedImage != null ? attachedImage
+                : lastChatImageBase64(isTemporary);
+        String quality = app.multiai.mobile.utils.ImageGenOptions.savedQuality(this, selectedModelId);
+        String size = app.multiai.mobile.utils.ImageGenOptions.savedSize(this, selectedModelId);
+        multiAiClient.generateImage(selectedModelId, prompt, inputImage, quality, size, result -> {
+            if (epoch != streamEpoch || isFinishing() || isDestroyed()) return;
+            setGenerating(false);
+            boolean ok = result.ok && result.imageBase64 != null && !result.imageBase64.isEmpty();
+            Message done;
+            if (ok) {
+                done = new Message("", Message.TYPE_AI);
+                done.setImageBase64(result.imageBase64);
+                done.setImageName("generated-" + System.currentTimeMillis() + ".png");
+            } else {
+                String err = result.error != null ? result.error : "image_failed";
+                done = new Message("Не удалось сгенерировать изображение (" + err + ")", Message.TYPE_ERROR);
+                done.setErrorCode("MULTIAI-IMAGE-GEN");
+                done.setErrorTitle("Генерация изображения");
+                done.setRetryable(true);
+            }
+            messagesAdapter.removeMessage(typingMsg);
+            messagesAdapter.addMessage(done);
+            if (!isTemporary && currentChat != null) {
+                try {
+                    currentChat.addMessage(done);
+                    chatManager.updateChat(currentChat);
+                } catch (Exception ignored) {
+                }
+            } else if (isTemporary) {
+                temporaryMessages.add(done);
+            }
+            scrollToBottom();
+        });
+    }
+
+    /** Latest AI-generated image in the chat — context for iterative edits. */
+    private String lastChatImageBase64(boolean isTemporary) {
+        List<Message> msgs = isTemporary ? temporaryMessages
+                : (currentChat != null ? currentChat.getMessages() : null);
+        if (msgs == null) return null;
+        for (int i = msgs.size() - 1; i >= 0; i--) {
+            Message m = msgs.get(i);
+            if (m.getType() != Message.TYPE_AI || !m.hasImage()) continue;
+            String b64 = m.getImageBase64();
+            if (b64 == null || b64.isEmpty()) {
+                if (m.getImagePath() == null) continue;
+                try (java.io.FileInputStream fis = new java.io.FileInputStream(m.getImagePath())) {
+                    java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                    byte[] buf = new byte[8192];
+                    int n;
+                    while ((n = fis.read(buf)) > 0) bos.write(buf, 0, n);
+                    b64 = android.util.Base64.encodeToString(bos.toByteArray(), android.util.Base64.NO_WRAP);
+                } catch (Exception ignored) {
+                }
+            }
+            if (b64 != null && !b64.isEmpty()) {
+                return b64.startsWith("data:") && b64.indexOf(',') >= 0
+                        ? b64.substring(b64.indexOf(',') + 1) : b64;
+            }
+        }
+        return null;
+    }
+
     private void sendMessage() {
+        if (loadingImages > 0) return;
         String text = editMessage.getText().toString().trim();
         if ((text.isEmpty() && selectedImageBase64 == null && attachedFileContent == null) || isGenerating) return;
         final boolean retrying = retrySourceUser != null;
@@ -2789,8 +2986,16 @@ public class ChatModeActivity extends AppCompatActivity {
 
         // Add typing indicator
         Message typingMsg = new Message("", Message.TYPE_AI_TYPING);
+        typingMsg.setImageGenerating(isImageGenerationModel(selectedModelId));
         messagesAdapter.addMessage(typingMsg);
         scrollToBottom();
+
+        // 🔥 Image-generation model selected → /v1/images/generations instead of
+        // the chat stream. The typing message stays as the "generating" card.
+        if (isImageGenerationModel(selectedModelId)) {
+            runImageGenerationTurn(aiText, typingMsg, isTemporary, capturedImageBase64);
+            return;
+        }
 
         // Новый request-local OpenAI tool loop полностью владеет turn до финального текста.
         // Условие оставляет старую реализацию компилируемой как fallback, но helper всегда
@@ -2810,7 +3015,7 @@ public class ChatModeActivity extends AppCompatActivity {
         final int epoch = streamEpoch;
         // Legacy fallback также уважает live-настройки, если когда-либо будет включён.
         AppSettings legacySettings = new AppSettings(this);
-        multiAiClient.sendMessageStream(selectedModelId, systemPrompt, history,
+        routeSendMessage(systemPrompt, history,
                 aiText, capturedImageBase64, legacySettings.isUseToolsEnabled(),
                 legacySettings.isStreamingEnabled(), new MultiAiClient.StreamCallback() {
             private Message aiMessage;
@@ -3198,9 +3403,10 @@ public class ChatModeActivity extends AppCompatActivity {
         if (imageBase64 != null && !imageBase64.isEmpty()) {
             JSONArray parts = new JSONArray();
             parts.put(new JSONObject().put("type", "text").put("text", userText));
-            parts.put(new JSONObject().put("type", "image_url")
-                    .put("image_url", new JSONObject().put("url",
-                            "data:image/jpeg;base64," + imageBase64)));
+            for (String image : app.multiai.mobile.utils.ImageAttachments.unpack(imageBase64)) {
+                parts.put(new JSONObject().put("type", "image_url")
+                        .put("image_url", new JSONObject().put("url", "data:image/jpeg;base64," + image)));
+            }
             user.put("content", parts);
         } else {
             user.put("content", userText);
@@ -3219,7 +3425,7 @@ public class ChatModeActivity extends AppCompatActivity {
         AppSettings settings = new AppSettings(this);
         // Настройка «Ссылаться на сохранённую память» гейтит и запись в память.
         multiAiClient.setMemoryToolsEnabled(settings.isMemoryReferenceEnabled());
-        multiAiClient.sendMessageStream(selectedModelId, null, canonical,
+        routeSendMessage(null, canonical,
                 settings.isUseToolsEnabled(), settings.isStreamingEnabled(),
                 new MultiAiClient.StreamCallback() {
                     private final List<ToolCall> calls = new ArrayList<>();
@@ -3748,7 +3954,7 @@ public class ChatModeActivity extends AppCompatActivity {
         final String preToolPrefix = thinkingTarget != null
                 ? thinkingTarget.getContentSafe() : "";
         AppSettings legacySettings = new AppSettings(this);
-        multiAiClient.sendMessageStream(selectedModelId, null, messages,
+        routeSendMessage(null, messages,
                 legacySettings.isUseToolsEnabled(), legacySettings.isStreamingEnabled(),
                 new MultiAiClient.StreamCallback() {
                     private Message followUp;
@@ -3853,6 +4059,7 @@ public class ChatModeActivity extends AppCompatActivity {
         streamEpoch++; // late-колбеки отменённого стрима больше не пишут в UI/чат
         try {
             if (multiAiClient != null) multiAiClient.cancel();
+            customProviderChatClient.cancel();
         } catch (Exception ignored) {
         }
         flushStreamAnimation();
@@ -3919,29 +4126,32 @@ public class ChatModeActivity extends AppCompatActivity {
     }
 
     private String buildEnrichedInstructions() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(app.multiai.mobile.utils.AssistantInstructions
+                .header(selectedModelId) + app.multiai.mobile.utils.AssistantInstructions.base());
         AppSettings settings = new AppSettings(this);
-        String userInstructions = settings.getUserInstructions();
-        if (userInstructions != null && !userInstructions.trim().isEmpty()) {
-            sb.append(userInstructions.trim());
-        }
 
         // 🔥 Контекст: местоположение / IP / таймзона
         String locationContext = buildLocationContext();
         if (!locationContext.isEmpty()) {
-            if (sb.length() > 0) sb.append("\n\n");
-            sb.append(locationContext);
+            sb.append("\n\n").append(locationContext);
         }
-
-        // Обе настройки раздела «Память» теперь действительно применяются:
-        // сохранённая память и выжимки из недавних чатов.
-        app.multiai.mobile.utils.MemoryContextBuilder.appendSavedMemories(this, sb);
-        app.multiai.mobile.utils.MemoryContextBuilder.appendChatJournals(this, sb,
-                currentChat != null ? currentChat.getId() : null);
 
         // Сводка является скрытым контекстом: интерфейс продолжает показывать
         // пользователю весь диалог, а модель получает summary + свежий хвост.
         appendContextSummaryInstructions(sb, temporaryChatEnabled, currentChat);
+
+        // Профиль, инструкции и память — в конце промпта: модели взвешивают
+        // ближний к концу контекст выше, иначе блоки теряются.
+        sb.append("\n\n════════ USER CONTEXT — HIGHEST PRIORITY, ALWAYS APPLY ════════\n");
+        app.multiai.mobile.utils.ProfilePromptBuilder.append(this, sb, settings);
+        String userInstructions = settings.getUserInstructions();
+        if (userInstructions != null && !userInstructions.trim().isEmpty()) {
+            sb.append("Пользовательские инструкции (приоритет над стилем по умолчанию):\n")
+              .append(userInstructions.trim()).append('\n');
+        }
+        app.multiai.mobile.utils.MemoryContextBuilder.appendSavedMemories(this, sb);
+        app.multiai.mobile.utils.MemoryContextBuilder.appendChatJournals(this, sb,
+                currentChat != null ? currentChat.getId() : null);
 
         return sb.toString();
     }
@@ -5164,6 +5374,8 @@ public class ChatModeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Блокирующий диалог после истечения грейса всплывает снова.
+        app.multiai.mobile.utils.UpdateManager.reshowBlockingIfNeeded(this);
         AppSettings currentSettings = new AppSettings(this);
         // Recreate if a visual general setting changed while we were paused.
         if (currentSettings.isSegmentedModeEnabled() != lastSegmentedSetting
@@ -5241,7 +5453,10 @@ public class ChatModeActivity extends AppCompatActivity {
             stopGeneration();
         } else {
             streamEpoch++;
-            try { multiAiClient.cancel(); } catch (Exception ignored) {}
+            try {
+                multiAiClient.cancel();
+                customProviderChatClient.cancel();
+            } catch (Exception ignored) {}
         }
         super.onDestroy();
         // 📳 Stop shake detection.

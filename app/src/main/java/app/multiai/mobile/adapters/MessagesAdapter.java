@@ -439,6 +439,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         return messages.indexOf(msg);
     }
 
+    /** Swap the message object at a position (e.g. typing card → finished image). */
+    public void replaceMessageAt(int index, Message replacement) {
+        if (index < 0 || index >= messages.size()) return;
+        messages.set(index, replacement);
+        rebuildWorkflowIndex();
+        notifyItemChanged(index);
+    }
+
     public Message getMessageAt(int position) {
         if (position >= 0 && position < messages.size()) {
             return messages.get(position);
@@ -977,6 +985,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         private TextView textErrorTitle;
         private TextView textErrorBody;
         private TextView textErrorCode;
+        private TextView textErrorDetails;
+        private TextView textErrorTechnical;
+        private View buttonErrorDismiss;
+        private View buttonErrorDetails;
+        private View buttonErrorCopy;
         private View buttonRetry;
         private View buttonSupport;
         private View buttonAuth;
@@ -1020,6 +1033,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 textErrorTitle = itemView.findViewById(R.id.textErrorTitle);
                 textErrorBody = itemView.findViewById(R.id.textErrorBody);
                 textErrorCode = itemView.findViewById(R.id.textErrorCode);
+                textErrorDetails = itemView.findViewById(R.id.textErrorDetails);
+                textErrorTechnical = itemView.findViewById(R.id.textErrorTechnical);
+                buttonErrorDismiss = itemView.findViewById(R.id.buttonErrorDismiss);
+                buttonErrorDetails = itemView.findViewById(R.id.buttonErrorDetails);
+                buttonErrorCopy = itemView.findViewById(R.id.buttonErrorCopy);
                 buttonRetry = itemView.findViewById(R.id.buttonRetry);
                 buttonSupport = itemView.findViewById(R.id.buttonSupport);
                 buttonAuth = itemView.findViewById(R.id.buttonAuth);
@@ -1071,8 +1089,21 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             showBoundWorkflowSummary = showWorkflowSummary;
 
             if (viewType == Message.TYPE_AI_TYPING) {
-                // Анимированный логотип MultiAI: бегущая светяшка + флип
-                if (workingLogo != null) {
+                if (message.isImageGenerating()) {
+                    // Image-model turn: ChatGPT-style shimmer placeholder instead
+                    // of the MultiAI logo.
+                    if (workingLogo != null) {
+                        workingLogo.setRunning(false);
+                        workingLogo.setVisibility(View.GONE);
+                    }
+                    View imageGenBox = itemView.findViewById(R.id.imageGenBox);
+                    if (imageGenBox != null) imageGenBox.setVisibility(View.VISIBLE);
+                    app.multiai.mobile.ui.ImageGenShimmerView shimmer =
+                            itemView.findViewById(R.id.imageGenShimmer);
+                    if (shimmer != null) shimmer.setRunning(true);
+                } else if (workingLogo != null) {
+                    // Анимированный логотип MultiAI: бегущая светяшка + флип
+                    workingLogo.setVisibility(View.VISIBLE);
                     workingLogo.setRunning(true);
                 }
             } else if (viewType == Message.TYPE_RECONNECTING) {
@@ -1086,6 +1117,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             } else if (viewType == Message.TYPE_ERROR) {
                 bindErrorMessage(message);
             } else if (viewType == Message.TYPE_AI) {
+                bindAiImage(message);
                 if (message.isStreaming()) {
                     // During streaming: update workflow area FIRST so it stays
                     // on top, then content — avoids bubble pushing workflow down
@@ -1093,9 +1125,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     updateThinkingOnly(message);
                     updateContentTextDirect(message,
                             message.getContent() != null ? message.getContent() : "");
+                    // Во время стрима меню не мешает: текст ещё меняется.
+                    itemView.setOnLongClickListener(null);
                 } else {
                     updateContentOnly(message);
                     updateThinkingOnly(message);
+                    // O24: long-press на ответе AI — копировать/выделить (как в Telegram).
+                    itemView.setOnLongClickListener(v -> {
+                        showAiContextMenu(message);
+                        return true;
+                    });
                 }
                 updateActionBarVisibility(message);
                 bindVariantPager(message);
@@ -1125,9 +1164,48 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             }
         }
 
+        /** Generated image on an AI message (image-model turns): shown inside the bubble. */
+        private void bindAiImage(Message message) {
+            androidx.cardview.widget.CardView imageCard = itemView.findViewById(R.id.imageCard);
+            android.widget.ImageView imageView = itemView.findViewById(R.id.imageAttachment);
+            if (imageCard == null || imageView == null) return;
+            if (!message.hasImage()) {
+                imageCard.setVisibility(View.GONE);
+                return;
+            }
+            imageCard.setVisibility(View.VISIBLE);
+            imageView.setOnClickListener(v -> app.multiai.mobile.utils.GeneratedImageActions.show(itemView.getContext(), message));
+            final String cacheKey = message.getId() != null ? message.getId() : String.valueOf(message.hashCode());
+            android.graphics.Bitmap cached = thumbCache.get(cacheKey);
+            if (cached != null) {
+                imageView.setImageBitmap(cached);
+                return;
+            }
+            imageView.setImageDrawable(null);
+            final android.widget.ImageView target = imageView;
+            final int targetPos = getBindingAdapterPosition();
+            new Thread(() -> {
+                android.graphics.Bitmap bitmap = decodeImageThumbnail(message, THUMB_MAX_DIM);
+                if (bitmap != null) thumbCache.put(cacheKey, bitmap);
+                handler.post(() -> {
+                    if (targetPos != getBindingAdapterPosition()) return;
+                    if (bitmap != null) {
+                        target.setImageBitmap(bitmap);
+                    } else {
+                        imageCard.setVisibility(View.GONE);
+                    }
+                });
+            }, "ai-img-decode").start();
+        }
+
         void clearTransientAnimations() {
             if (workingLogo != null) {
                 workingLogo.setRunning(false);
+            }
+            app.multiai.mobile.ui.ImageGenShimmerView shimmer =
+                    itemView.findViewById(R.id.imageGenShimmer);
+            if (shimmer != null) {
+                shimmer.setRunning(false);
             }
             if (reconnectingLogo != null) {
                 reconnectingLogo.setRunning(false);
@@ -1159,32 +1237,97 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         }
 
         void bindErrorMessage(Message message) {
+            android.content.Context ctx = itemView.getContext();
+            String code = message.getErrorCode() != null ? message.getErrorCode()
+                    : ctx.getString(R.string.kit_msg_error_default_code);
+
             if (textErrorTitle != null) {
-                String title = message.getErrorTitle() != null ? message.getErrorTitle()
-                        : itemView.getContext().getString(R.string.kit_msg_error_title);
+                // Заголовок = реальное сообщение об ошибке (не «вайбкодерское»
+                // «Что-то пошло не так»): человек сразу видит причину.
+                String real = message.getContent();
+                String title = real != null && !real.trim().isEmpty() ? real.trim()
+                        : message.getErrorTitle() != null ? message.getErrorTitle()
+                        : ctx.getString(R.string.kit_msg_error_title);
                 textErrorTitle.setText(title);
             }
 
             if (textErrorBody != null) {
-                textErrorBody.setText(message.getContent() != null ? message.getContent()
-                        : itemView.getContext().getString(R.string.kit_msg_error_body));
+                textErrorBody.setText(message.getErrorTitle() != null ? message.getErrorTitle()
+                        : ctx.getString(R.string.kit_msg_error_body));
             }
 
-            if (textErrorCode != null) {
-                String code = message.getErrorCode() != null ? message.getErrorCode()
-                        : itemView.getContext().getString(R.string.kit_msg_error_default_code);
-                textErrorCode.setText(itemView.getContext().getString(R.string.kit_msg_error_code_prefix) + code);
+            if (textErrorCode != null) textErrorCode.setVisibility(View.GONE);
+            if (textErrorBody != null) textErrorBody.setVisibility(View.GONE);
+
+            // Серая строка деталей: классификация + HTTP-статус, если он был.
+            if (textErrorDetails != null) {
+                StringBuilder details = new StringBuilder(code);
+                Integer http = message.getErrorHttpStatus();
+                if (http != null && http > 0) {
+                    details.append(" · ").append(ctx.getString(R.string.kit_msg_error_http, http));
+                }
+                textErrorDetails.setText(details.toString());
             }
 
-            // Auth errors: show "Sign in with MultiAI" button, hide retry + support.
-            String code = message.getErrorCode();
+            // Раскрывающийся технический блок: сырые транспортные данные.
+            if (textErrorTechnical != null) {
+                String tech = message.getErrorTechnical();
+                textErrorTechnical.setText(tech != null && !tech.trim().isEmpty() ? tech
+                        : message.getErrorTitle() != null ? message.getErrorTitle() : code);
+            }
+
+            if (buttonErrorDismiss != null) {
+                buttonErrorDismiss.setOnClickListener(v -> {
+                    RecyclerView.Adapter<?> adapter = getBindingAdapter();
+                    if (adapter instanceof MessagesAdapter) {
+                        ((MessagesAdapter) adapter).removeMessage(message);
+                    }
+                });
+            }
+
+            if (buttonErrorDetails != null) {
+                boolean expanded = message.isErrorDetailsExpanded();
+                if (textErrorTechnical != null) {
+                    textErrorTechnical.setVisibility(expanded ? View.VISIBLE : View.GONE);
+                }
+                ((TextView) buttonErrorDetails).setText(ctx.getString(
+                        expanded ? R.string.kit_msg_error_details_hide : R.string.kit_msg_error_details));
+                buttonErrorDetails.setOnClickListener(v -> {
+                    message.setErrorDetailsExpanded(!message.isErrorDetailsExpanded());
+                    RecyclerView.Adapter<?> adapter = getBindingAdapter();
+                    int position = getBindingAdapterPosition();
+                    if (adapter instanceof MessagesAdapter && position != RecyclerView.NO_POSITION) {
+                        ((MessagesAdapter) adapter).notifyItemChanged(position);
+                    }
+                });
+            }
+
+            if (buttonErrorCopy != null) {
+                buttonErrorCopy.setOnClickListener(v -> {
+                    String copyText = message.getErrorTechnical();
+                    if (copyText == null || copyText.trim().isEmpty()) {
+                        copyText = (message.getErrorTitle() != null ? message.getErrorTitle() + "\n" : "")
+                                + (message.getContent() != null ? message.getContent() + "\n" : "")
+                                + code;
+                    }
+                    android.content.ClipboardManager cm =
+                            (android.content.ClipboardManager) ctx.getSystemService(
+                                    android.content.Context.CLIPBOARD_SERVICE);
+                    if (cm != null) {
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("error", copyText));
+                        android.widget.Toast.makeText(ctx, R.string.kit_msg_copied,
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            // Auth errors: show "Sign in with MultiAI" button, hide retry.
             boolean isAuthError = "MULTIAI-NOT-AUTHORIZED".equals(code)
                     || "MULTIAI-SESSION-EXPIRED".equals(code);
             if (buttonAuth != null) {
                 if (isAuthError) {
                     buttonAuth.setVisibility(View.VISIBLE);
                     buttonAuth.setOnClickListener(v -> {
-                        android.content.Context ctx = itemView.getContext();
                         Intent intent = new Intent(ctx, app.multiai.mobile.ui.ProfileActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         ctx.startActivity(intent);
@@ -1224,37 +1367,28 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 }
             }
 
-            // Auth errors don't need support — they're self-service.
+            if (buttonErrorCopy != null) buttonErrorCopy.setOnLongClickListener(null);
             if (buttonSupport != null) {
-                if (isAuthError) {
-                    buttonSupport.setVisibility(View.GONE);
-                    buttonSupport.setOnClickListener(null);
-                } else {
-                    buttonSupport.setVisibility(View.VISIBLE);
-                    buttonSupport.setOnClickListener(v -> {
-                        android.content.Context ctx = itemView.getContext();
-                        String errCode = message.getErrorCode() != null ? message.getErrorCode()
-                                : ctx.getString(R.string.kit_msg_error_fallback_code);
-                        // Collect real logcat logs for support.
-                        String log = app.multiai.mobile.utils.LogCollector.collect(50);
-                        String tgUrl = app.multiai.mobile.utils.SupportLinkBuilder.build(errCode, log);
-                        Intent openTg = new Intent(Intent.ACTION_VIEW, Uri.parse(tgUrl));
-                        openTg.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        try {
-                            ctx.startActivity(openTg);
-                        } catch (ActivityNotFoundException ignored) {
-                            // Fallback to a share-intent (e.g. user has no browser/Telegram installed)
-                            Intent share = new Intent(Intent.ACTION_SEND);
-                            share.setType("text/plain");
-                            share.putExtra(Intent.EXTRA_TEXT, "Здравствуйте! у меня возникла ошибка " + errCode + ", помогите!\nВот логи ошибки:\n\"" + log + "\"");
-                            ctx.startActivity(Intent.createChooser(share,
-                                    ctx.getString(R.string.kit_msg_error_share_support)));
-                        }
-                    });
-                }
+                buttonSupport.setOnClickListener(v -> {
+                    String errCode = message.getErrorCode() != null ? message.getErrorCode()
+                            : ctx.getString(R.string.kit_msg_error_fallback_code);
+                    String log = app.multiai.mobile.utils.LogCollector.collect(50);
+                    String tgUrl = app.multiai.mobile.utils.SupportLinkBuilder.build(errCode, log);
+                    Intent openTg = new Intent(Intent.ACTION_VIEW, Uri.parse(tgUrl));
+                    openTg.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    try {
+                        ctx.startActivity(openTg);
+                    } catch (ActivityNotFoundException ignored) {
+                        Intent share = new Intent(Intent.ACTION_SEND);
+                        share.setType("text/plain");
+                        share.putExtra(Intent.EXTRA_TEXT, "Здравствуйте! у меня возникла ошибка " + errCode + ", помогите!\nВот логи ошибки:\n\"" + log + "\"");
+                        ctx.startActivity(Intent.createChooser(share,
+                                ctx.getString(R.string.kit_msg_error_share_support)));
+                    }
+                });
             }
         }
-        
+
         // 🔥 Bind user message with image support
         void bindUserMessage(Message message) {
             if (textMessage == null) return;
@@ -1308,6 +1442,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             android.widget.ImageView imageView = itemView.findViewById(R.id.imageAttachment);
 
             if (imageCard != null && imageView != null) {
+                View oldStrip = imageCard.findViewWithTag("multi-image-strip");
+                if (oldStrip != null) imageCard.removeView(oldStrip);
+                imageView.setVisibility(View.VISIBLE);
+                String payload = message.getImageBase64();
+                if (payload != null && payload.startsWith("[")) {
+                    app.multiai.mobile.views.ImageAttachmentStrip.render(imageCard, payload, null);
+                    return;
+                }
                 if (message.hasImage()) {
                     imageCard.setVisibility(View.VISIBLE);
                     final String cacheKey = message.getId() != null ? message.getId() : String.valueOf(message.hashCode());
@@ -1370,8 +1512,13 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         }
 
         private void updateWorkflowSummaryIcon(boolean working) {
+            updateWorkflowSummaryIcon(working, false);
+        }
+
+        private void updateWorkflowSummaryIcon(boolean working, boolean stopped) {
             if (workflowSummaryIcon == null) return;
-            int drawable = working ? R.drawable.ic_reasoning_spark : R.drawable.ic_check;
+            int drawable = working ? R.drawable.ic_reasoning_spark
+                    : stopped ? R.drawable.ic_close_white : R.drawable.ic_check;
             if (workflowSummaryIcon instanceof app.multiai.mobile.ui.ThinkingWaveIconView) {
                 app.multiai.mobile.ui.ThinkingWaveIconView animated =
                         (app.multiai.mobile.ui.ThinkingWaveIconView) workflowSummaryIcon;
@@ -1396,6 +1543,19 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
          */
         void updateWorkflowWorkingDirect(Message message, String workingText) {
             if (viewType != Message.TYPE_AI) return;
+            // «Работает уже Xс» имеет смысл только когда есть хотя бы один
+            // тул/шаг; чистый thinking-ход показывает просто размышления.
+            boolean hasNonThinking = false;
+            List<app.multiai.mobile.models.WorkflowSegment> segs = message.getWorkflowSegments();
+            if (segs != null) {
+                for (app.multiai.mobile.models.WorkflowSegment s : segs) {
+                    if (s != null && s.getType() != app.multiai.mobile.models.WorkflowSegment.TYPE_THINKING) {
+                        hasNonThinking = true;
+                        break;
+                    }
+                }
+            }
+            if (!hasNonThinking) return;
             updateWorkflowSummaryIcon(true);
             boolean expanded = message.computeWorkflowExpanded(false);
             if (workflowArea != null && workflowArea.getVisibility() != View.VISIBLE) {
@@ -1462,7 +1622,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
             boolean working = message.isWorkingState();
             boolean summary = message.isToolWorkflowSummary() || showBoundWorkflowSummary;
-            updateWorkflowSummaryIcon(working);
+            updateWorkflowSummaryIcon(working, message.isWorkflowStopped());
             if (workflowSummaryText != null) {
                 if (working) {
                     workflowSummaryText.setText(itemView.getContext().getString(
@@ -1470,7 +1630,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                             formatDuration(itemView.getContext(), message.getTurnDurationMs())));
                 } else if (summary) {
                     workflowSummaryText.setText(itemView.getContext().getString(
-                            R.string.chat_workflow_completed,
+                            message.isWorkflowStopped() ? R.string.chat_workflow_stopped : R.string.chat_workflow_completed,
                             formatDuration(itemView.getContext(), message.getTurnDurationMs())));
                 }
             }
@@ -1479,6 +1639,24 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
             // Show workflowArea
             if (workflowArea != null) workflowArea.setVisibility(View.VISIBLE);
+
+            // Thinking-only turn (no tool calls): keep thinking in the static
+            // container so it survives the tool curtain being hidden.
+            boolean thinkingOnly = true;
+            for (app.multiai.mobile.models.WorkflowSegment seg : segments) {
+                if (seg != null && seg.getType() != app.multiai.mobile.models.WorkflowSegment.TYPE_THINKING) {
+                    thinkingOnly = false;
+                    break;
+                }
+            }
+            if (thinkingOnly) {
+                if (toolCallsContainer != null) {
+                    toolCallsContainer.setVisibility(View.GONE);
+                    toolCallsContainer.removeAllViews();
+                }
+                renderThinkingOnlySegments(message, segments, working);
+                return;
+            }
 
             // Hide static thinkingContainer — segments provide their own
             if (thinkingContainer != null) thinkingContainer.setVisibility(View.GONE);
@@ -1691,8 +1869,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     if (timedTarget > activeContentShownCp) activeContentShownCp = timedTarget;
                     int end = activeContentTarget.offsetByCodePoints(0, activeContentShownCp);
                     app.multiai.mobile.utils.Telemoji.clearTracking(activeContentTextView);
-                    activeContentTextView.setText(activeContentTarget.substring(0, end));
-                    handler.postDelayed(this, 16L);
+                    app.multiai.mobile.utils.MarkdownRenderer.render(itemView.getContext(), activeContentTextView,
+                            app.multiai.mobile.utils.StreamingMarkdown.prepare(activeContentTarget.substring(0, end)));
+                    handler.postDelayed(this, 48L);
                 }
             };
             handler.post(activeContentRevealTask);
@@ -1740,9 +1919,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             }
 
             // Everything renders inside the unified bubble
-            if (!isVisuallyBlank(content)) {
+            if (!isVisuallyBlank(content) || message.hasImage()) {
                 if (bubbleContainer != null) bubbleContainer.setVisibility(View.VISIBLE);
-                if (!needsLayoutRender) {
+                if (!needsLayoutRender && !message.hasImage()) {
                     // Simple text — render into textMessage
                     if (textMessage != null) {
                         textMessage.setVisibility(View.VISIBLE);
@@ -1755,7 +1934,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     if (codeBlocksContainer != null) {
                         codeBlocksContainer.setVisibility(View.GONE);
                     }
-                } else {
+                } else if (!message.hasImage()) {
                     // Mixed content with code blocks — render into codeBlocksContainer
                     if (textMessage != null) {
                         app.multiai.mobile.utils.Telemoji.clearTracking(textMessage);
@@ -1805,7 +1984,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             boolean hasThinking = message.hasThinking()
                     && !isVisuallyBlank(stripThinkingTagTokens(message.getThinkingContent()));
             boolean working = message.isWorkingState();
-            updateWorkflowSummaryIcon(working);
+            updateWorkflowSummaryIcon(working, message.isWorkflowStopped());
             List<app.multiai.mobile.models.WorkflowSegment> segments = message.getWorkflowSegments();
             boolean hasSegments = segments != null && !segments.isEmpty();
             boolean hasWorkflowContent = hasCalls || summary || hasThinking || working || hasSegments;
@@ -1826,7 +2005,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                             formatDuration(itemView.getContext(), message.getTurnDurationMs())));
                 } else if (summary && workflowSummaryText != null) {
                     workflowSummaryText.setText(itemView.getContext().getString(
-                            R.string.chat_workflow_completed,
+                            message.isWorkflowStopped() ? R.string.chat_workflow_stopped : R.string.chat_workflow_completed,
                             formatDuration(itemView.getContext(), message.getTurnDurationMs())));
                 }
                 renderWorkflowSegments(message);
@@ -1851,7 +2030,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             }
             if (summary && workflowSummaryText != null) {
                 workflowSummaryText.setText(itemView.getContext().getString(
-                        R.string.chat_workflow_completed,
+                        message.isWorkflowStopped() ? R.string.chat_workflow_stopped : R.string.chat_workflow_completed,
                         formatDuration(itemView.getContext(), message.getTurnDurationMs())));
                 // Auto-open on completion unless the user collapsed it manually
                 // (manual state survives re-renders and repeated binds).
@@ -1949,6 +2128,38 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         }
 
         /** Создаёт view для thinking-сегмента; expanded-состояние живёт в сегменте. */
+        /** Thinking-only turn: render reasoning into the static container so it
+         * survives the tool curtain being hidden, and patch the trailing one. */
+        private void renderThinkingOnlySegments(Message message,
+                List<app.multiai.mobile.models.WorkflowSegment> segments, boolean working) {
+            if (thinkingContainer == null) return;
+            thinkingContainer.setVisibility(View.VISIBLE);
+            String sig = "T" + segmentStructureSignature(segments, false, true) + (working ? "W" : "w");
+            if (sig.equals(lastWorkflowStructureSignature)) {
+                app.multiai.mobile.models.WorkflowSegment lastSeg = segments.get(segments.size() - 1);
+                if (lastSeg != null && lastSeg.getType() == app.multiai.mobile.models.WorkflowSegment.TYPE_THINKING
+                        && activeThinkingTextView != null) {
+                    updateActiveThinkingSegment(lastSeg);
+                }
+                return;
+            }
+            lastWorkflowStructureSignature = sig;
+            activeContentTextView = null;
+            thinkingContainer.removeAllViews();
+            for (int i = 0; i < segments.size(); i++) {
+                app.multiai.mobile.models.WorkflowSegment seg = segments.get(i);
+                if (seg == null) continue;
+                String text = seg.getVisibleThinkingText();
+                if (text.isEmpty()) continue;
+                boolean trailing = (i == segments.size() - 1);
+                View thinkingView = createThinkingSegmentView(seg, trailing);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                if (thinkingContainer.getChildCount() > 0) lp.topMargin = dp(6);
+                thinkingContainer.addView(thinkingView, lp);
+            }
+        }
+
         private View createThinkingSegmentView(app.multiai.mobile.models.WorkflowSegment seg,
                                                boolean trailing) {
             View view = android.view.LayoutInflater.from(itemView.getContext())
@@ -2324,7 +2535,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 return;
             }
             String content = cleanContentForDisplay(message.getContent());
-            bubbleContainer.setVisibility(isVisuallyBlank(content) ? View.GONE : View.VISIBLE);
+            bubbleContainer.setVisibility(isVisuallyBlank(content) && !message.hasImage() ? View.GONE : View.VISIBLE);
         }
 
         // Прямое обновление TextView без notifyItemChanged (для анимации).
@@ -2345,7 +2556,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
             String cleaned = cleanContentForDisplay(content);
 
-            if (!isVisuallyBlank(cleaned)) {
+            if (!isVisuallyBlank(cleaned) || message.hasImage()) {
                 if (bubbleContainer != null) bubbleContainer.setVisibility(View.VISIBLE);
                 if (textMessage != null) {
                     textMessage.setVisibility(View.VISIBLE);
@@ -3014,6 +3225,76 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             });
         }
 
+        /**
+         * O24: контекст-меню для ответа AI (копировать целиком / выделить фрагмент).
+         * «Выделить» включает textIsSelectable на текстовом view сообщения; при
+         * rich-рендере (код-блоки в отдельном контейнере) выделяется текстовая часть.
+         */
+        private void showAiContextMenu(Message message) {
+            android.content.Context ctx = itemView.getContext();
+            android.widget.TextView target = resolveSelectableTarget();
+            if (target == null) {
+                return;
+            }
+            java.util.List<ModernSheet.MenuItem> items = java.util.Arrays.asList(
+                new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_copy), R.drawable.ic_copy, false, null),
+                new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_select_text), R.drawable.ic_select_text, false, null)
+            );
+            ModernSheet.menu(ctx, null, items, (idx, item) -> {
+                switch (idx) {
+                    case 0:
+                        android.content.ClipboardManager cm = (android.content.ClipboardManager) ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                        if (cm != null) {
+                            String plain = aiPlainTextForCopy(message);
+                            cm.setPrimaryClip(android.content.ClipData.newPlainText("message", plain));
+                            ModernToast.show((Activity) ctx, ctx.getString(R.string.kit_msg_copied));
+                        }
+                        break;
+                    case 1:
+                        target.setTextIsSelectable(true);
+                        target.requestFocus();
+                        break;
+                }
+            });
+        }
+
+        /** Текстовое view ответа: приоритет у основного текста, иначе первый текст внутри rich-контейнера. */
+        private android.widget.TextView resolveSelectableTarget() {
+            if (textMessage != null && textMessage.getVisibility() == View.VISIBLE
+                    && textMessage.getText() != null && textMessage.getText().length() > 0) {
+                return textMessage;
+            }
+            if (codeBlocksContainer != null && codeBlocksContainer.getVisibility() == View.VISIBLE) {
+                android.widget.TextView first = findFirstSelectableTextView(codeBlocksContainer);
+                if (first != null) {
+                    return first;
+                }
+            }
+            return textMessage;
+        }
+
+        private android.widget.TextView findFirstSelectableTextView(android.view.ViewGroup root) {
+            for (int i = 0; i < root.getChildCount(); i++) {
+                android.view.View child = root.getChildAt(i);
+                if (child instanceof android.widget.TextView) {
+                    return (android.widget.TextView) child;
+                }
+                if (child instanceof android.view.ViewGroup) {
+                    android.widget.TextView nested = findFirstSelectableTextView((android.view.ViewGroup) child);
+                    if (nested != null) {
+                        return nested;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /** Копируем исходный markdown-контент сообщения (без UI-разметки код-блоков). */
+        private String aiPlainTextForCopy(Message message) {
+            String content = message.getContent();
+            return content != null ? content : "";
+        }
+
         private int dp(int value) {
             float density = itemView.getResources().getDisplayMetrics().density;
             return Math.round(value * density);
@@ -3025,6 +3306,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     private static android.graphics.Bitmap decodeImageThumbnail(Message message, int maxDim) {
         try {
             String base64 = message.getImageBase64();
+            if (base64 != null && base64.startsWith("[")) base64 = app.multiai.mobile.utils.ImageAttachments.unpack(base64).get(0);
             byte[] bytes = null;
             if (base64 != null && !base64.isEmpty()) {
                 if (base64.startsWith("data:image")) {

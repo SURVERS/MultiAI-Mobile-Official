@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Информативная карточка ошибки (как в референсах tokenrouter/CLI):
+  нейтральная тёмная поверхность вместо красной заливки, заголовок — реальное
+  сообщение, серые детали (код / HTTP), раскрывающийся блок «Подробности» с
+  техническими данными и ряд чипов «Подробности · Копировать · Поддержка».
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -12,165 +18,225 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/error_bg"
-        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="@color/error_card_bg"
+        app:cardCornerRadius="14dp"
         app:cardElevation="0dp"
-        app:strokeWidth="0dp">
+        app:strokeWidth="1dp"
+        app:strokeColor="@color/error_card_border">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="14dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="12dp">
 
-        <!-- Header: icon + title -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            <!-- Header: info icon + real message + dismiss -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_error_warning"
-                android:contentDescription="@null"
-                android:tint="@color/error" />
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_info"
+                    android:contentDescription="@null"
+                    android:tint="@color/error_card_accent" />
+
+                <TextView
+                    android:id="@+id/textErrorTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/kit_msg_error_title"
+                    android:textColor="@color/error_card_text"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:maxLines="3"
+                    android:ellipsize="end" />
+
+                <ImageView
+                    android:id="@+id/buttonErrorDismiss"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_error_x"
+                    android:contentDescription="@string/kit_msg_error_dismiss"
+                    android:tint="@color/error_card_muted"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <!-- Legacy-id view: Chat Mode adapter пишет сюда классификацию.
+             В Work Mode карточке не показываем (детали ниже). -->
+            <TextView
+                android:id="@+id/textErrorBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginStart="28dp"
+                android:textColor="@color/error_card_muted"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <!-- Legacy-id chip: код ошибки для Chat Mode adapter. -->
+            <TextView
+                android:id="@+id/textErrorCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginStart="28dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:background="@drawable/error_technical_background"
+                android:textColor="@color/error_card_muted"
+                android:textSize="11sp"
+                android:fontFamily="monospace" />
+
+            <!-- Серые детали: код + HTTP статус + retry-after (что реально известно) -->
+            <TextView
+                android:id="@+id/textErrorDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginStart="28dp"
+                android:textColor="@color/error_card_muted"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+            <!-- Технический блок: сырые данные ошибки, раскрытие по «Подробности» -->
+            <TextView
+                android:id="@+id/textErrorTechnical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="28dp"
+                android:padding="10dp"
+                android:background="@drawable/error_technical_background"
+                android:textColor="@color/error_card_muted"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:lineSpacingExtra="2dp"
+                android:visibility="gone"
+                android:textIsSelectable="true" />
+
+            <!-- Actions row: chips «Подробности», «Копировать», retry, поддержка -->
+            <LinearLayout
+                android:id="@+id/actionsRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="24dp"
+                android:orientation="horizontal"
+                android:gravity="end|center_vertical">
+
+                <TextView
+                    android:id="@+id/buttonErrorDetails"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:gravity="center"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/kit_msg_error_details"
+                    android:textColor="@color/error_card_text"
+                    android:textSize="12.5sp"
+                    android:background="@drawable/error_chip_background"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/buttonErrorCopy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/kit_msg_error_copy"
+                    android:textColor="@color/error_card_text"
+                    android:textSize="12.5sp"
+                    android:background="@drawable/error_chip_background"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- Retry: показывается только для retryable-ошибок -->
+                <LinearLayout
+                    android:id="@+id/buttonRetry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:background="@drawable/error_chip_accent_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_retry_arrow"
+                        android:contentDescription="@null"
+                        android:tint="@color/error_card_accent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/kit_msg_error_retry"
+                        android:textColor="@color/error_card_text"
+                        android:textSize="12.5sp"
+                        android:fontFamily="sans-serif-medium" />
+                </LinearLayout>
+
+                <!-- Auth button (только для auth/session ошибок) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonAuth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="@string/chat_err_auth_button"
+                    android:textColor="@color/icon_on_accent"
+                    android:textSize="12.5sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    app:backgroundTint="@color/accent"
+                    app:cornerRadius="9dp" />
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/textErrorTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="10dp"
-                android:text="@string/kit_msg_error_title"
-                android:textColor="@color/error_text"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-medium" />
-        </LinearLayout>
-
-        <!-- Body -->
-        <TextView
-            android:id="@+id/textErrorBody"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/lay_error_default_body"
-            android:textColor="@color/error_text"
-            android:textSize="14sp"
-            android:lineSpacingExtra="3dp" />
-
-        <!-- Error code chip -->
-        <TextView
-            android:id="@+id/textErrorCode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:background="@drawable/error_code_background"
-            android:text="@string/kit_msg_error_code_prefix"
-            android:textColor="@color/error_text_muted"
-            android:textSize="12sp"
-            android:fontFamily="monospace"
-            android:letterSpacing="0.04" />
-
-        <!-- Auth button (shown only for auth/session errors) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonAuth"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginTop="14dp"
-            android:text="@string/chat_err_auth_button"
-            android:textColor="@color/icon_on_accent"
-            android:textSize="15sp"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:visibility="gone"
-            app:backgroundTint="@color/accent"
-            app:cornerRadius="14dp"
-            app:icon="@drawable/ic_multiai_logo"
-            app:iconTint="@color/icon_on_accent"
-            app:iconGravity="textStart"
-            app:iconSize="32dp"
-            app:iconPadding="0dp" />
-
-        <!-- Actions row: retry + support -->
-        <LinearLayout
-            android:id="@+id/actionsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:orientation="vertical"
-            android:gravity="center_horizontal">
-
-            <!-- Retry button -->
-            <LinearLayout
-                android:id="@+id/buttonRetry"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:paddingStart="14dp"
-                android:paddingEnd="16dp"
-                android:background="@drawable/retry_button_background"
-                android:clickable="true"
-                android:focusable="true"
-                android:visibility="gone">
-
-                <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:src="@drawable/ic_retry_arrow"
-                    android:contentDescription="@null"
-                    android:tint="@color/error_text" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/kit_msg_error_retry"
-                    android:textColor="@color/error_text"
-                    android:textSize="14sp"
-                    android:fontFamily="sans-serif-medium" />
-            </LinearLayout>
-
-            <!-- Spacing between actions -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="8dp" />
-
-            <!-- Support button -->
-            <LinearLayout
                 android:id="@+id/buttonSupport"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:orientation="horizontal"
+                android:layout_gravity="end"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:paddingStart="14dp"
-                android:paddingEnd="16dp"
-                android:background="@drawable/support_button_background"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="@string/kit_msg_error_share_support"
+                android:textColor="@color/error_card_text"
+                android:textSize="12.5sp"
+                android:background="@drawable/error_chip_background"
                 android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:src="@drawable/ic_telegram"
-                    android:contentDescription="@string/scr_telegram" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/kit_msg_error_share_support"
-                    android:textColor="@color/telegram"
-                    android:textSize="14sp"
-                    android:fontFamily="sans-serif-medium" />
-            </LinearLayout>
-        </LinearLayout>
+                android:focusable="true" />
 
         </LinearLayout>
 

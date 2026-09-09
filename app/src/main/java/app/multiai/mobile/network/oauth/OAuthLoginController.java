@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.MainThread;
@@ -21,6 +22,8 @@ import java.util.function.Consumer;
 
 /** Authorization Code + PKCE orchestration for the native public client. */
 public class OAuthLoginController {
+
+    private static final String TAG = "OAuthLogin";
 
     public static final String ACTION_PROFILE_UPDATED =
             "app.multiai.mobile.action.OAUTH_PROFILE_UPDATED";
@@ -217,6 +220,10 @@ public class OAuthLoginController {
         try {
             OAuthClient.TokenResponse tokens = client.exchangeCode(current, code,
                     attempt.redirectUri, attempt.verifier);
+            // Diagnostics per integration contract §6: scopes only — never tokens,
+            // code, verifier, nonce or HMAC.
+            Log.i(TAG, "scope requested: " + OAuthConfig.getScopes());
+            Log.i(TAG, "scope granted:   " + (tokens.scope == null ? "" : tokens.scope));
             validateTokenResponse(tokens);
 
             long now = System.currentTimeMillis();
@@ -312,9 +319,19 @@ public class OAuthLoginController {
         return isBlank(primary) ? fallback : primary;
     }
 
+    private static final class MissingScopesException extends Exception {
+        @NonNull final String missingScopes;
+
+        MissingScopesException(@NonNull List<String> missingScopes) {
+            this.missingScopes = String.join(", ", missingScopes);
+        }
+    }
+
     private void validateTokenResponse(@NonNull OAuthClient.TokenResponse tokens)
-            throws OAuthClient.OAuthException {
-        if (isBlank(tokens.accessToken) || isBlank(tokens.refreshToken)) {
+            throws OAuthClient.OAuthException, MissingScopesException {
+        if (isBlank(tokens.accessToken) || isBlank(tokens.refreshToken)
+                || !tokens.accessToken.startsWith("ma-oauth-at-")
+                || !tokens.refreshToken.startsWith("ma-oauth-rt-")) {
             throw new OAuthClient.OAuthException("invalid_token_response");
         }
         if (!"Bearer".equalsIgnoreCase(tokens.tokenType)) {
@@ -323,6 +340,8 @@ public class OAuthLoginController {
         if (tokens.expiresIn <= 0L || tokens.expiresIn > MAX_TOKEN_LIFETIME_SECONDS) {
             throw new OAuthClient.OAuthException("invalid_token_expiry");
         }
+        List<String> missingScopes = OAuthConfig.getMissingScopes(tokens.scope);
+        if (!missingScopes.isEmpty()) throw new MissingScopesException(missingScopes);
     }
 
     @NonNull
@@ -335,7 +354,7 @@ public class OAuthLoginController {
         String email = claimText(claims, "email");
         String name = claimText(claims, "name");
         String username = claimText(claims, "preferred_username");
-        String picture = claimText(claims, "picture");
+        String picture = OAuthAvatar.fromProfileJson(claims);
         long authTime = claims.optLong("auth_time", 0L) * 1000L;
         boolean telegram = isBlank(email) && !isBlank(username) && username.startsWith("@");
         if (telegram && isBlank(name)) name = username;
@@ -351,10 +370,18 @@ public class OAuthLoginController {
     }
 
     private void postOAuthError(@NonNull Callback callback, @NonNull Exception error) {
-        String code = error instanceof OAuthClient.OAuthException
-                ? ((OAuthClient.OAuthException) error).oauthError : "server_error";
-        // Never forward provider response bodies or token-adjacent exception details.
-        main.post(() -> callback.onError(code, null));
+        final String code;
+        final String safeDetail;
+        if (error instanceof MissingScopesException) {
+            code = "insufficient_scope";
+            safeDetail = ((MissingScopesException) error).missingScopes;
+        } else {
+            code = error instanceof OAuthClient.OAuthException
+                    ? ((OAuthClient.OAuthException) error).oauthError : "server_error";
+            // Never forward provider response bodies or token-adjacent exception details.
+            safeDetail = null;
+        }
+        main.post(() -> callback.onError(code, safeDetail));
     }
 
     private static boolean isExactRedirect(@NonNull Uri actual) {

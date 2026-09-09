@@ -61,13 +61,20 @@ public final class ModernDialog {
     public static Dialog show(Context ctx, String title, String message, View bodyView,
                               String cancelText, String actionText, boolean destructive,
                               Action onAction) {
+        return show(ctx, title, message, bodyView, cancelText, actionText, destructive, onAction, true);
+    }
+
+    public static Dialog show(Context ctx, String title, String message, View bodyView,
+                              String cancelText, String actionText, boolean destructive,
+                              Action onAction, boolean dismissible) {
         AnimatedDialog d = new AnimatedDialog(ctx, AnimatedDialog.Mode.CENTER);
-        d.setCancelable(true);
+        d.setCancelable(dismissible);
+        d.setCanceledOnTouchOutside(dismissible);
 
         FrameLayout root = new FrameLayout(ctx);
         View backdrop = new View(ctx);
         backdrop.setBackgroundColor(ContextCompat.getColor(ctx, R.color.overlay_dim));
-        backdrop.setOnClickListener(v -> d.dismiss());
+        backdrop.setOnClickListener(v -> { if (dismissible) d.dismiss(); });
         root.addView(backdrop, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -137,7 +144,7 @@ public final class ModernDialog {
             d.dismiss();
             if (action != null) action.run();
         });
-        btnRow.addView(actionBtn);
+        if (dismissible || actionText != null) btnRow.addView(actionBtn);
 
         card.addView(btnRow);
         root.addView(card);

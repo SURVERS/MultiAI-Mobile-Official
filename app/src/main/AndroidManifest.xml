@@ -91,10 +91,28 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.GeneralSettingsActivity" android:exported="false" />
+        <activity android:name=".ui.SkillsActivity" android:exported="false" />
+        <activity android:name=".ui.SkillEditActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.SkillImportActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.CustomProviderActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.DataControlsActivity" android:exported="false" />
         <activity android:name=".ui.ArchivedChatsActivity" android:exported="false" />
         <activity android:name=".ui.SecuritySettingsActivity" android:exported="false" />
+        <activity android:name=".ui.DevicesActivity" android:exported="false" />
+        <activity
+            android:name=".ui.CameraScanActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MultiAiIde.Fullscreen" />
         <activity android:name=".ui.AboutActivity" android:exported="false" />
+        <activity
+            android:name=".ui.ImageViewerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MultiAiIde.Fullscreen" />
 
         <activity
             android:name=".ui.OAuthCallbackActivity"

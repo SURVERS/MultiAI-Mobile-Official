@@ -3,6 +3,9 @@ package app.multiai.mobile;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -31,11 +34,32 @@ public class MultiAIApp extends Application {
 
     private final AtomicBoolean sensitiveInitializationInFlight = new AtomicBoolean(false);
     private final AtomicBoolean sensitiveInitializationCompleted = new AtomicBoolean(false);
+    private final AtomicBoolean heartbeatInFlight = new AtomicBoolean(false);
+    private static final long HEARTBEAT_INTERVAL_MS = 60_000L;
+    private static final long HEARTBEAT_RATE_LIMIT_BACKOFF_MS = 5 * 60_000L;
+    private Handler heartbeatHandler;
+    private OAuthLoginController heartbeatOAuth;
+    private int startedActivityCount;
+    private boolean processForeground;
+    private volatile boolean heartbeatUnsupported;
+    private volatile long heartbeatBackoffUntil;
+    private long lastHeartbeatAttempt = -HEARTBEAT_INTERVAL_MS;
+
+    private final Runnable heartbeatTick = new Runnable() {
+        @Override
+        public void run() {
+            if (!processForeground || heartbeatHandler == null) return;
+            sendDeviceHeartbeatIfDue();
+            heartbeatHandler.postDelayed(this, HEARTBEAT_INTERVAL_MS);
+        }
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
         APP = this;
+        app.multiai.mobile.utils.DebugFileLog.init(this);
+        heartbeatHandler = new Handler(Looper.getMainLooper());
         AppSettings settings = new AppSettings(this);
         applyLanguage(settings.getLanguage());
         applyTheme(settings.getTheme());
@@ -58,6 +82,8 @@ public class MultiAIApp extends Application {
                 applyWindowSecurity(activity, lockManager);
                 lockManager.onActivityStarted(activity);
                 startSensitiveInitializationAfterUnlock();
+                startedActivityCount++;
+                if (startedActivityCount == 1) startDeviceHeartbeatLoop();
             }
 
             @Override
@@ -77,11 +103,69 @@ public class MultiAIApp extends Application {
             @Override
             public void onActivityStopped(Activity activity) {
                 lockManager.onActivityStopped(activity);
+                if (startedActivityCount > 0) startedActivityCount--;
+                if (startedActivityCount == 0) stopDeviceHeartbeatLoop();
             }
 
             @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
             @Override public void onActivityDestroyed(Activity activity) {}
         });
+    }
+
+    private void startDeviceHeartbeatLoop() {
+        processForeground = true;
+        heartbeatHandler.removeCallbacks(heartbeatTick);
+        heartbeatHandler.post(heartbeatTick);
+    }
+
+    private void stopDeviceHeartbeatLoop() {
+        processForeground = false;
+        heartbeatHandler.removeCallbacks(heartbeatTick);
+    }
+
+    /** Foreground-only, process-wide heartbeat; optional backend rollout fails soft. */
+    private void sendDeviceHeartbeatIfDue() {
+        long now = SystemClock.elapsedRealtime();
+        if (heartbeatUnsupported || now < heartbeatBackoffUntil
+                || now - lastHeartbeatAttempt < HEARTBEAT_INTERVAL_MS
+                || AppLockManager.get(this).isUnlockRequired()
+                || !heartbeatInFlight.compareAndSet(false, true)) {
+            return;
+        }
+
+        if (heartbeatOAuth == null) heartbeatOAuth = new OAuthLoginController(this);
+        OAuthLoginController controller = heartbeatOAuth;
+        if (!app.multiai.mobile.network.oauth.OAuthSession.get().isAuthorized()
+                && !controller.getStore().hasRefreshToken()) {
+            heartbeatInFlight.set(false);
+            return;
+        }
+
+        lastHeartbeatAttempt = now;
+        controller.ensureMetadataAsync(() -> {
+            Thread worker = new Thread(() -> {
+                try {
+                    controller.getAccountApi().heartbeatCurrentDevice();
+                } catch (Exception error) {
+                    if (error instanceof app.multiai.mobile.network.oauth.OAuthClient.OAuthException) {
+                        app.multiai.mobile.network.oauth.OAuthClient.OAuthException oauthError =
+                                (app.multiai.mobile.network.oauth.OAuthClient.OAuthException) error;
+                        if (oauthError.http == 404 || oauthError.http == 405
+                                || oauthError.http == 501
+                                || "feature_unavailable".equals(oauthError.oauthError)) {
+                            heartbeatUnsupported = true;
+                        } else if (oauthError.http == 429) {
+                            heartbeatBackoffUntil = SystemClock.elapsedRealtime()
+                                    + HEARTBEAT_RATE_LIMIT_BACKOFF_MS;
+                        }
+                    }
+                } finally {
+                    heartbeatInFlight.set(false);
+                }
+            }, "oauth-device-heartbeat");
+            worker.setDaemon(true);
+            worker.start();
+        }, error -> heartbeatInFlight.set(false));
     }
 
     private static void applyWindowSecurity(Activity activity, AppLockManager lockManager) {

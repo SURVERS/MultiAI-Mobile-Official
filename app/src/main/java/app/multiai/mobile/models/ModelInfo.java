@@ -46,15 +46,26 @@ public class ModelInfo {
 
     public ModelInfo(JSONObject m) {
         id = m.optString("id", "");
-        free = m.optBoolean("billing_free", false);
+        inputMultiplier = m.optDouble("input_multiplier", 0);
+        outputMultiplier = m.optDouble("output_multiplier", 0);
+        cachedInputMultiplier = m.optDouble("cached_input_multiplier", 0);
+        // Бесплатная модель: ТОЛЬКО явные признаки — флаг billing_free/free,
+        // id с ":free", или реальная нулевая ЦЕНА (pricing) от сервера.
+        // НЕ считаем free по нулевым мультипликаторам: b.ai/openrouter отдают 0
+        // у платных моделей (0 = "нет данных о цене", не "бесплатно").
+        JSONObject pricingObj = m.optJSONObject("pricing");
+        boolean explicitZeroPricing = pricingObj != null
+                && pricingObj.optDouble("prompt", -1) == 0
+                && pricingObj.optDouble("completion", -1) == 0;
+        free = m.optBoolean("billing_free", false)
+                || m.optBoolean("free", false)
+                || id.endsWith(":free")
+                || explicitZeroPricing;
         long ctx = firstPositive(m, "context_window", "contextWindow",
                 "context_length", "max_context_tokens", "max_input_tokens");
         if (ctx <= 0) ctx = knownContext(id);
         contextWindow = ctx;
         maxOutputTokens = firstPositive(m, "max_output_tokens", "max_tokens");
-        inputMultiplier = m.optDouble("input_multiplier", 0);
-        outputMultiplier = m.optDouble("output_multiplier", 0);
-        cachedInputMultiplier = m.optDouble("cached_input_multiplier", 0);
         modelKind = m.optString("model_kind", "text");
 
         StringBuilder mods = new StringBuilder();
@@ -115,8 +126,20 @@ public class ModelInfo {
         reasoningAllowDisable = parsedAllowDisable;
         effort = reasoningDefault;
 
-        displayName = prettyName(id);
+        // Сервер/провайдер мог отдать готовое красивое имя — оно приоритетнее
+        // prettifier'а из сырого id (кастомные провайдеры шлют его как display_name).
+        String serverName = m.optString("display_name", m.optString("name", "")).trim();
+        displayName = (!serverName.isEmpty() && !serverName.equals(id))
+                ? cleanDisplayName(serverName) : prettyName(id);
         category = categorize(id, free);
+    }
+
+    public static String cleanDisplayName(String name) {
+        String result = name.trim();
+        int colon = result.indexOf(": ");
+        if (colon > 0 && colon <= 24) result = result.substring(colon + 2);
+        return result.replaceAll("(?i)\\b(GLM|GPT|Qwen)[- ]*(?=\\d)", "$1 ")
+                .replaceAll("(?i)\\s*\\((free|batch)\\)\\s*$", "").trim();
     }
 
     /** true, если у модели есть выбор effort (больше одного уровня). */
@@ -190,6 +213,11 @@ public class ModelInfo {
      *  Хвостовые цифровые сегменты склеиваются в версию с точкой. */
     public static String prettyName(String id) {
         if (id == null || id.isEmpty()) return "?";
+        // Кастомные провайдеры: "custom/<providerId>/<requestName>" → используем requestName
+        if (id.startsWith("custom/")) {
+            String[] parts = id.split("/", 3);
+            return parts.length >= 3 ? parts[2] : id;
+        }
         // Хардкод-переименования для конкретных моделей каталога.
         String lower = id.toLowerCase(Locale.ROOT);
         if (lower.startsWith("ma-")) lower = lower.substring(3);
@@ -238,7 +266,16 @@ public class ModelInfo {
 
     private static String categorize(String id, boolean free) {
         String s = id.toLowerCase();
+        // OpenRouter alias-prefix "~z-ai/glm-flash-latest".
+        if (s.startsWith("~")) s = s.substring(1);
+        // Кастомные модели ("custom/<provider>/<model>") категоризуем по ИМЕНИ модели —
+        // GLM/qwen/deepseek попадают в «Китайские», BGE/Gemma — в «Другие», а не свалкой.
+        if (s.startsWith("custom/")) {
+            int last = s.lastIndexOf('/');
+            if (last >= 0 && last + 1 < s.length()) s = s.substring(last + 1);
+        }
         if (s.startsWith("ma-")) s = s.substring(3);
+        if (s.contains("upstage") || s.contains("solar")) return CAT_OTHER;
         if (s.contains("claude")) return CAT_ANTHROPIC;
         if (s.contains("gpt") || s.contains("o1") || s.contains("o3") || s.contains("o4")) return CAT_OPENAI;
         if (s.contains("gemini") || s.contains("nano-banana") || s.contains("nano_banana")) return CAT_GOOGLE;

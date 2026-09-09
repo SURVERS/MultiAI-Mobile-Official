@@ -95,10 +95,10 @@
     <string name="scr_trait_excitement_more_d">More energetic and inspired</string>
     <string name="scr_trait_excitement_less_t">Less enthusiastic</string>
     <string name="scr_trait_excitement_less_d">Calmer and more neutral</string>
-    <string name="scr_trait_headers_more_t">Fewer headers and lists</string>
-    <string name="scr_trait_headers_more_d">More paragraphs instead of lists</string>
-    <string name="scr_trait_headers_less_t">More headers and lists</string>
-    <string name="scr_trait_headers_less_d">Clear formatting and lists</string>
+    <string name="scr_trait_headers_more_t">More headers and lists</string>
+    <string name="scr_trait_headers_more_d">Clear formatting and lists</string>
+    <string name="scr_trait_headers_less_t">Fewer headers and lists</string>
+    <string name="scr_trait_headers_less_d">More paragraphs instead of lists</string>
     <string name="scr_trait_emoji_more_t">More emojis</string>
     <string name="scr_trait_emoji_more_d">More emoji</string>
     <string name="scr_trait_emoji_less_t">Fewer emojis</string>
@@ -153,7 +153,9 @@
     <string name="scr_sec_link_device_desc">Scan a QR code from Desktop IDE to sign in.</string>
     <string name="scr_sec_link_scan_title">Scan QR code</string>
     <string name="scr_sec_link_scan_hint">Point the camera at the QR code in MultiAI Desktop IDE</string>
-    <string name="scr_sec_link_confirm_title">Link Desktop?</string>
+    <string name="scr_sec_flashlight">Flashlight</string>
+    <string name="scr_sec_link_confirm_title">Desktop</string>
+    <string name="scr_sec_link_confirm_named_title">Desktop %1$s</string>
     <string name="scr_sec_link_confirm_desc">Confirm the sign-in on Desktop IDE. Your MultiAI access will be shared.</string>
     <string name="scr_sec_link_confirm_action">Link</string>
     <string name="scr_sec_link_success">Device linked: %1$s</string>
@@ -163,6 +165,56 @@
     <string name="scr_sec_link_err_network">Network error. Check your connection.</string>
     <string name="scr_sec_link_err_unknown">Failed to link device</string>
     <string name="scr_sec_link_cancelled">Scan cancelled</string>
+
+    <!-- ═════════ OAuth devices and sessions ═════════ -->
+    <string name="scr_sec_devices_title">Devices</string>
+    <string name="scr_sec_devices_desc">Active sign-ins, locations, and MultiAI session controls.</string>
+    <string name="scr_sec_devices_refresh">Refresh list</string>
+    <string name="scr_sec_devices_loading">Loading active sessions…</string>
+    <string name="scr_sec_devices_empty">No active devices found</string>
+    <string name="scr_sec_devices_load_error">Could not load devices</string>
+    <string name="scr_sec_devices_link_title">Link a device</string>
+    <string name="scr_sec_devices_link_desc">Open MultiAI Desktop and scan the QR code on its sign-in screen.</string>
+    <string name="scr_sec_devices_link_action">Scan QR code</string>
+    <string name="scr_sec_devices_current_section">This device</string>
+    <string name="scr_sec_devices_management_section">Session management</string>
+    <string name="scr_sec_devices_revoke_others">Terminate all other sessions</string>
+    <string name="scr_sec_devices_revoke_others_desc">Your current session will remain active.</string>
+    <string name="scr_sec_devices_revoke_others_title">Terminate other sessions?</string>
+    <string name="scr_sec_devices_revoke_others_message">Every other device will lose access to your MultiAI account. This device will remain connected.</string>
+    <string name="scr_sec_devices_revoked_others">Sessions terminated: %1$d</string>
+    <string name="scr_sec_devices_revoke_others_error">Could not terminate other sessions</string>
+    <string name="scr_sec_devices_active_section">Active sessions</string>
+    <string name="scr_sec_devices_no_other_sessions">There are no other active sessions</string>
+    <string name="scr_sec_devices_current_unknown">The server did not identify this device, so session termination is temporarily disabled.</string>
+    <string name="scr_sec_devices_feature_unavailable">This feature requires a server update</string>
+    <string name="scr_sec_devices_auto_terminate_section">Automatic termination</string>
+    <string name="scr_sec_devices_auto_terminate">Terminate inactive sessions</string>
+    <string name="scr_sec_devices_auto_terminate_value">After %1$d days</string>
+    <string name="scr_sec_devices_auto_terminate_picker">Inactivity period</string>
+    <string name="scr_sec_devices_auto_terminate_saved">Period changed to %1$d days</string>
+    <string name="scr_sec_devices_auto_terminate_error">Could not change the period</string>
+    <string name="scr_sec_devices_platforms_hint">Official MultiAI apps are available for Android and Windows.</string>
+    <string name="scr_sec_device_detail_app_hint">Application</string>
+    <string name="scr_sec_device_detail_location_hint">Location based on IP address</string>
+    <string name="scr_sec_device_unknown">Unknown device</string>
+    <string name="scr_sec_device_unknown_value">Unknown</string>
+    <string name="scr_sec_device_just_now">just now</string>
+    <string name="scr_sec_device_current">Current device</string>
+    <string name="scr_sec_device_online">Online</string>
+    <string name="scr_sec_device_activity_unknown">Activity unknown</string>
+    <string name="scr_sec_device_last_used">Activity: %1$s</string>
+    <string name="scr_sec_device_detail_application">Application</string>
+    <string name="scr_sec_device_detail_platform">Platform</string>
+    <string name="scr_sec_device_detail_location">Location</string>
+    <string name="scr_sec_device_detail_created">First signed in</string>
+    <string name="scr_sec_device_detail_last_active">Last active</string>
+    <string name="scr_sec_device_revoke">Terminate session</string>
+    <string name="scr_sec_device_revoke_title">Terminate session?</string>
+    <string name="scr_sec_device_revoke_message">“%1$s” will lose access to MultiAI.</string>
+    <string name="scr_sec_device_revoke_current_message">The current session cannot be terminated from this screen.</string>
+    <string name="scr_sec_device_revoked">Session terminated</string>
+    <string name="scr_sec_device_revoke_error">Could not terminate session</string>
 
     <!-- ═════════ EditorActivity ═════════ -->
     <string name="scr_editor_title">Editor</string>
@@ -196,6 +248,7 @@
     <string name="scr_pdf_page_preview"> · page 1 preview</string>
     <string name="scr_pdf_render_error">Could not render PDF: %1$s</string>
     <string name="scr_apk_preparing">Preparing APK…</string>
+    <string name="scr_term_app_install_usage">Usage: app install &lt;path_to_file.apk&gt;</string>
     <string name="scr_create_dir_error">Could not create directory</string>
     <string name="scr_open_read_stream_error">Could not open input stream</string>
     <string name="scr_installer_open_error">Could not open installer: %1$s</string>
@@ -243,6 +296,8 @@
     <!-- ═════════ TerminalActivity ═════════ -->
     <string name="scr_term_storage_request">Please grant access to all files</string>
     <string name="scr_term_starting_shell">Starting shell…</string>
+    <string name="scr_term_lib_update">Updating libraries. %1$s: %2$s</string>
+    <string name="scr_term_lib_updated">Libraries updated: %1$s</string>
     <string name="scr_term_tools_title">Terminal tools</string>
     <string name="scr_term_tools_subtitle">Install and remove modules</string>
     <string name="scr_term_basic_shell">Basic shell</string>
@@ -312,7 +367,7 @@
     <string name="scr_logout_dialog_title">Log out of MultiAI?</string>
     <string name="scr_logout_dialog_message">Chat history and settings will remain on this device.</string>
     <string name="scr_data_export">Export data</string>
-    <string name="scr_data_export_msg">The archive will be sent to your linked email. If no email is linked, it will be delivered through the linked Telegram bot.</string>
+    <string name="scr_data_export_msg">Data export is not available yet. No request was sent and no archive was created.</string>
     <string name="scr_data_export_requested">Request sent</string>
     <string name="scr_data_archive_confirm_title">Archive all chats?</string>
     <string name="scr_data_archive_confirm_msg">Active chats from Project and Chat modes will be moved to the archive. You can restore them at any time.</string>

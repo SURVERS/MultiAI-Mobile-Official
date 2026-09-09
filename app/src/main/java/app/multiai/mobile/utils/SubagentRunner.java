@@ -400,7 +400,7 @@ public final class SubagentRunner {
         if ("move_path".equals(name)) return "Перемещение";
         if ("web_search".equals(name)) return "Поиск в интернете";
         if ("url_fetch".equals(name)) return "Чтение страницы";
-        return name == null ? "Инструмент" : name;
+        return "Действие";
     }
 
     private static boolean toolSucceeded(String result) {

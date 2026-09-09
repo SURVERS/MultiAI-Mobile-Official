@@ -563,6 +563,54 @@
                         </LinearLayout>
                     </LinearLayout>
 
+                    <!-- Официальный сайт (только на «Главное», внизу вкладки) -->
+                    <LinearLayout
+                        android:id="@+id/profileOfficialWebsite"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="64dp"
+                        android:layout_marginTop="16dp"
+                        android:padding="16dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/profile_card_bg"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <ImageView
+                            android:layout_width="26dp"
+                        android:layout_height="26dp"
+                            android:src="@drawable/ic_multiai_mark"
+                            android:importantForAccessibility="no" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/profile_official_website"
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="@color/text_primary" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/profile_website_domain"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_hint" />
+                        </LinearLayout>
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_chevron_right"
+                            android:tint="@color/text_hint"
+                            android:importantForAccessibility="no" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- ══════ TAB: API KEYS ══════ -->
@@ -1480,12 +1528,13 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
 
-                </LinearLayout>
 
-                <!-- Bottom spacing -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp" />
+                    <!-- Bottom spacing -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

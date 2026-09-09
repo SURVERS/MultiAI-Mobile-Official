@@ -55,6 +55,7 @@
     <string name="profile_load_error">Профиль: не удалось загрузить данные</string>
     <string name="profile_network_error">Профиль: нет связи с MultiAI</string>
     <string name="profile_oauth_error">OAuth: %1$s</string>
+    <string name="oauth_missing_scopes">Не хватает OAuth-разрешений: %1$s</string>
     <string name="scr_editor_file_not_loaded">Файл не загружен</string>
     <string name="oauth_secure_storage_unavailable">Безопасное хранилище OAuth недоступно</string>
 

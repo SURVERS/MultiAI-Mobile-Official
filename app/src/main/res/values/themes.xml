@@ -18,6 +18,15 @@
 
     <style name="Theme.MultiAiIde" parent="Base.Theme.MultiAiIde" />
 
+    <!-- Fullscreen black theme for the QR scanner (no action bar, black bars). -->
+    <style name="Theme.MultiAiIde.Fullscreen" parent="Theme.MultiAiIde">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:statusBarColor">@color/black</item>
+        <item name="android:navigationBarColor">@color/black</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
     <!-- Black launch window used only by the launcher activity. The Activity
          restores the normal semantic background after its custom logo cycle. -->
     <style name="Theme.MultiAiIde.Starting" parent="Theme.MultiAiIde">

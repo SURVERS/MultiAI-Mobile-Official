@@ -135,7 +135,8 @@ public final class OAuthStore {
         if (encrypted == null || isInvalidated()) return null;
         try {
             if (encrypted.getBoolean(K_REFRESH_IN_FLIGHT, false)) return null;
-            return sane(encrypted.getString(K_REFRESH, null));
+            String token = sane(encrypted.getString(K_REFRESH, null));
+            return token != null && token.startsWith("ma-oauth-rt-") ? token : null;
         } catch (RuntimeException corruptStore) {
             return null;
         }
@@ -222,10 +223,14 @@ public final class OAuthStore {
     }
 
     /** Durable compare-and-swap that completes a pre-marked token rotation. */
-    public boolean storeRefreshTokenCas(@Nullable String newRefresh, int expectedVersion) {
+    public boolean storeRefreshTokenCas(@Nullable String newRefresh, int expectedVersion,
+                                        @Nullable String grantedScope) {
         SharedPreferences encrypted = prefs;
         String safeRefresh = sane(newRefresh);
+        String safeScope = sane(grantedScope);
         if (encrypted == null || isInvalidated() || safeRefresh == null
+                || !safeRefresh.startsWith("ma-oauth-rt-")
+                || safeScope == null || !OAuthConfig.hasRequiredScopes(safeScope)
                 || expectedVersion < 1) return false;
         synchronized (STORE_LOCK) {
             try {
@@ -237,6 +242,7 @@ public final class OAuthStore {
                 Map<String, ?> before = new HashMap<>(encrypted.getAll());
                 boolean committed = encrypted.edit()
                         .putString(K_REFRESH, safeRefresh)
+                        .putString(K_SCOPE, safeScope)
                         .putInt(K_REFRESH_VER, expectedVersion + 1)
                         .remove(K_REFRESH_IN_FLIGHT)
                         .commit();
@@ -252,8 +258,10 @@ public final class OAuthStore {
     public boolean commitLogin(@Nullable String refresh, @Nullable ProfileClaims profile) {
         SharedPreferences encrypted = prefs;
         String safeRefresh = sane(refresh);
-        if (encrypted == null || safeRefresh == null || profile == null
-                || sane(profile.sub) == null) return false;
+        if (encrypted == null || safeRefresh == null
+                || !safeRefresh.startsWith("ma-oauth-rt-") || profile == null
+                || sane(profile.sub) == null
+                || !OAuthConfig.hasRequiredScopes(profile.scope)) return false;
         synchronized (STORE_LOCK) {
             try {
                 Map<String, ?> before = new HashMap<>(encrypted.getAll());
@@ -292,7 +300,8 @@ public final class OAuthStore {
                 }
                 SharedPreferences.Editor editor = encrypted.edit();
                 if (sane(profile.name) != null) editor.putString(K_NAME, sane(profile.name));
-                if (sane(profile.picture) != null) editor.putString(K_PICTURE, sane(profile.picture));
+                String picture = OAuthAvatar.normalizeRemote(profile.picture);
+                if (picture != null) editor.putString(K_PICTURE, picture);
                 if (sane(profile.email) != null) editor.putString(K_EMAIL, sane(profile.email));
                 if (sane(profile.preferredUsername) != null) {
                     editor.putString(K_USERNAME, sane(profile.preferredUsername));
@@ -307,9 +316,23 @@ public final class OAuthStore {
         }
     }
 
+    /** Persists the canonical picture supplied by an authenticated account snapshot. */
+    public boolean updatePicture(@Nullable String picture) {
+        SharedPreferences encrypted = prefs;
+        String normalized = OAuthAvatar.normalizeRemote(picture);
+        if (encrypted == null || isInvalidated() || normalized == null) return false;
+        synchronized (STORE_LOCK) {
+            try {
+                return encrypted.edit().putString(K_PICTURE, normalized).commit();
+            } catch (RuntimeException corruptStore) {
+                return false;
+            }
+        }
+    }
+
     @Nullable public String getSub() { return text(K_SUB); }
     @Nullable public String getName() { return text(K_NAME); }
-    @Nullable public String getPicture() { return text(K_PICTURE); }
+    @Nullable public String getPicture() { return OAuthAvatar.normalizeRemote(text(K_PICTURE)); }
     @Nullable public String getEmail() { return text(K_EMAIL); }
     @Nullable public String getPreferredUsername() { return text(K_USERNAME); }
     public boolean isTelegram() {

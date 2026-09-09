@@ -32,8 +32,8 @@ import app.multiai.mobile.utils.SecurityHelper;
  */
 public final class SettingsUI {
 
-    public static final int RADIUS_CARD = 20;
-    public static final int GAP_SECTION = 24;
+    public static final int RADIUS_CARD = 24;
+    public static final int GAP_SECTION = 28;
     public static final int SCREEN_PADDING = 16;
 
     private SettingsUI() {}
@@ -97,19 +97,19 @@ public final class SettingsUI {
         // Toolbar
         FrameLayout bar = new FrameLayout(act);
         bar.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(act, 56)));
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(act, 60)));
 
-        // Back button — круглая серая
+        // Back button — круглая с мягким stroke
         ImageView back = new ImageView(act);
         back.setImageResource(R.drawable.ic_arrow_back);
         back.setColorFilter(colorText(act));
         back.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         GradientDrawable backBg = new GradientDrawable();
         backBg.setShape(GradientDrawable.OVAL);
-        backBg.setColor(colorCard(act));
+        backBg.setColor(colorSurfaceTonal(act));
         back.setBackground(backBg);
         back.setPadding(dp(act, 10), dp(act, 10), dp(act, 10), dp(act, 10));
-        FrameLayout.LayoutParams backLp = new FrameLayout.LayoutParams(dp(act, 40), dp(act, 40));
+        FrameLayout.LayoutParams backLp = new FrameLayout.LayoutParams(dp(act, 42), dp(act, 42));
         backLp.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
         backLp.leftMargin = dp(act, 16);
         back.setLayoutParams(backLp);
@@ -122,9 +122,10 @@ public final class SettingsUI {
         TextView titleTv = new TextView(act);
         titleTv.setText(title);
         titleTv.setTextColor(colorText(act));
-        titleTv.setTextSize(17);
+        titleTv.setTextSize(18);
         titleTv.setTypeface(null, Typeface.BOLD);
         titleTv.setGravity(Gravity.CENTER);
+        titleTv.setLetterSpacing(-0.01f);
         FrameLayout.LayoutParams titleLp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         titleLp.gravity = Gravity.CENTER;
@@ -140,10 +141,10 @@ public final class SettingsUI {
             save.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             GradientDrawable saveBg = new GradientDrawable();
             saveBg.setShape(GradientDrawable.OVAL);
-            saveBg.setColor(colorCard(act));
+            saveBg.setColor(colorSurfaceTonal(act));
             save.setBackground(saveBg);
             save.setPadding(dp(act, 10), dp(act, 10), dp(act, 10), dp(act, 10));
-            FrameLayout.LayoutParams saveLp = new FrameLayout.LayoutParams(dp(act, 40), dp(act, 40));
+            FrameLayout.LayoutParams saveLp = new FrameLayout.LayoutParams(dp(act, 42), dp(act, 42));
             saveLp.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
             saveLp.rightMargin = dp(act, 16);
             save.setLayoutParams(saveLp);
@@ -194,9 +195,11 @@ public final class SettingsUI {
         TextView tv = new TextView(ctx);
         tv.setText(text);
         tv.setTextColor(colorSubtext(ctx));
-        tv.setTextSize(12);
+        tv.setTextSize(13);
+        tv.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
         tv.setAllCaps(false);
-        tv.setPadding(dp(ctx, 20), dp(ctx, 20), dp(ctx, 16), dp(ctx, 8));
+        tv.setLetterSpacing(0.02f);
+        tv.setPadding(dp(ctx, 20), dp(ctx, 22), dp(ctx, 16), dp(ctx, 8));
         return tv;
     }
 
@@ -206,14 +209,19 @@ public final class SettingsUI {
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(colorCard(ctx));
         bg.setCornerRadius(dp(ctx, RADIUS_CARD));
-        bg.setStroke(dp(ctx, 1), colorStroke(ctx));
         card.setBackground(bg);
-        card.setElevation(dp(ctx, 5));
+        card.setElevation(dp(ctx, 6));
+        card.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, android.graphics.Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), dp(ctx, RADIUS_CARD));
+            }
+        });
+        card.setClipToOutline(true);
         if (android.os.Build.VERSION.SDK_INT >= 28) {
             card.setOutlineAmbientShadowColor(colorShadowAmbient(ctx));
             card.setOutlineSpotShadowColor(colorShadowSpot(ctx));
         }
-        card.setClipToOutline(false);
         // Card container is NOT interactive — only individual rows handle clicks,
         // so the ripple/press state never spans the whole card.
         card.setClickable(false);
@@ -229,12 +237,13 @@ public final class SettingsUI {
     }
 
     public static View divider(Context ctx) {
-        // Ультратонкий divider с отступом слева равным началу текста (54dp)
+        // Ультратонкий divider с отступом слева равным началу текста
+        // (18 row padding + 36 icon wrap + 14 gap = 68dp)
         View div = new View(ctx);
         div.setBackgroundColor(colorDivider(ctx));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        lp.leftMargin = dp(ctx, 54);
+        lp.leftMargin = dp(ctx, 68);
         div.setLayoutParams(lp);
         return div;
     }
@@ -309,8 +318,8 @@ public final class SettingsUI {
     public static View rowDanger(Activity act, String title, Runnable onClick) {
         LinearLayout row = new LinearLayout(act);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(act, 16), dp(act, 14), dp(act, 16), dp(act, 14));
+        row.setGravity(Gravity.CENTER);
+        row.setPadding(dp(act, 18), dp(act, 16), dp(act, 18), dp(act, 16));
         row.setClickable(true);
         row.setFocusable(true);
         TypedValue tv = new TypedValue();
@@ -324,6 +333,7 @@ public final class SettingsUI {
         t.setText(title);
         t.setTextColor(colorDanger(act));
         t.setTextSize(16);
+        t.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
         row.addView(t);
         return row;
     }
@@ -334,7 +344,7 @@ public final class SettingsUI {
         LinearLayout row = new LinearLayout(act);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(act, 16), dp(act, 16), dp(act, 16), dp(act, 16));
+        row.setPadding(dp(act, 18), dp(act, 16), dp(act, 18), dp(act, 16));
         row.setClickable(true);
         row.setFocusable(true);
         // Keep this row's press/ripple state local — do not propagate to the card.
@@ -347,12 +357,22 @@ public final class SettingsUI {
         attachPressAnimation(row, 0.98f);
 
         if (iconRes != 0) {
+            // Иконка в мягком tonal-кружке для элитарного вида
+            FrameLayout iconWrap = new FrameLayout(act);
+            GradientDrawable iconBg = new GradientDrawable();
+            iconBg.setShape(GradientDrawable.OVAL);
+            iconBg.setColor(colorSurfaceTonal(act));
+            iconWrap.setBackground(iconBg);
+            LinearLayout.LayoutParams wrapLp = new LinearLayout.LayoutParams(dp(act, 36), dp(act, 36));
+            iconWrap.setLayoutParams(wrapLp);
             ImageView icon = new ImageView(act);
             icon.setImageResource(iconRes);
             icon.setColorFilter(colorIcon(act));
-            LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(act, 24), dp(act, 24));
+            FrameLayout.LayoutParams iconLp = new FrameLayout.LayoutParams(dp(act, 20), dp(act, 20));
+            iconLp.gravity = Gravity.CENTER;
             icon.setLayoutParams(iconLp);
-            row.addView(icon);
+            iconWrap.addView(icon);
+            row.addView(iconWrap);
         }
 
         LinearLayout textCol = new LinearLayout(act);
@@ -366,6 +386,7 @@ public final class SettingsUI {
         titleTv.setText(title);
         titleTv.setTextColor(colorText(act));
         titleTv.setTextSize(16);
+        titleTv.setLetterSpacing(-0.01f);
         textCol.addView(titleTv);
 
         if (subtitle != null && !subtitle.isEmpty()) {
@@ -373,6 +394,7 @@ public final class SettingsUI {
             subTv.setText(subtitle);
             subTv.setTextColor(colorSubtext(act));
             subTv.setTextSize(13);
+            subTv.setPadding(0, dp(act, 2), 0, 0);
             textCol.addView(subTv);
         }
 
@@ -384,7 +406,8 @@ public final class SettingsUI {
             ImageView chevron = new ImageView(act);
             chevron.setImageResource(R.drawable.ic_chevron_right);
             chevron.setColorFilter(colorSubtext(act));
-            LinearLayout.LayoutParams cLp = new LinearLayout.LayoutParams(dp(act, 18), dp(act, 18));
+            chevron.setAlpha(0.6f);
+            LinearLayout.LayoutParams cLp = new LinearLayout.LayoutParams(dp(act, 16), dp(act, 16));
             cLp.leftMargin = dp(act, 8);
             chevron.setLayoutParams(cLp);
             row.addView(chevron);
@@ -425,7 +448,7 @@ public final class SettingsUI {
     private static void playContentEnterAnimation(final LinearLayout col) {
         col.post(() -> {
             final int count = col.getChildCount();
-            final float ty = dp(col.getContext(), 20);
+            final float ty = dp(col.getContext(), 28);
             for (int i = 0; i < count; i++) {
                 View child = col.getChildAt(i);
                 child.setAlpha(0f);
@@ -436,8 +459,8 @@ public final class SettingsUI {
                 child.animate()
                         .alpha(1f)
                         .translationY(0f)
-                        .setDuration(300)
-                        .setStartDelay(i * 50L)
+                        .setDuration(350)
+                        .setStartDelay(i * 60L)
                         .setInterpolator(new AccelerateDecelerateInterpolator())
                         .start();
             }

@@ -116,12 +116,7 @@ public class ChatModeSettingsActivity extends AppCompatActivity {
         myCard.addView(SettingsUI.divider(this));
         myCard.addView(SettingsUI.row(this, R.drawable.ic_s_memory, getString(R.string.memory), null, () ->
                 openActivity(MemorySettingsActivity.class)));
-        myCard.addView(SettingsUI.divider(this));
-        myCard.addView(SettingsUI.row(this, R.drawable.ic_s_sparkle, getString(R.string.subagents_title),
-                getString(R.string.subagents_subtitle), () -> openActivity(SubagentsActivity.class)));
-        myCard.addView(SettingsUI.divider(this));
-        myCard.addView(SettingsUI.row(this, R.drawable.ic_volume, getString(R.string.voice_title),
-                getString(R.string.voice_subtitle), () -> openActivity(VoiceSettingsActivity.class)));
+        // Сабагенты и Голос перенесены в GeneralSettingsActivity (раздел "Общее").
         root.addView(myCard);
 
         // ── Учётная запись ──

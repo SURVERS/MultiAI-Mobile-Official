@@ -1,7 +1,0 @@
-plugins {
-    application
-}
-
-application {
-    mainClass = 'com.test.Main'
-}

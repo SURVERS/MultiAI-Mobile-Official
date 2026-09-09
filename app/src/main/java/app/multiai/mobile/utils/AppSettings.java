@@ -123,7 +123,10 @@ public class AppSettings {
      * Пользовательские инструкции (дополнение к системному промпту на бэкенде)
      */
     public String getUserInstructions() {
-        return prefs.getString(KEY_SYSTEM_PROMPT, "");
+        String value = prefs.getString(KEY_SYSTEM_PROMPT, "");
+        // Служебный маркер синка («fresh-<ts>») не является инструкцией юзера.
+        if (value != null && value.trim().matches("(?i)[a-z]{2,12}-\\d{10,}")) return "";
+        return value;
     }
 
     public void setUserInstructions(String instructions) {
@@ -315,7 +318,10 @@ public class AppSettings {
     }
 
     public String getPersonalizationInstructions() {
-        return prefs.getString(KEY_PERS_INSTRUCTIONS, "");
+        String value = prefs.getString(KEY_PERS_INSTRUCTIONS, "");
+        // Служебный маркер синка («fresh-<ts>») не является инструкцией юзера.
+        if (value != null && value.trim().matches("(?i)[a-z]{2,12}-\\d{10,}")) return "";
+        return value;
     }
 
     public void setPersonalizationInstructions(String text) {

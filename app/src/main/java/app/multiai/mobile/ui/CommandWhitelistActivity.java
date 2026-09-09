@@ -1,17 +1,20 @@
 package app.multiai.mobile.ui;
 
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -60,6 +63,9 @@ public class CommandWhitelistActivity extends AppCompatActivity {
 
     private LinearLayout content;
     private String selectedSessionId;
+    /** 0 = Разрешённые, 1 = Запрещённые, 2 = Сессии (табы как в профиле). */
+    private int currentTab;
+    private TextView[] tabViews;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +73,7 @@ public class CommandWhitelistActivity extends AppCompatActivity {
         if (app.multiai.mobile.utils.AppLockManager.get(this).routeIfLocked(this)) return;
         if (savedInstanceState != null) {
             selectedSessionId = savedInstanceState.getString("selected_session_id");
+            currentTab = savedInstanceState.getInt("current_tab", 0);
         }
 
         SettingsUI.Scaffold scaffold = SettingsUI.createScaffold(
@@ -79,6 +86,7 @@ public class CommandWhitelistActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("selected_session_id", selectedSessionId);
+        outState.putInt("current_tab", currentTab);
     }
 
     @Override
@@ -91,28 +99,112 @@ public class CommandWhitelistActivity extends AppCompatActivity {
     private void render() {
         content.removeAllViews();
 
-        TextView description = new TextView(this);
-        description.setText(R.string.whitelist_screen_description);
-        description.setTextColor(SettingsUI.colorSubtext(this));
-        description.setTextSize(13);
-        description.setLineSpacing(SettingsUI.dp(this, 2), 1f);
-        LinearLayout.LayoutParams descLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        descLp.leftMargin = SettingsUI.dp(this, 20);
-        descLp.rightMargin = SettingsUI.dp(this, 20);
-        descLp.topMargin = SettingsUI.dp(this, 8);
-        description.setLayoutParams(descLp);
-        content.addView(description);
+        // Три вкладки-пилюли как в профиле: Разрешённые | Запрещённые | Сессии.
+        // Каждая показывает свою область правил — без раскрытия «Дополнительно».
+        content.addView(buildTabs());
+        content.addView(SettingsUI.spacer(this, 8));
 
-        addSection(RuleScope.GLOBAL_ALLOW, WorkModeAccess.persistentCommands(this));
-        addSection(RuleScope.GLOBAL_BLOCK, WorkModeAccess.blockedCommands(this));
-
-        SessionOption session = selectedSession();
-        addSessionPicker(session);
-        if (session != null) {
-            addSection(RuleScope.SESSION_ALLOW, WorkModeAccess.sessionCommands(session.id));
+        if (currentTab == 0) {
+            addSection(RuleScope.GLOBAL_ALLOW, WorkModeAccess.persistentCommands(this));
+        } else if (currentTab == 1) {
+            addSection(RuleScope.GLOBAL_BLOCK, WorkModeAccess.blockedCommands(this));
+        } else {
+            SessionOption session = selectedSession();
+            addSessionPicker(session);
+            if (session != null) {
+                addSection(RuleScope.SESSION_ALLOW, WorkModeAccess.sessionCommands(session.id));
+            }
         }
         content.addView(SettingsUI.spacer(this, 24));
+    }
+
+    /** Горизонтальная лента вкладок-пилюль с иконками (паттерн ProfileActivity). */
+    private View buildTabs() {
+        HorizontalScrollView scroller = new HorizontalScrollView(this);
+        scroller.setHorizontalScrollBarEnabled(false);
+        scroller.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        int pad = SettingsUI.dp(this, 16);
+        row.setPadding(pad, SettingsUI.dp(this, 4), pad, SettingsUI.dp(this, 4));
+        scroller.addView(row);
+
+        String[] labels = {
+                getString(R.string.whitelist_section_global),
+                getString(R.string.whitelist_section_blocked),
+                getString(R.string.whitelist_tab_sessions)
+        };
+        int[] icons = {R.drawable.ic_rule_allowed, R.drawable.ic_rule_blocked,
+                R.drawable.ic_rule_sessions};
+        tabViews = new TextView[3];
+        for (int i = 0; i < 3; i++) {
+            final int idx = i;
+            TextView tab = new TextView(this);
+            tab.setText(labels[i]);
+            tab.setTextSize(14);
+            tab.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            tab.setGravity(Gravity.CENTER_VERTICAL);
+            int tp = SettingsUI.dp(this, 15);
+            int tpv = SettingsUI.dp(this, 9);
+            tab.setPadding(tp, tpv, tp, tpv);
+            Drawable icon = ContextCompat.getDrawable(this, icons[i]);
+            if (icon != null) {
+                icon = icon.mutate();
+                int sz = SettingsUI.dp(this, 16);
+                icon.setBounds(0, 0, sz, sz);
+                tab.setCompoundDrawablePadding(SettingsUI.dp(this, 7));
+                tab.setCompoundDrawables(icon, null, null, null);
+            }
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            if (i > 0) lp.leftMargin = SettingsUI.dp(this, 8);
+            tab.setLayoutParams(lp);
+            SettingsUI.attachPressAnimation(tab, 0.96f);
+            tab.setOnClickListener(v -> {
+                if (currentTab != idx) {
+                    currentTab = idx;
+                    render();
+                }
+            });
+            tabViews[i] = tab;
+            row.addView(tab);
+        }
+        restyleTabs();
+        return scroller;
+    }
+
+    /** Красит выбранную вкладку акцентом, остальные — tonal (как в профиле). */
+    private void restyleTabs() {
+        if (tabViews == null) return;
+        int accent = SettingsUI.colorAccent(this);
+        int onAccent = ContextCompat.getColor(this, R.color.icon_on_accent);
+        int secondary = SettingsUI.colorSubtext(this);
+        for (int i = 0; i < tabViews.length; i++) {
+            boolean selected = i == currentTab;
+            GradientDrawable bg = new GradientDrawable();
+            bg.setCornerRadius(SettingsUI.dp(this, 20));
+            bg.setColor(selected ? accent : SettingsUI.colorSurfaceTonal(this));
+            tabViews[i].setBackground(bg);
+            tabViews[i].setTextColor(selected ? onAccent : secondary);
+            Drawable icon = tabViews[i].getCompoundDrawables()[0];
+            if (icon != null) icon.setTint(selected ? onAccent : secondary);
+        }
+    }
+
+    /** Пояснительный абзац в отступах экрана настроек. */
+    private void addLead(String text) {
+        TextView lead = new TextView(this);
+        lead.setText(text);
+        lead.setTextColor(SettingsUI.colorSubtext(this));
+        lead.setTextSize(13);
+        lead.setLineSpacing(SettingsUI.dp(this, 2), 1f);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.leftMargin = SettingsUI.dp(this, 20);
+        lp.rightMargin = SettingsUI.dp(this, 20);
+        lp.topMargin = SettingsUI.dp(this, 8);
+        lead.setLayoutParams(lp);
+        content.addView(lead);
     }
 
     /** Reads every stored Project (Work Mode) chat, then keeps an unsaved current draft visible. */
@@ -276,8 +368,7 @@ public class CommandWhitelistActivity extends AppCompatActivity {
     }
 
     private void addSection(RuleScope scope, List<String> commands) {
-        content.addView(SettingsUI.sectionLabel(this, sectionTitle(scope)));
-
+        // Заголовок секции не показываем — его роль выполняет активная вкладка.
         TextView note = new TextView(this);
         note.setText(sectionNote(scope));
         note.setTextColor(SettingsUI.colorSubtext(this));
@@ -286,6 +377,7 @@ public class CommandWhitelistActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         noteLp.leftMargin = SettingsUI.dp(this, 20);
         noteLp.rightMargin = SettingsUI.dp(this, 20);
+        noteLp.topMargin = SettingsUI.dp(this, 4);
         noteLp.bottomMargin = SettingsUI.dp(this, 10);
         note.setLayoutParams(noteLp);
         content.addView(note);

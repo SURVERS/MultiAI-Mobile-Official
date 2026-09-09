@@ -253,8 +253,17 @@ public class ChatManager {
                         java.io.File f = new java.io.File(dir,
                                 m.ensureImageAttachmentId() + "_" + sanitizeFileName(
                                         m.getImageName() != null ? m.getImageName() : "image.jpg"));
+                        String payload = m.getImageBase64();
+                        java.util.List<String> images = ImageAttachments.unpack(payload);
+                        if (images.size() > 1) {
+                            java.io.File bundle = new java.io.File(dir, m.ensureImageAttachmentId() + ".images.json");
+                            java.nio.file.Files.write(bundle.toPath(), payload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                            m.setImageBundlePath(bundle.getAbsolutePath());
+                        }
                         try (java.io.FileOutputStream fos = new java.io.FileOutputStream(f)) {
-                            fos.write(android.util.Base64.decode(m.getImageBase64(),
+                            String first = images.get(0);
+                            int comma = first.indexOf(','); // strip data URI prefix if present
+                            fos.write(android.util.Base64.decode(comma >= 0 ? first.substring(comma + 1) : first,
                                     android.util.Base64.DEFAULT));
                             m.setImagePath(f.getAbsolutePath());
                             m.setImageBase64(null); // рендер читает из пути
@@ -386,6 +395,20 @@ public class ChatManager {
      * Исключение — чат уже есть в хранилище (update существующего).
      */
     public void updateChat(Chat updatedChat) {
+        updateChatInternal(updatedChat, true);
+    }
+
+    /**
+     * Лёгкий persist во время стриминга: НЕ выгружает вложения на диск и НЕ
+     * гоняет облачный снапшот (оба — тяжёлые base64/IO на каждый чанк).
+     * Только обновляет JSON в prefs. Вызывать из фонового потока.
+     * Тяжёлый updateChat вызывается по завершении хода (onComplete/onError).
+     */
+    public void updateChatLight(Chat updatedChat) {
+        updateChatInternal(updatedChat, false);
+    }
+
+    private void updateChatInternal(Chat updatedChat, boolean heavy) {
         if (updatedChat == null) return;
         // A deleted UUID is never reusable. This also blocks a stale Activity
         // instance from resurrecting a chat after another device deleted it.
@@ -410,11 +433,11 @@ public class ChatManager {
             chats.add(0, updatedChat);
         }
         // Обязательно: base64 в JSON не пишется (ExclusionStrategy) — без
-        // выгрузки на диск вложение терялось бы навсегда.
-        persistAttachmentsToFiles(chats);
+        // выгрузки на диск вложение терялось бы навсегда. Только в heavy-режиме.
+        if (heavy) persistAttachmentsToFiles(chats);
         String json = gson.toJson(chats);
         persistChatsJson(json);
-        syncToCloud();
+        if (heavy) syncToCloud();
     }
 
     /**
@@ -518,10 +541,17 @@ public class ChatManager {
     /** Clear this store and its active-chat pointer. */
     public void clearAllChats() {
         long deletedAt = System.currentTimeMillis();
-        for (Chat chat : loadChats()) recordTombstone(chat.getId(), deletedAt);
-        deleteAttachments(loadChats());
-        persistChatsJson(gson.toJson(new ArrayList<Chat>()));
+        List<Chat> all = loadChats();
+        for (Chat chat : all) recordTombstone(chat.getId(), deletedAt);
+        deleteAttachments(all);
+        // Пишем пустой список и НЕ оставляем пред-снапшот в backup-ключе:
+        // иначе restore-логика loadChats() при любом сбое парса resurrect-ит
+        // только что удалённую историю.
+        prefs.edit().putString(KEY_CHATS, "[]").putString(KEY_CHATS_BACKUP, "").apply();
+        cachedChatsJson = "[]";
+        cachedChats = new ArrayList<>();
         prefs.edit().remove(KEY_ACTIVE_CHAT_ID).apply();
+        app.multiai.mobile.utils.ChatsClearedNotifier.notifyCleared();
         syncToCloud();
     }
 
@@ -607,6 +637,7 @@ public class ChatManager {
                     org.json.JSONObject message = messages.optJSONObject(j);
                     if (message == null) continue;
                     String imagePath = message.optString("imagePath", "");
+                    boolean imageInlined = false;
                     if (!imagePath.isEmpty() && remainingBytes > 0) {
                         byte[] image = readPrivateAttachment(imagePath,
                                 Math.min(MAX_CLOUD_ATTACHMENT_BYTES, remainingBytes));
@@ -614,6 +645,7 @@ public class ChatManager {
                             try {
                                 message.put("imageBase64", android.util.Base64.encodeToString(
                                         image, android.util.Base64.NO_WRAP));
+                                imageInlined = true;
                             } catch (Exception ignored) {
                                 image = null;
                             }
@@ -622,7 +654,25 @@ public class ChatManager {
                             remainingBytes -= image.length;
                         }
                     }
+                    // If the picture did not fit the cloud budget, KEEP the
+                    // device-local path: stripping it here would let the
+                    // startup cloud-merge wipe the image from this device.
+                    if (imageInlined) {
+                        message.remove("imagePath");
+                    }
+                    String bundlePath = message.optString("imageBundlePath", "");
+                    if (!bundlePath.isEmpty() && remainingBytes > 0) {
+                        byte[] bundle = readPrivateAttachment(bundlePath, Math.min(MAX_CLOUD_ATTACHMENT_BYTES, remainingBytes));
+                        if (bundle != null) {
+                            try {
+                                message.put("imageBase64", new String(bundle, java.nio.charset.StandardCharsets.UTF_8));
+                                message.remove("imageBundlePath");
+                                remainingBytes -= bundle.length;
+                            } catch (Exception ignored) { }
+                        }
+                    }
                     String filePath = message.optString("attachedFilePath", "");
+                    boolean fileInlined = false;
                     if (!filePath.isEmpty() && remainingBytes > 0) {
                         byte[] file = readPrivateAttachment(filePath,
                                 Math.min(MAX_CLOUD_ATTACHMENT_BYTES, remainingBytes));
@@ -630,6 +680,7 @@ public class ChatManager {
                             try {
                                 message.put("attachedFileContent",
                                         new String(file, java.nio.charset.StandardCharsets.UTF_8));
+                                fileInlined = true;
                             } catch (Exception ignored) {
                                 file = null;
                             }
@@ -638,8 +689,11 @@ public class ChatManager {
                             remainingBytes -= file.length;
                         }
                     }
-                    message.remove("imagePath");
-                    message.remove("attachedFilePath");
+                    // Same as images: keep the local path when inlining failed,
+                    // so a cloud merge cannot erase the attachment locally.
+                    if (fileInlined) {
+                        message.remove("attachedFilePath");
+                    }
                 }
             }
             safe.put(chat);

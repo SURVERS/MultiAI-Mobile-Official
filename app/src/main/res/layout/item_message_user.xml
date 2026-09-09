@@ -108,6 +108,7 @@
             android:visibility="visible"
             android:textColor="@color/user_bubble_text"
             android:textSize="15sp"
+            android:textIsSelectable="true"
             android:lineSpacingExtra="3dp" />
 
     </LinearLayout>

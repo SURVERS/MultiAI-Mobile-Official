@@ -166,7 +166,9 @@
     <string name="scr_sec_link_device_desc">Сканировать QR-код с Desktop IDE для входа.</string>
     <string name="scr_sec_link_scan_title">Сканировать QR-код</string>
     <string name="scr_sec_link_scan_hint">Наведите камеру на QR-код в MultiAI Desktop IDE</string>
-    <string name="scr_sec_link_confirm_title">Подключить Desktop?</string>
+    <string name="scr_sec_flashlight">Фонарик</string>
+    <string name="scr_sec_link_confirm_title">Desktop</string>
+    <string name="scr_sec_link_confirm_named_title">Desktop %1$s</string>
     <string name="scr_sec_link_confirm_desc">Подтвердите вход на Desktop IDE. Будет передан ваш доступ к MultiAI.</string>
     <string name="scr_sec_link_confirm_action">Подключить</string>
     <string name="scr_sec_link_success">Устройство подключено: %1$s</string>
@@ -176,6 +178,56 @@
     <string name="scr_sec_link_err_network">Ошибка сети. Проверьте подключение.</string>
     <string name="scr_sec_link_err_unknown">Не удалось подключить устройство</string>
     <string name="scr_sec_link_cancelled">Сканирование отменено</string>
+
+    <!-- ═════════ OAuth devices and sessions ═════════ -->
+    <string name="scr_sec_devices_title">Устройства</string>
+    <string name="scr_sec_devices_desc">Активные входы, география и управление сеансами MultiAI.</string>
+    <string name="scr_sec_devices_refresh">Обновить список</string>
+    <string name="scr_sec_devices_loading">Загружаем активные сеансы…</string>
+    <string name="scr_sec_devices_empty">Активных устройств не найдено</string>
+    <string name="scr_sec_devices_load_error">Не удалось загрузить устройства</string>
+    <string name="scr_sec_devices_link_title">Подключить устройство</string>
+    <string name="scr_sec_devices_link_desc">Открой MultiAI Desktop и отсканируй QR-код с экрана входа.</string>
+    <string name="scr_sec_devices_link_action">Сканировать QR-код</string>
+    <string name="scr_sec_devices_current_section">Это устройство</string>
+    <string name="scr_sec_devices_management_section">Управление сеансами</string>
+    <string name="scr_sec_devices_revoke_others">Завершить все другие сеансы</string>
+    <string name="scr_sec_devices_revoke_others_desc">Текущий сеанс останется активным.</string>
+    <string name="scr_sec_devices_revoke_others_title">Завершить другие сеансы?</string>
+    <string name="scr_sec_devices_revoke_others_message">Все другие устройства потеряют доступ к аккаунту MultiAI. Это устройство останется подключено.</string>
+    <string name="scr_sec_devices_revoked_others">Завершено сеансов: %1$d</string>
+    <string name="scr_sec_devices_revoke_others_error">Не удалось завершить другие сеансы</string>
+    <string name="scr_sec_devices_active_section">Активные сеансы</string>
+    <string name="scr_sec_devices_no_other_sessions">Других активных сеансов нет</string>
+    <string name="scr_sec_devices_current_unknown">Сервер не указал текущее устройство, поэтому завершение сеансов временно отключено.</string>
+    <string name="scr_sec_devices_feature_unavailable">Функция появится после обновления сервера</string>
+    <string name="scr_sec_devices_auto_terminate_section">Автозавершение сеансов</string>
+    <string name="scr_sec_devices_auto_terminate">Завершать неактивные сеансы</string>
+    <string name="scr_sec_devices_auto_terminate_value">Через %1$d дн.</string>
+    <string name="scr_sec_devices_auto_terminate_picker">Срок неактивности</string>
+    <string name="scr_sec_devices_auto_terminate_saved">Срок изменён: %1$d дн.</string>
+    <string name="scr_sec_devices_auto_terminate_error">Не удалось изменить срок</string>
+    <string name="scr_sec_devices_platforms_hint">Официальные приложения MultiAI доступны для Android и Windows.</string>
+    <string name="scr_sec_device_detail_app_hint">Приложение</string>
+    <string name="scr_sec_device_detail_location_hint">Геопозиция по IP-адресу</string>
+    <string name="scr_sec_device_unknown">Неизвестное устройство</string>
+    <string name="scr_sec_device_unknown_value">Неизвестно</string>
+    <string name="scr_sec_device_just_now">только что</string>
+    <string name="scr_sec_device_current">Текущее устройство</string>
+    <string name="scr_sec_device_online">В сети</string>
+    <string name="scr_sec_device_activity_unknown">Активность неизвестна</string>
+    <string name="scr_sec_device_last_used">Активность: %1$s</string>
+    <string name="scr_sec_device_detail_application">Приложение</string>
+    <string name="scr_sec_device_detail_platform">Платформа</string>
+    <string name="scr_sec_device_detail_location">Местоположение</string>
+    <string name="scr_sec_device_detail_created">Первый вход</string>
+    <string name="scr_sec_device_detail_last_active">Последняя активность</string>
+    <string name="scr_sec_device_revoke">Завершить сеанс</string>
+    <string name="scr_sec_device_revoke_title">Завершить сеанс?</string>
+    <string name="scr_sec_device_revoke_message">Устройство «%1$s» потеряет доступ к MultiAI.</string>
+    <string name="scr_sec_device_revoke_current_message">Текущий сеанс нельзя завершить с этого экрана.</string>
+    <string name="scr_sec_device_revoked">Сеанс завершён</string>
+    <string name="scr_sec_device_revoke_error">Не удалось завершить сеанс</string>
 
     <!-- ═════════ EditorActivity ═════════ -->
     <string name="scr_editor_title">Редактор</string>
@@ -209,6 +261,7 @@
     <string name="scr_pdf_page_preview"> · превью страницы 1</string>
     <string name="scr_pdf_render_error">Не удалось отрисовать PDF: %1$s</string>
     <string name="scr_apk_preparing">Подготовка APK...</string>
+    <string name="scr_term_app_install_usage">Использование: app install &lt;путь_к_файлу.apk&gt;</string>
     <string name="scr_create_dir_error">Не удалось создать каталог</string>
     <string name="scr_open_read_stream_error">Не удалось открыть поток чтения</string>
     <string name="scr_installer_open_error">Не удалось открыть установщик: %1$s</string>
@@ -262,6 +315,8 @@
     <!-- ═════════ TerminalActivity ═════════ -->
     <string name="scr_term_storage_request">Пожалуйста, разрешите доступ ко всем файлам</string>
     <string name="scr_term_starting_shell">Запускаем shell…</string>
+    <string name="scr_term_lib_update">Обновление библиотек. %1$s: %2$s</string>
+    <string name="scr_term_lib_updated">Библиотеки обновлены: %1$s</string>
     <string name="scr_term_tools_title">Инструменты терминала</string>
     <string name="scr_term_tools_subtitle">Устанавливайте и удаляйте модули</string>
     <string name="scr_term_basic_shell">Базовый shell</string>
@@ -331,7 +386,7 @@
     <string name="scr_logout_dialog_title">Выйти из MultiAI?</string>
     <string name="scr_logout_dialog_message">История чатов и настройки останутся на устройстве.</string>
     <string name="scr_data_export">Экспорт данных</string>
-    <string name="scr_data_export_msg">Запрос отправит архив на привязанный e-mail. Если e-mail нет, архив придёт в привязанный Telegram через бота.</string>
+    <string name="scr_data_export_msg">Экспорт данных пока недоступен. Запрос не отправлен, архив не создан.</string>
     <string name="scr_data_export_requested">Запрос отправлен</string>
     <string name="scr_data_archive_confirm_title">Архивировать все чаты?</string>
     <string name="scr_data_archive_confirm_msg">Активные чаты из режимов «Проект» и «Чат» будут перемещены в архив. Их можно восстановить в любой момент.</string>

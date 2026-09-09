@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_embedding_not_chat">Это эмбеддинг-модель: она работает только через /v1/embeddings и не поддерживает чат. Выберите другую модель.</string>
+    <string name="embed_summary">🧩 Эмбеддинг · %1$s\nВход: «%2$s»\nРазмерность: %3$s\nНорма: %4$s\nПервые значения: %5$s</string>
+    <string name="embed_input_tokens">Входные токены: %1$d</string>
+    <string name="embed_failed">Не удалось получить эмбеддинг: %1$s</string>
+    <string name="update_dialog_title">Доступно новое обновление!</string>
+    <string name="update_dialog_version">Версия: %1$s · Тип: %2$s</string>
+    <string name="update_type_major">мажор</string>
+    <string name="update_type_minor">минор</string>
+    <string name="update_not_now">Не сейчас</string>
+    <string name="update_install">Установить</string>
+    <string name="update_downloading">Скачиваем обновление…</string>
+    <string name="update_download_failed">Не удалось скачать обновление — открываем страницу релизов</string>
+    <string name="update_unsupported">Версия не поддерживается. Обновись до актуальной версии.</string>
+    <string name="mc_source_multiai">MultiAI</string>
+    <string name="oauth_missing_scopes">Не хватает OAuth-разрешений: %1$s</string>
+    <string name="promo_error_invalid">Промокод не найден. Проверь написание и условия акции.</string>
+    <string name="promo_error_expired">Срок действия промокода истёк.</string>
+    <string name="promo_error_limit">Лимит активаций промокода исчерпан.</string>
+    <string name="promo_error_network">Не удалось связаться с сервером. Проверь интернет. Если запрос уже дошёл до сервера, начисление могло пройти — сначала проверь баланс.</string>
+    <string name="promo_error_unknown">Сервер не подтвердил активацию. Подробности ниже.</string>
+    <string name="embedding_chat_unavailable">Embedding-модели не поддерживают чат. Выбери другую модель.</string>
+    <string name="scr_term_lib_update">Обновление библиотек. %1$s: %2$s</string>
+    <string name="scr_term_lib_updated">Библиотеки обновлены: %1$s</string>
+    <string name="chat_workflow_stopped">Остановлено · %1$s</string>
+    <string name="update_show_more">Развернуть</string>
+    <string name="update_show_less">Свернуть</string>
+</resources>

@@ -4,13 +4,13 @@
     <color name="bg">#FF000000</color>
     <color name="surface">#FF080808</color>
     <color name="surface_elevated">#FF121212</color>
-    <color name="surface_card">#FF171717</color>
+    <color name="surface_card">#FF1A1A1A</color>
     <color name="surface_tonal">#FF222222</color>
-    <color name="divider">#FF292929</color>
+    <color name="divider">#FF242424</color>
     <color name="ripple">#29FFFFFF</color>
-    <color name="stroke">#FF353535</color>
-    <color name="shadow_ambient">#5C000000</color>
-    <color name="shadow_spot">#7A000000</color>
+    <color name="stroke">#FF303030</color>
+    <color name="shadow_ambient">#50000000</color>
+    <color name="shadow_spot">#6A000000</color>
     <color name="ambient_glow">#08FFFFFF</color>
 
     <color name="text_primary">#FFF7F7F8</color>
@@ -47,6 +47,18 @@
     <color name="error_text_muted">#FFF87171</color>
     <color name="success">#FF34D399</color>
     <color name="success_bg">#FF0B2A1F</color>
+
+    <!-- Информативная карточка ошибки: тёмная нейтральная поверхность (референс
+         CLI-карточки: #1B1B1D с бордером и серым моноширинным блоком). -->
+    <color name="error_card_bg">#FF1B1B1D</color>
+    <color name="error_card_border">#FF2E2E31</color>
+    <color name="error_card_text">#FFF4F4F5</color>
+    <color name="error_card_muted">#FFA1A1AA</color>
+    <color name="error_card_accent">#FFD4D4D8</color>
+    <color name="error_technical_bg">#FF111112</color>
+    <color name="error_chip_bg">#FF262629</color>
+    <color name="error_accent_soft_bg">#33F04444</color>
+    <color name="error_accent_soft_border">#66F04444</color>
 
     <!-- Chat Mode thinking-card test palette. -->
     <color name="thinking_card">#FF101011</color>

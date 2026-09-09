@@ -249,6 +249,42 @@ public final class TerminalPackageManager {
         }
     }
 
+    /**
+     * Ищет установленные пакеты, чья версия в манифесте новее установленной.
+     * Используется для тихого автообновления при входе в терминал.
+     */
+    public List<PackageSpec> findOutdated(List<PackageSpec> manifest) {
+        List<PackageSpec> outdated = new ArrayList<>();
+        for (PackageSpec spec : manifest) {
+            if (!isPackageInstalled(spec.id)) continue;
+            if (!isCurrent(spec)) outdated.add(spec);
+        }
+        return outdated;
+    }
+
+    /**
+     * Тихое автообновление: качает свежий манифест и переустанавливает
+     * устаревшие пакеты (без вопросов). Возвращает имена обновлённых
+     * пакетов или null, если обновлять было нечего/не удалось.
+     * Вызывается из фонового потока.
+     */
+    public List<String> autoUpdateOutdated(ProgressListener listener) {
+        try {
+            List<PackageSpec> manifest = loadManifest();
+            List<PackageSpec> outdated = findOutdated(manifest);
+            if (outdated.isEmpty()) return null;
+            Set<String> ids = new HashSet<>();
+            for (PackageSpec spec : outdated) ids.add(spec.id);
+            install(manifest, ids, listener);
+            List<String> names = new ArrayList<>();
+            for (PackageSpec spec : outdated) names.add(spec.name);
+            return names;
+        } catch (Exception e) {
+            // Автообновление не критично: терминал работает на старых версиях.
+            return null;
+        }
+    }
+
     public Map<String, PackageSpec> indexById(List<PackageSpec> specs) {
         Map<String, PackageSpec> index = new LinkedHashMap<>();
         for (PackageSpec spec : specs) index.put(spec.id, spec);
@@ -348,9 +384,25 @@ public final class TerminalPackageManager {
     }
 
     private File download(PackageSpec spec, ProgressListener listener) throws Exception {
+        // Очищаем УСТАРЕВШИЕ частичные/полные архивы этого пакета (от прошлой
+        // версии/хэша): иначе resume по Range дописывал новые байты в конец
+        // СТАРОГО зипа → SHA-256 mismatch навсегда, пока не удалишь вручную.
+        File[] stale = downloadsDir.listFiles((dir, name) ->
+                name.startsWith(spec.id + "-") && (name.endsWith(".zip") || name.endsWith(".zip.part")));
+        if (stale != null) {
+            String keep = spec.id + "-" + spec.version + ".zip.part";
+            for (File f : stale) {
+                if (!f.getName().equals(keep) && !f.delete()) f.deleteOnExit();
+            }
+        }
         File partial = new File(downloadsDir, spec.id + "-" + spec.version + ".zip.part");
         File complete = new File(downloadsDir, spec.id + "-" + spec.version + ".zip");
         long offset = partial.exists() ? partial.length() : 0;
+        // Защита от битого resume: если partial крупнее ожидаемого архива — с нуля.
+        if (spec.downloadBytes > 0 && offset > spec.downloadBytes) {
+            if (!partial.delete()) partial.deleteOnExit();
+            offset = 0;
+        }
         String resolvedUrl = spec.url == null || spec.url.isEmpty()
                 ? DOWNLOAD_URL + "?package=" + spec.id + "&version=" + spec.version + "&abi=arm64-v8a"
                 : spec.url;
@@ -417,10 +469,17 @@ public final class TerminalPackageManager {
         StringBuilder actual = new StringBuilder();
         for (byte value : digest.digest()) actual.append(String.format(Locale.US, "%02x", value));
         if (!actual.toString().equalsIgnoreCase(spec.sha256)) {
+            // Логируем оба хэша + откуда качали — для полевой отладки CDN-кэша.
+            app.multiai.mobile.utils.DebugFileLog.log("PkgSHA",
+                    "MISMATCH " + spec.id + " expected=" + spec.sha256
+                            + " actual=" + actual + " url=" + spec.url
+                            + " bytes=" + archive.length());
             //noinspection ResultOfMethodCallIgnored
             archive.delete();
             throw new SecurityException("SHA-256 mismatch for " + spec.name);
         }
+        app.multiai.mobile.utils.DebugFileLog.log("PkgSHA",
+                "ok " + spec.id + " sha=" + actual);
     }
 
     private void extractZipSafely(File archive, PackageSpec spec, ProgressListener listener) throws Exception {
@@ -499,23 +558,55 @@ public final class TerminalPackageManager {
         for (String command : spec.commands) {
             File binary = manager.resolveCommand(command);
             if (binary == null || !binary.exists() || binary.length() == 0) {
+                app.multiai.mobile.utils.DebugFileLog.log("PkgValidate",
+                        "FAILED " + spec.id + ": " + command + " missing after install");
                 throw new IllegalStateException("Command validation failed: " + command);
             }
+        }
+        // node: npx/npm обязаны быть исполняемыми обёртками (first-run fix).
+        if ("node".equals(spec.id)) {
+            for (String wrapper : new String[]{"npx", "npm"}) {
+                File file = new File(manager.getToolsDir(), "node/" + wrapper);
+                if (!file.isFile()) {
+                    app.multiai.mobile.utils.DebugFileLog.log("PkgValidate",
+                            "FAILED node: " + wrapper + " wrapper missing");
+                    throw new IllegalStateException("Command validation failed: " + wrapper);
+                }
+                if (!file.canExecute()) {
+                    // Wrappers are rewritten by ToolsManager; force the bit back on
+                    // if this device's filesystem lost it (some OEM /data mounts).
+                    //noinspection ResultOfMethodCallIgnored
+                    file.setExecutable(true, false);
+                    if (!file.canExecute()) {
+                        app.multiai.mobile.utils.DebugFileLog.log("PkgValidate",
+                                "FAILED node: " + wrapper + " wrapper not executable");
+                        throw new IllegalStateException("Command validation failed: " + wrapper);
+                    }
+                }
+            }
+            app.multiai.mobile.utils.DebugFileLog.log("PkgValidate",
+                    "ok node: npx/npm wrappers present and executable");
         }
     }
 
     private void validateInstalled(Map<String, PackageSpec> manifest, Set<String> installed) throws Exception {
         ToolsManager manager = new ToolsManager(context);
         manager.initializeEnvironment();
+        List<String> missing = new ArrayList<>();
         for (String id : installed) {
             PackageSpec spec = manifest.get(id);
             if (spec == null || spec.commands.isEmpty()) continue;
             for (String command : spec.commands) {
                 File binary = manager.resolveCommand(command);
                 if (binary == null || !binary.exists() || binary.length() == 0) {
-                    throw new IllegalStateException("Command validation failed: " + command);
+                    missing.add(spec.name + ": " + command);
                 }
             }
+        }
+        // Не валим всю установку из-за одного отсутствующего бинаря (apksigner и др.
+        // могли не распаковаться на конкретном ABI) — собираем warning, модуль ставится.
+        if (!missing.isEmpty()) {
+            android.util.Log.w("TerminalPkg", "Some commands failed validation (soft): " + missing);
         }
     }
 
@@ -616,7 +707,7 @@ public final class TerminalPackageManager {
         switch (id) {
             case "runtime": return "c39a16adbe11a4e18ee173f8a840d74c3d3ddbe7d707364f984a1baf3a319a0c";
             case "python": return "6041ca3bc09d32efbecccd4f971d1104771a3c86e51a32791534b4fec6b7453f";
-            case "node": return "e645733a71c50f3e3e12ee3d81282c0e7a84c2af79ce28cc983d3f9d8997c05c";
+            case "node": return "d6f7243f519430eb77788e3cf090a7e0d7d3c98102b41e13257c379072fc18ea";
             case "git": return "5c79129716e787e6acf626af88c3751cf363dd244bbe09f52ce1b36d57ca9044";
             case "curl": return "b13afd21f41f324e6012f60db9c275625a7a97188956962a203c325060ab2b14";
             case "java": return "b5805b4c28c84ae1b124d2ac1dad9cddf46a13a87a4a43914641ada51db2ea32";
@@ -639,9 +730,11 @@ public final class TerminalPackageManager {
                 "6041ca3bc09d32efbecccd4f971d1104771a3c86e51a32791534b4fec6b7453f",
                 Collections.singletonList("runtime"),
                 Arrays.asList("python", "pip", "clang"), false));
-        addFallback(result, spec("node", "Node.js", "Node.js + npm + npx", 20619922, 59297757,
-                "e645733a71c50f3e3e12ee3d81282c0e7a84c2af79ce28cc983d3f9d8997c05c",
-                Collections.singletonList("runtime"), Arrays.asList("node", "npm", "npx"), false));
+        // node тянет git как зависимость: npx skills add / npm install <git-url>
+        // не работают без git, а AI ставит скиллы через них.
+        addFallback(result, spec("node", "Node.js", "Node.js + npm + npx", 20697229, 59612765,
+                "d6f7243f519430eb77788e3cf090a7e0d7d3c98102b41e13257c379072fc18ea",
+                Arrays.asList("runtime", "git"), Arrays.asList("node", "npm", "npx"), false));
         addFallback(result, spec("git", "Git", "Git + HTTPS certificates", 12577555, 23943844,
                 "5c79129716e787e6acf626af88c3751cf363dd244bbe09f52ce1b36d57ca9044",
                 Collections.singletonList("runtime"), Collections.singletonList("git"), false));

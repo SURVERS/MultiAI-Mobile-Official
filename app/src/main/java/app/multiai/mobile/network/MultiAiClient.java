@@ -31,6 +31,7 @@ import app.multiai.mobile.network.oauth.OAuthSession;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -134,6 +135,8 @@ public class MultiAiClient {
     public String getEffort() { return effort; }
     public void setWorkModeToolsEnabled(boolean enabled) { this.workModeToolsEnabled = enabled; }
     public void setMemoryToolsEnabled(boolean enabled) { this.memoryToolsEnabled = enabled; }
+    public boolean isWorkModeToolsEnabled() { return workModeToolsEnabled; }
+    public boolean isMemoryToolsEnabled() { return memoryToolsEnabled; }
     public void setToolAllowlist(Collection<String> toolNames) {
         this.toolAllowlist = toolNames == null ? null : new HashSet<>(toolNames);
     }
@@ -166,6 +169,10 @@ public class MultiAiClient {
      */
     public List<app.multiai.mobile.models.ModelInfo> fetchModelCatalog(String accessToken) {
         List<app.multiai.mobile.models.ModelInfo> result = new ArrayList<>();
+        // Обязательное обновление: пока грейс 3 дня не истёк, каталог не грузим.
+        if (app.multiai.mobile.utils.UpdateManager.isUnsupportedBlocked(app.multiai.mobile.MultiAIApp.APP)) {
+            return result;
+        }
         if (accessToken == null || accessToken.isEmpty()) {
             // Рестарт процесса: рефрешим сами — модели не должны ждать профиль.
             app.multiai.mobile.network.oauth.TokenRefresher.refreshBlocking(
@@ -217,7 +224,12 @@ public class MultiAiClient {
             if (id.isEmpty()) continue;
             // ma-* — алиасы для Cursor IDE, в мобильном приложении не показываем
             if (id.startsWith("ma-")) continue;
-            result.add(new app.multiai.mobile.models.ModelInfo(m));
+            String lower = id.toLowerCase(java.util.Locale.ROOT);
+            // Аудио/транскрипт-модели — не чат-модели, скрываем
+            if (lower.contains("transcribe") || lower.contains("-tts") || lower.endsWith("-audio")) continue;
+            app.multiai.mobile.models.ModelInfo info = new app.multiai.mobile.models.ModelInfo(m);
+            if ("embedding".equals(info.modelKind) || CustomProviderClient.isEmbeddingModelId(id)) continue;
+            result.add(info);
         }
         return result;
     }
@@ -357,6 +369,14 @@ public class MultiAiClient {
                                            StreamCallback callback, String accessToken,
                                            long generation) {
         if (generation != cancelGeneration.get()) return;
+        // Обязательное обновление: чат заблокирован до установки актуальной версии.
+        if (app.multiai.mobile.utils.UpdateManager.isUnsupportedBlocked(app.multiai.mobile.MultiAIApp.APP)) {
+            mainHandler.post(() -> callback.onError(app.multiai.mobile.network.MultiAiError.local(
+                    "unsupported_version",
+                    app.multiai.mobile.utils.UpdateManager.unsupportedMessage(
+                            app.multiai.mobile.MultiAIApp.APP)).toWireString()));
+            return;
+        }
         String requestJson = body.toString();
         if (requestJson.length() > MAX_REQUEST_CHARS) {
             mainHandler.post(() -> callback.onError(MultiAiError.limit("request_too_large",
@@ -766,9 +786,10 @@ public class MultiAiClient {
         if (imageBase64 != null && !imageBase64.isEmpty()) {
             JSONArray contentParts = new JSONArray();
             contentParts.put(new JSONObject().put("type", "text").put("text", userMessage));
-            contentParts.put(new JSONObject()
-                    .put("type", "image_url")
-                    .put("image_url", new JSONObject().put("url", "data:image/jpeg;base64," + imageBase64)));
+            for (String image : app.multiai.mobile.utils.ImageAttachments.unpack(imageBase64)) {
+                contentParts.put(new JSONObject().put("type", "image_url")
+                        .put("image_url", new JSONObject().put("url", "data:image/jpeg;base64," + image)));
+            }
             userMsg.put("content", contentParts);
         } else {
             userMsg.put("content", userMessage);
@@ -1449,15 +1470,16 @@ public class MultiAiClient {
             Iterator<String> it = obj.keys();
             while (it.hasNext()) {
                 String key = it.next();
-                map.put(key, obj.optString(key, ""));
+                if (!obj.isNull(key)) map.put(key, obj.optString(key, ""));
             }
-        } catch (Exception ignored) {
+        } catch (Exception invalidArguments) {
+            map.put("__invalid_tool_arguments", "Malformed JSON arguments; no operation was executed");
         }
         return map;
     }
 
     /** Common tools plus project filesystem/shell tools when Work Mode owns this client. */
-    private JSONArray buildToolsSchema(ToolPolicy toolPolicy) {
+    public JSONArray buildToolsSchema(ToolPolicy toolPolicy) {
         JSONArray tools = new JSONArray();
         ToolPolicy effectivePolicy = toolPolicy == null ? ToolPolicy.FULL : toolPolicy;
         boolean planReadOnly = effectivePolicy == ToolPolicy.PLAN_READ_ONLY;
@@ -1541,6 +1563,14 @@ public class MultiAiClient {
                         objectSchema(properties(
                                 "pattern", stringProp("Glob such as *.java, **/build.gradle, or MainActivity.java"),
                                 "path", stringProp("Optional project-relative directory")), "pattern")));
+                // Read-only skill body access: the catalog and './slug' only carry
+                // metadata, the full SKILL.md is fetched on demand through this tool.
+                tools.put(toolFunction("read_skill",
+                        "Read the full SKILL.md body of an installed skill by its slug from the AVAILABLE SKILLS catalog. "
+                                + "Returns the instruction text (frontmatter stripped) as a tool result; no shell, no arbitrary paths",
+                        objectSchema(properties(
+                                "slug", stringProp("Exact skill slug from the AVAILABLE SKILLS catalog, for example banner-design")),
+                                "slug")));
 
                 if (planReadOnly) {
                     tools.put(toolFunction("execute_command", "Run a shell command in the selected project using the installed mobile toolchain. The normal Work Mode command approval flow still applies",
@@ -1646,11 +1676,11 @@ public class MultiAiClient {
 
     // ═══════════════════════════════════════════════════════════════
     // DEVICE LINKING (QR → Desktop IDE)
-    // See qr-link-tz.md §3. Mobile scans Desktop's QR, confirms via
-    // the user's access_token, backend issues a long-lived Desktop key.
+    // Mobile proves the scan with the user's OAuth access token;
+    // Desktop alone owns poll_token and receives the confirmed OAuth pair.
     // ═══════════════════════════════════════════════════════════════
 
-    /** Result of a QR device-link confirmation. */
+    /** Result of a QR device-link action. */
     public static final class DeviceLinkResult {
         public final boolean ok;
         public final String linkedDevice;
@@ -1671,40 +1701,66 @@ public class MultiAiClient {
         }
     }
 
-    /**
-     * Confirms a Desktop device-linking session scanned from a QR code.
-     * Runs on a background thread; calls back on the main thread.
-     *
-     * @param sessionId  from QR payload ({@code session} param)
-     * @param nonce      from QR payload ({@code nonce} param)
-     * @param hmac       from QR payload ({@code hmac} param)
-     * @param deviceName human-readable name of the mobile device (sent to backend)
-     * @param callback   invoked on the main thread with {@link DeviceLinkResult}
-     */
-    public void confirmDeviceLink(String sessionId, String nonce, String hmac,
-                                  String deviceName,
+    /** Marks a displayed and accepted QR as scanned with the captured Mobile token. */
+    public void markDeviceLinkScanned(String accessToken, String sessionId,
+                                      String nonce, String hmac,
+                                      final java.util.function.Consumer<DeviceLinkResult> callback) {
+        postDeviceLinkAction("scanned", accessToken, sessionId, nonce, hmac, callback);
+    }
+
+    /** Cancels a pending/scanned QR session with the same Mobile token and proof. */
+    public void cancelDeviceLink(String accessToken, String sessionId,
+                                 String nonce, String hmac,
+                                 final java.util.function.Consumer<DeviceLinkResult> callback) {
+        postDeviceLinkAction("cancel", accessToken, sessionId, nonce, hmac, callback);
+    }
+
+    /** Confirms the QR with exactly the same captured Mobile token used for /scanned. */
+    public void confirmDeviceLink(String accessToken, String sessionId,
+                                  String nonce, String hmac,
                                   final java.util.function.Consumer<DeviceLinkResult> callback) {
-        String accessToken = OAuthSession.get().getAccessToken();
+        postDeviceLinkAction("confirm", accessToken, sessionId, nonce, hmac, callback);
+    }
+
+    /** All actions intentionally receive exactly {nonce, hmac}; never poll_token/device_name. */
+    private void postDeviceLinkAction(String action, String accessToken, String sessionId,
+                                      String nonce, String hmac,
+                                      final java.util.function.Consumer<DeviceLinkResult> callback) {
         if (accessToken == null || accessToken.trim().isEmpty()) {
             mainHandler.post(() -> callback.accept(DeviceLinkResult.error("unauthorized")));
             return;
         }
+        if (sessionId == null || sessionId.trim().isEmpty()
+                || nonce == null || nonce.isEmpty()
+                || hmac == null || hmac.isEmpty()) {
+            mainHandler.post(() -> callback.accept(DeviceLinkResult.error("invalid_qr")));
+            return;
+        }
+
         AUTH_EXECUTOR.execute(() -> {
             try {
                 JSONObject body = new JSONObject();
-                body.put("nonce", nonce == null ? "" : nonce);
-                body.put("hmac", hmac == null ? "" : hmac);
-                body.put("device_name", deviceName == null ? "" : deviceName);
+                body.put("nonce", nonce);
+                body.put("hmac", hmac);
 
+                String url = okhttp3.HttpUrl.get(BASE_URL).newBuilder()
+                        .addPathSegments("v1/device/link")
+                        .addPathSegment(sessionId)
+                        .addPathSegment(action)
+                        .build()
+                        .toString();
                 Request request = new Request.Builder()
-                        .url(BASE_URL + "/v1/device/link/" + sessionId + "/confirm")
+                        .url(url)
                         .header("Authorization", "Bearer " + accessToken)
                         .header("Content-Type", "application/json")
                         .post(RequestBody.create(body.toString(), JSON))
                         .build();
                 try (Response response = client.newCall(request).execute()) {
                     String raw = response.body() != null ? response.body().string() : "";
-                    if (response.code() == 401) {
+                    // Diagnostics per integration contract: HTTP status + JSON body only.
+                    // raw may contain linked_device, never tokens — safe to log.
+                    android.util.Log.i("DeviceLink", action + " → HTTP " + response.code() + " " + raw);
+                    if (response.code() == 401 || response.code() == 403) {
                         mainHandler.post(() -> callback.accept(DeviceLinkResult.error("unauthorized")));
                         return;
                     }
@@ -1712,27 +1768,291 @@ public class MultiAiClient {
                         mainHandler.post(() -> callback.accept(DeviceLinkResult.error("session_expired")));
                         return;
                     }
-                    if (response.code() == 400) {
+                    if (response.code() == 400 || response.code() == 404
+                            || response.code() == 409) {
                         mainHandler.post(() -> callback.accept(DeviceLinkResult.error("invalid_qr")));
                         return;
                     }
                     if (!response.isSuccessful()) {
-                        mainHandler.post(() -> callback.accept(DeviceLinkResult.error("http_" + response.code())));
+                        mainHandler.post(() -> callback.accept(
+                                DeviceLinkResult.error("http_" + response.code())));
                         return;
                     }
                     JSONObject parsed = new JSONObject(raw);
-                    boolean ok = parsed.optBoolean("ok", false);
-                    if (ok) {
+                    if (parsed.optBoolean("ok", false)) {
                         String linked = parsed.optString("linked_device", "");
                         mainHandler.post(() -> callback.accept(DeviceLinkResult.ok(linked)));
                     } else {
-                        String err = parsed.optString("error", "unknown");
-                        mainHandler.post(() -> callback.accept(DeviceLinkResult.error(err)));
+                        String error = parsed.optString("error", "unknown");
+                        mainHandler.post(() -> callback.accept(DeviceLinkResult.error(error)));
                     }
                 }
-            } catch (Exception e) {
+            } catch (Exception ignored) {
                 mainHandler.post(() -> callback.accept(DeviceLinkResult.error("network_error")));
             }
         });
+    }
+
+    // ══════════════════ IMAGE GENERATION (/v1/images/generations) ══════════════════
+
+    /** Result of an image-generation request. */
+    public static final class ImageGenResult {
+        public final boolean ok;
+        public final String imageBase64; // PNG data (no data: prefix)
+        public final String error;
+
+        private ImageGenResult(boolean ok, String imageBase64, String error) {
+            this.ok = ok;
+            this.imageBase64 = imageBase64;
+            this.error = error;
+        }
+
+        static ImageGenResult ok(String b64) { return new ImageGenResult(true, b64, null); }
+        static ImageGenResult error(String e) { return new ImageGenResult(false, null, e); }
+    }
+
+    /**
+     * Generates an image via the selected image model (gpt-image / nano-banana).
+     * {@code inputImageBase64} (nullable, no data: prefix) is the previous
+     * generated picture / user attachment — passed to the model so follow-up
+     * prompts iterate on it instead of starting from scratch.
+     * {@code quality}/{@code size} mirror the desktop picker (low/medium/high/
+     * standard, 1024x1024 / 1024x1536 / 1536x1024).
+     * Runs on a background thread; the callback fires on the main thread.
+     */
+    public void generateImage(String modelId, String prompt, String inputImageBase64,
+                              String quality, String size,
+                              final java.util.function.Consumer<ImageGenResult> callback) {
+        String accessToken = OAuthSession.get().getAccessToken();
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            mainHandler.post(() -> callback.accept(ImageGenResult.error("unauthorized")));
+            return;
+        }
+        final String q = (quality == null || quality.trim().isEmpty()) ? "low" : quality.trim();
+        final String sz = (size == null || size.trim().isEmpty()) ? "1024x1024" : size.trim();
+        AUTH_EXECUTOR.execute(() -> {
+            // Image models stay silent for minutes before the single JSON response,
+            // so the shared client's 90s read timeout must not apply here.
+            OkHttpClient genClient = client.newBuilder()
+                    .readTimeout(300, TimeUnit.SECONDS)
+                    .writeTimeout(60, TimeUnit.SECONDS)
+                    .build();
+            // Re-encode to a compact JPEG: raw PNG base64 can hit gateway body limits.
+            byte[] inputJpeg = inputImageBase64 != null ? toJpegBytes(inputImageBase64) : null;
+            ImageGenResult result;
+            if (inputJpeg != null) {
+                // The standard OpenAI multipart edits endpoint FIRST — some
+                // gateways silently ignore an "image" field on /generations and
+                // return an unrelated picture (prompt-only generation).
+                result = executeImageEdits(genClient, accessToken, prompt, inputJpeg, q, sz);
+                if (!result.ok && result.error != null && result.error.startsWith("edits_http_")) {
+                    result = executeImageGeneration(genClient,
+                            OAuthSession.get().getAccessToken(), modelId, prompt, inputJpeg, q, sz);
+                }
+                if (!result.ok && result.error != null && result.error.startsWith("http_4")) {
+                    // Last resort: plain generation without the picture.
+                    result = executeImageGeneration(genClient,
+                            OAuthSession.get().getAccessToken(), modelId, prompt, null, q, sz);
+                }
+            } else {
+                result = executeImageGeneration(genClient, accessToken, modelId, prompt, null, q, sz);
+                if (!result.ok && result.error != null && result.error.startsWith("http_4")) {
+                    // Some gateway revisions resolve the account's default image model
+                    // themselves and reject an explicit "model" — retry the bare shape
+                    // (same body the desktop generate_image tool sends).
+                    ImageGenResult retry = executeImageGeneration(genClient,
+                            OAuthSession.get().getAccessToken(), null, prompt, null, q, sz);
+                    result = retry.ok ? retry : result;
+                }
+            }
+            final ImageGenResult finalResult = result;
+            mainHandler.post(() -> callback.accept(finalResult));
+        });
+    }
+
+    /** Compat overload without image context. */
+    public void generateImage(String modelId, String prompt,
+                              final java.util.function.Consumer<ImageGenResult> callback) {
+        generateImage(modelId, prompt, null, null, null, callback);
+    }
+
+    /** Decode any base64/data-URI image and re-encode as ≤1024px JPEG bytes. */
+    private static byte[] toJpegBytes(String base64) {
+        try {
+            String s = base64;
+            if (s.startsWith("data:")) s = s.substring(s.indexOf(',') + 1);
+            byte[] raw = android.util.Base64.decode(s, android.util.Base64.DEFAULT);
+            android.graphics.Bitmap src = android.graphics.BitmapFactory.decodeByteArray(raw, 0, raw.length);
+            if (src == null) return null;
+            int maxSide = Math.max(src.getWidth(), src.getHeight());
+            if (maxSide > 1024) {
+                float k = 1024f / maxSide;
+                src = android.graphics.Bitmap.createScaledBitmap(src,
+                        Math.round(src.getWidth() * k), Math.round(src.getHeight() * k), true);
+            }
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            src.compress(android.graphics.Bitmap.CompressFormat.JPEG, 88, bos);
+            return bos.toByteArray();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Single blocking POST /v1/images/generations; modelId / jpeg may be null.
+     * Body mirrors the desktop picker: model/prompt/size/quality/n.
+     * Runs on a worker thread.
+     */
+    private ImageGenResult executeImageGeneration(OkHttpClient genClient, String accessToken,
+                                                  String modelId, String prompt, byte[] jpeg,
+                                                  String quality, String size) {
+        try {
+            JSONObject body = new JSONObject();
+            if (modelId != null) body.put("model", modelId);
+            body.put("prompt", prompt);
+            body.put("size", size);
+            body.put("quality", quality);
+            body.put("n", 1);
+            if (jpeg != null) {
+                body.put("image", "data:image/jpeg;base64,"
+                        + android.util.Base64.encodeToString(jpeg, android.util.Base64.NO_WRAP));
+            }
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/v1/images/generations")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Content-Type", "application/json")
+                    .post(RequestBody.create(body.toString(), JSON))
+                    .build();
+            Response response = genClient.newCall(request).execute();
+            try {
+                String raw = response.body() != null ? response.body().string() : "";
+                int code = response.code();
+                if (code == 401
+                        && app.multiai.mobile.network.oauth.TokenRefresher.refreshBlocking(
+                                app.multiai.mobile.MultiAIApp.APP, accessToken)) {
+                    final Response second = genClient.newCall(request.newBuilder()
+                            .header("Authorization", "Bearer " + OAuthSession.get().getAccessToken())
+                            .build()).execute();
+                    try {
+                        raw = second.body() != null ? second.body().string() : "";
+                        code = second.code();
+                    } finally {
+                        second.close();
+                    }
+                }
+                if (code < 200 || code >= 300) {
+                    return ImageGenResult.error(describeHttpError(code, raw));
+                }
+                return parseImagePayload(raw);
+            } finally {
+                response.close();
+            }
+        } catch (Exception e) {
+            return ImageGenResult.error("network_error");
+        }
+    }
+
+    /**
+     * OpenAI-style multipart POST /v1/images/edits — the standard shape for
+     * iterative editing when the JSON "image" field on generations is rejected.
+     * Runs on a worker thread.
+     */
+    private ImageGenResult executeImageEdits(OkHttpClient genClient, String accessToken,
+                                             String prompt, byte[] jpeg,
+                                             String quality, String size) {
+        try {
+            RequestBody fileBody = RequestBody.create(jpeg, MediaType.get("image/jpeg"));
+            RequestBody form = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("image", "image.jpg", fileBody)
+                    .addFormDataPart("prompt", prompt)
+                    .addFormDataPart("size", size)
+                    .addFormDataPart("quality", quality)
+                    .build();
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/v1/images/edits")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .post(form)
+                    .build();
+            Response response = genClient.newCall(request).execute();
+            try {
+                String raw = response.body() != null ? response.body().string() : "";
+                int code = response.code();
+                if (code == 401
+                        && app.multiai.mobile.network.oauth.TokenRefresher.refreshBlocking(
+                                app.multiai.mobile.MultiAIApp.APP, accessToken)) {
+                    final Response second = genClient.newCall(request.newBuilder()
+                            .header("Authorization", "Bearer " + OAuthSession.get().getAccessToken())
+                            .build()).execute();
+                    try {
+                        raw = second.body() != null ? second.body().string() : "";
+                        code = second.code();
+                    } finally {
+                        second.close();
+                    }
+                }
+                if (code < 200 || code >= 300) {
+                    return ImageGenResult.error("edits_" + describeHttpError(code, raw));
+                }
+                return parseImagePayload(raw);
+            } finally {
+                response.close();
+            }
+        } catch (Exception e) {
+            return ImageGenResult.error("network_error");
+        }
+    }
+
+    /** Shared data[] parsing: b64_json preferred, url downloaded with retries. */
+    private ImageGenResult parseImagePayload(String raw) throws Exception {
+        JSONObject parsed = new JSONObject(raw);
+        JSONArray arr = parsed.optJSONArray("data");
+        JSONObject first = arr != null && arr.length() > 0 ? arr.optJSONObject(0) : null;
+        String b64 = first != null ? first.optString("b64_json", "") : "";
+        String url = first != null ? first.optString("url", "") : "";
+        if (!b64.isEmpty()) {
+            return ImageGenResult.ok(b64);
+        }
+        if (!url.isEmpty()) {
+            // Signed/short-lived URLs can 404 right after generation —
+            // retry with backoff before giving up (same as desktop).
+            for (int attempt = 0; attempt < 3; attempt++) {
+                if (attempt > 0) Thread.sleep(1200L * attempt);
+                Request dl = new Request.Builder().url(url).get().build();
+                try (Response imgRes = client.newCall(dl).execute()) {
+                    if (imgRes.isSuccessful() && imgRes.body() != null) {
+                        byte[] bytes = imgRes.body().bytes();
+                        if (bytes.length > 0) {
+                            String enc = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+                            return ImageGenResult.ok(enc);
+                        }
+                    }
+                }
+            }
+            return ImageGenResult.error("download_failed");
+        }
+        return ImageGenResult.error("empty_response");
+    }
+
+    /** "http_400: <server message>" — surface the real backend reason in the chat. */
+    private static String describeHttpError(int code, String raw) {
+        String hint = "";
+        if (raw != null && !raw.isEmpty()) {
+            String s = raw.trim();
+            if (s.startsWith("{")) {
+                try {
+                    JSONObject err = new JSONObject(s);
+                    Object msg = err.opt("error");
+                    if (msg instanceof JSONObject) msg = ((JSONObject) msg).opt("message");
+                    if (msg instanceof String) hint = (String) msg;
+                    if (hint.isEmpty()) hint = err.optString("message", "");
+                } catch (Exception ignored) {
+                }
+            }
+            if (hint.isEmpty()) hint = s.length() > 160 ? s.substring(0, 160) : s;
+            hint = hint.replace('\n', ' ').trim();
+        }
+        return hint.isEmpty() ? ("http_" + code) : ("http_" + code + ": " + hint);
     }
 }

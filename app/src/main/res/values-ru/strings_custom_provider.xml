@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="custom_provider_title">Кастомный провайдер</string>
+    <string name="custom_provider_subtitle">Добавь собственный AI-провайдер с OpenAI-совместимым или Anthropic API.</string>
+    <string name="custom_provider_settings_subtitle">Свои ключи и API-провайдеры</string>
+    <string name="custom_provider_list_title">Провайдеры</string>
+    <string name="custom_provider_empty">Нет добавленных провайдеров.\nНажми + чтобы добавить первый.</string>
+    <string name="custom_provider_add">Добавить</string>
+    <string name="custom_provider_add_title">Новый провайдер</string>
+    <string name="custom_provider_kind">Тип API</string>
+    <string name="custom_provider_type_openai">OpenAI-совместимый</string>
+    <string name="custom_provider_type_anthropic">Anthropic</string>
+    <string name="custom_provider_name">Имя (необязательно)</string>
+    <string name="custom_provider_name_hint">Например, My Local LLM</string>
+    <string name="custom_provider_api_key">API-ключ</string>
+    <string name="custom_provider_base_url">Base URL</string>
+    <string name="custom_provider_auto_fetch_note">Список моделей подгрузится автоматически из /v1/models</string>
+    <string name="custom_provider_models">Модели</string>
+    <string name="custom_provider_add_model">Добавить модель</string>
+    <string name="custom_provider_model_hint">ID модели, например gpt-4o</string>
+    <string name="custom_provider_no_models">Нет моделей — добавь вручную или перезагрузи провайдер</string>
+    <string name="custom_provider_fetching">Добавляю провайдер…</string>
+    <string name="custom_provider_added">Провайдер добавлен, загружено %1$d моделей</string>
+    <string name="custom_provider_added_no_models">Провайдер добавлен (модели не найдены — добавь вручную)</string>
+    <string name="custom_provider_deleted">Провайдер удалён</string>
+    <string name="custom_provider_delete_title">Удалить провайдер?</string>
+    <string name="custom_provider_delete_message">Удалить «%1$s»? Все его модели тоже будут удалены.</string>
+    <string name="custom_provider_error_key">Введи API-ключ</string>
+    <string name="custom_provider_error_url">Введи корректный Base URL</string>
+    <string name="custom_provider_edit_title">Провайдер</string>
+    <string name="custom_provider_edit_action">Изменить</string>
+    <string name="custom_provider_save">Сохранить</string>
+    <string name="custom_provider_updated">Провайдер обновлён</string>
+    <string name="custom_provider_reload_models">Обновить список моделей</string>
+    <string name="custom_provider_reloading">Загружаю модели…</string>
+    <string name="custom_provider_reload_done">Загружено %1$d моделей</string>
+    <string name="custom_provider_reload_empty">Модели не найдены — проверь ключ и Base URL</string>
+    <string name="custom_provider_show_key">Показать ключ</string>
+    <string name="custom_provider_hide_key">Скрыть ключ</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="promo_error_invalid">Promo code not found. Check the spelling and promotion conditions.</string>
+    <string name="promo_error_expired">This promo code has expired.</string>
+    <string name="promo_error_limit">This promo code has reached its activation limit.</string>
+    <string name="promo_error_network">Could not reach the server. Check your connection. If the request reached the server, tokens may already have been credited — check your balance first.</string>
+    <string name="promo_error_unknown">The server did not confirm activation. Details are shown below.</string>
+    <string name="embedding_chat_unavailable">Embedding models do not support chat. Select another model.</string>
+</resources>

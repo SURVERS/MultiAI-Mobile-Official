@@ -63,6 +63,7 @@
     <string name="mc_modality_audio">Аудио</string>
     <string name="mc_modality_video">Видео</string>
     <string name="mc_stat_kind">Тип</string>
+    <string name="mc_kind_embedding">Эмбеддинг</string>
     <string name="mc_stat_reasoning">Размышления</string>
     <string name="mc_tokens_unit">токенов</string>
     <string name="ctx_title">Использование контекста</string>
@@ -98,7 +99,7 @@
     <string name="profile_checkout_copied">Ссылка на оплату скопирована</string>
     <string name="profile_checkout_confirm">Оформить подписку за %1$s?</string>
     <string name="profile_buy">Оплатить</string>
-    <string name="profile_promo_ok">Промокод активирован: +%1$d токенов 🎁</string>
+    <string name="profile_promo_ok">Промокод активирован: +%1$s токенов 🎁</string>
     <string name="profile_promo_fail">Промокод не принят</string>
     <string name="profile_err_scope">нет прав (keys:write / billing:read) — перезайди в аккаунт</string>
     <string name="profile_err_key_limit">лимит ключей (10/час) достигнут</string>

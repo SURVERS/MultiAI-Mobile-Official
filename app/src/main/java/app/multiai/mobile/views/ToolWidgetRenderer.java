@@ -133,9 +133,8 @@ public final class ToolWidgetRenderer {
         row.addView(icon, new LinearLayout.LayoutParams((int) dp(ctx, 18), (int) dp(ctx, 18)));
 
         String labelText = details == null ? "" : details.trim();
-        if (labelText.isEmpty()) {
-            labelText = toolName == null || toolName.trim().isEmpty()
-                    ? ctx.getString(R.string.kit_tool_default) : toolName;
+        if (labelText.isEmpty() || labelText.equals(toolName)) {
+            labelText = ctx.getString(R.string.kit_tool_default);
         }
         TextView label = new TextView(ctx);
         label.setText(labelText);
@@ -623,6 +622,7 @@ public final class ToolWidgetRenderer {
 
     public static boolean isExploreTool(String name) {
         return "read_file".equals(name)
+                || "read_skill".equals(name)
                 || "list_dir".equals(name)
                 || "search_grep".equals(name)
                 || "find_files".equals(name)
@@ -715,6 +715,10 @@ public final class ToolWidgetRenderer {
                 ? fileName(firstNonEmpty(
                         firstNonEmpty(call.getParams().get("path"), call.getParams().get("directory")),
                         resultPath)) : "";
+        if ("read_skill".equals(call.getName())) {
+            file = firstNonEmpty(call.getParams().get("slug"),
+                    callResult != null ? callResult.optString("slug", "SKILL.md") : "SKILL.md");
+        }
         String command = "execute_command".equals(call.getName())
                 ? firstNonEmpty(call.getParams().get("cmd"), call.getParams().get("command")) : "";
         String targetText = !file.isEmpty() ? file : command;
@@ -759,7 +763,12 @@ public final class ToolWidgetRenderer {
         if (!targetText.isEmpty()) {
             if (!file.isEmpty()) {
                 ImageView badge;
-                if ("list_dir".equals(call.getName())) {
+                if ("read_skill".equals(call.getName())) {
+                    badge = new ImageView(ctx);
+                    badge.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    badge.setImageResource(R.drawable.ic_skill_flask);
+                    badge.setColorFilter(color(ctx, R.color.icon_muted));
+                } else if ("list_dir".equals(call.getName())) {
                     // Просмотр папки — иконка папки (как в разделе «Файлы»), а не файла.
                     badge = new ImageView(ctx);
                     badge.setScaleType(ImageView.ScaleType.FIT_CENTER);

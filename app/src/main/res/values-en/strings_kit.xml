@@ -29,6 +29,11 @@
     <string name="kit_msg_error_fallback_code">MULTIAI-UNKNOWN</string>
     <string name="kit_msg_error_share_support">Contact support</string>
     <string name="kit_msg_error_retry">Retry</string>
+    <string name="kit_msg_error_details">Details</string>
+    <string name="kit_msg_error_details_hide">Hide</string>
+    <string name="kit_msg_error_copy">Copy</string>
+    <string name="kit_msg_error_dismiss">Dismiss</string>
+    <string name="kit_msg_error_http">HTTP %1$d</string>
     <string name="kit_msg_copied">Copied</string>
     <string name="kit_msg_action_copy">Copy</string>
     <string name="kit_msg_action_select_text">Select text</string>
@@ -224,7 +229,7 @@
     <string name="profile_key_rename">Rename key</string>
     <string name="profile_key_delete">Delete key</string>
     <string name="profile_key_actions">Key actions</string>
-    <string name="profile_key_actions_for">Actions for key “%1$s”</string>
+    <string name="profile_key_actions_for">Actions for key \u201c%1$s\u201d</string>
     <string name="profile_key_balance">Balance: %1$s tokens</string>
     <string name="profile_key_requests">%1$s requests</string>
     <string name="profile_subscription_current">Current subscription</string>
@@ -319,7 +324,7 @@
     <string name="settings_streaming">Stream responses</string>
     <string name="settings_streaming_sub">Smooth text appearance during generation</string>
     <string name="settings_show_thinking">Show thinking</string>
-    <string name="settings_show_thinking_sub">“Thinking process” block in AI replies</string>
+    <string name="settings_show_thinking_sub">\u201cThinking process\u201d block in AI replies</string>
     <string name="settings_use_tools">Use tools</string>
     <string name="settings_use_tools_sub">Weather, time, web search and other tools in regular chat. Work Mode tools are always enabled.</string>
 
@@ -331,13 +336,13 @@
     <string name="emoji_mode_animated">Animated (Telemoji)</string>
     <string name="profile_empty_period">Nothing here yet — no records for this period</string>
     <string name="profile_key_create_fail">Could not create the key</string>
-    <string name="profile_key_created_title">Key “%1$s” created</string>
+    <string name="profile_key_created_title">Key \u201c%1$s\u201d created</string>
     <string name="profile_key_copy_hint">Copy the key now — it will not be shown again</string>
     <string name="profile_checkout_fail">Could not create a payment link</string>
     <string name="profile_checkout_copied">Payment link copied</string>
     <string name="profile_checkout_confirm">Subscribe for %1$s?</string>
     <string name="profile_buy">Pay</string>
-    <string name="profile_promo_ok">Promo code applied: +%1$d tokens 🎁</string>
+    <string name="profile_promo_ok">Promo code applied: +%1$s tokens 🎁</string>
     <string name="profile_promo_fail">Promo code rejected</string>
     <string name="profile_err_scope">missing permissions (keys:write / billing:read) — sign in again</string>
     <string name="profile_err_key_limit">key limit reached (10/hour)</string>
@@ -346,7 +351,7 @@
     <string name="action_close">Close</string>
     <string name="copied_ok">Copied</string>
     <string name="profile_tokens_unit">TOKENS</string>
-    <string name="profile_key_delete_confirm">Delete key “%1$s”? This cannot be undone.</string>
+    <string name="profile_key_delete_confirm">Delete key \u201c%1$s\u201d? This cannot be undone.</string>
     <string name="profile_key_deleted">Key deleted</string>
     <string name="save">Save</string>
     <string name="profile_promo_success_title">Success!</string>
@@ -397,8 +402,8 @@
         <item quantity="one">%1$d file</item>
         <item quantity="other">%1$d files</item>
     </plurals>
-    <string name="ide_tool_searching_query">Search “%1$s”</string>
-    <string name="ide_tool_searching_files">Search files “%1$s”</string>
+    <string name="ide_tool_searching_query">Search \u201c%1$s\u201d</string>
+    <string name="ide_tool_searching_files">Search files \u201c%1$s\u201d</string>
     <string name="ide_tool_running">Running</string>
     <string name="ide_tool_deleting">Deleting</string>
     <string name="ide_tool_deleted">Deleted</string>
@@ -475,12 +480,12 @@
     <string name="tool_fail_subagent">Couldn\'t start the subagent</string>
     <string name="tool_fail_summarize">Couldn\'t summarize the chat</string>
     <string name="tool_fail_rules">Couldn\'t read the project rules</string>
-    <string name="tool_fail_generic">“%1$s” failed</string>
+    <string name="tool_fail_generic">\u201c%1$s\u201d failed</string>
     <string name="tool_fail_reason">Reason</string>
     <string name="tool_fail_unknown_reason">Reason unknown</string>
 
     <!-- Compact web search widget -->
-    <string name="web_search_running">Searching “%1$s”</string>
+    <string name="web_search_running">Searching \u201c%1$s\u201d</string>
     <string name="web_search_running_generic">Searching the web</string>
     <plurals name="web_search_sources">
         <item quantity="one">%1$d source found</item>
@@ -500,7 +505,7 @@
 
     <!-- Past-chat briefing tool driven by a separate AI model -->
     <string name="past_chat_running">Reading the earlier chat</string>
-    <string name="past_chat_done">Earlier chat reviewed: “%1$s”</string>
+    <string name="past_chat_done">Earlier chat reviewed: \u201c%1$s\u201d</string>
     <string name="past_chat_needs_selection">Pick which earlier chat to read</string>
     <string name="past_chat_empty">No earlier chats found</string>
     <string name="past_chat_summary">Earlier chat briefing</string>
@@ -508,43 +513,47 @@
 
     <!-- Command rules screen -->
     <string name="whitelist_screen_title">Command rules</string>
-    <string name="whitelist_screen_description">Allowed commands run without confirmation; blocked commands never run. In “Confirm for me”, dangerous and unknown commands still ask. Matching is exact; “*” in an allow list permits any shell command.</string>
-    <string name="whitelist_section_global">Allowed globally</string>
-    <string name="whitelist_section_global_note">Saved permanently and applied in every chat. “*” permits any shell command.</string>
-    <string name="whitelist_section_blocked">Blocked globally</string>
-    <string name="whitelist_section_blocked_note">A block overrides every allow rule and applies in every chat.</string>
-    <string name="whitelist_session_picker">Session</string>
-    <string name="whitelist_session_none">No Work Mode sessions</string>
-    <string name="whitelist_session_unnamed">New session</string>
+    <string name="whitelist_screen_description">Allowed commands run instantly, blocked commands never run. Everything else asks for permission. Commands must match exactly; "*" allows everything.</string>
+    <string name="whitelist_section_global">Allowed</string>
+    <string name="whitelist_section_global_note">These commands run without asking. Works across all chats.</string>
+    <string name="whitelist_section_blocked">Blocked</string>
+    <string name="whitelist_section_blocked_note">These commands will never run, no matter what.</string>
+    <string name="whitelist_session_picker">Chat</string>
+    <string name="whitelist_session_none">No active chats</string>
+    <string name="whitelist_session_unnamed">New chat</string>
     <string name="whitelist_session_current">%1$s · current</string>
     <string name="whitelist_session_archived">%1$s · archived</string>
-    <string name="whitelist_session_page">Sessions %1$d–%2$d of %3$d</string>
+    <string name="whitelist_session_page">%1$d–%2$d of %3$d</string>
     <string name="whitelist_session_previous">Previous</string>
     <string name="whitelist_session_next">Next</string>
-    <string name="whitelist_section_session">This session only</string>
-    <string name="whitelist_section_session_note">Applies only to the selected session and is cleared when the app restarts.</string>
-    <string name="whitelist_empty">The list is empty</string>
-    <string name="whitelist_add">Add a command</string>
-    <string name="whitelist_block_add">Block a command</string>
-    <string name="whitelist_clear">Clear the list</string>
-    <string name="whitelist_add_title">New command</string>
+    <string name="whitelist_section_session">This chat only</string>
+    <string name="whitelist_section_session_note">Only applies to the selected chat and resets when you restart the app.</string>
+    <string name="whitelist_empty">Nothing here yet</string>
+    <string name="whitelist_screen_lead">Commands on this list run without asking.</string>
+    <string name="whitelist_tab_sessions">Sessions</string>
+    <string name="whitelist_advanced">Advanced</string>
+    <string name="whitelist_advanced_sub">Blocks and per-chat rules</string>
+    <string name="whitelist_add">Add</string>
+    <string name="whitelist_block_add">Block</string>
+    <string name="whitelist_clear">Clear all</string>
+    <string name="whitelist_add_title">Allow a command</string>
     <string name="whitelist_edit_title">Edit command</string>
     <string name="whitelist_block_add_title">Block a command</string>
     <string name="whitelist_block_edit_title">Edit block rule</string>
-    <string name="whitelist_input_hint">Enter the whole command. Matching is exact; “*” permits any shell command.</string>
-    <string name="whitelist_block_input_hint">Enter the whole command. A global block overrides every allow rule.</string>
-    <string name="whitelist_input_example">./gradlew :app:assembleDebug</string>
+    <string name="whitelist_input_hint">Type the full command. Use "*" to allow everything.</string>
+    <string name="whitelist_block_input_hint">Type the full command. A block overrides any allow rule.</string>
+    <string name="whitelist_input_example">npm run build</string>
     <string name="whitelist_save">Save</string>
-    <string name="whitelist_saved">Rule saved</string>
-    <string name="whitelist_deleted">Rule removed</string>
-    <string name="whitelist_empty_error">The command cannot be empty</string>
+    <string name="whitelist_saved">Done</string>
+    <string name="whitelist_deleted">Removed</string>
+    <string name="whitelist_empty_error">Enter a command</string>
     <string name="whitelist_delete">Delete</string>
-    <string name="whitelist_delete_title">Revoke this permission?</string>
-    <string name="whitelist_delete_message">“%1$s” will ask for confirmation again.</string>
+    <string name="whitelist_delete_title">Remove from list?</string>
+    <string name="whitelist_delete_message">"%1$s" will ask for permission again.</string>
     <string name="whitelist_block_delete_title">Remove this block?</string>
-    <string name="whitelist_block_delete_message">“%1$s” can run again if the access mode permits it.</string>
+    <string name="whitelist_block_delete_message">"%1$s" will be able to run again.</string>
     <string name="whitelist_clear_title">Clear the list?</string>
-    <string name="whitelist_clear_message">%1$d rules will be removed. File permissions are untouched.</string>
-    <string name="whitelist_block_clear_title">Remove every block?</string>
-    <string name="whitelist_block_clear_message">%1$d global blocks will be removed.</string>
+    <string name="whitelist_clear_message">Remove all rules (%1$d)?</string>
+    <string name="whitelist_block_clear_title">Remove all blocks?</string>
+    <string name="whitelist_block_clear_message">Remove all blocks (%1$d)?</string>
 </resources>

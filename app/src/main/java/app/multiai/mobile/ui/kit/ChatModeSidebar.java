@@ -178,18 +178,17 @@ public class ChatModeSidebar {
                 profileAvatar.setTag(true);
                 Glide.with(act).load(photoUrl)
                         .transform(new CircleCrop())
-                        .placeholder(R.drawable.chat_mode_ic_user)
-                        .error(R.drawable.chat_mode_ic_user)
+                        .placeholder(R.drawable.chat_mode_ic_user_sidebar)
+                        .error(R.drawable.chat_mode_ic_user_sidebar)
                         .into(profileAvatar);
             } catch (Exception ignored) {}
         } else if (profileAvatar.getTag() != null) {
             Glide.with(act).clear(profileAvatar);
             profileAvatar.setTag(null);
-            profileAvatar.setImageResource(R.drawable.chat_mode_ic_user);
+            profileAvatar.setImageResource(R.drawable.chat_mode_ic_user_sidebar);
             profileAvatar.setImageTintList(android.content.res.ColorStateList.valueOf(
                     ContextCompat.getColor(act, R.color.icon_muted)));
-            int pad = dp(9);
-            profileAvatar.setPadding(pad, pad, pad, pad);
+            profileAvatar.setPadding(0, 0, 0, 0);
         }
     }
 

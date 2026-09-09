@@ -3,14 +3,18 @@ package app.multiai.mobile.ui;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.graphics.Outline;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import app.multiai.mobile.R;
 import app.multiai.mobile.ui.kit.ModernToast;
@@ -43,30 +47,48 @@ public class AboutActivity extends AppCompatActivity {
             ver = pi.versionName;
             code = pi.versionCode;
         } catch (Exception ignored) {}
-        // App icon + name + version. Use the full launcher mipmap (ic_launcher) —
-        // NOT ic_launcher_foreground, which is only the transparent adaptive layer
-        // and renders as an empty/tinted blob at this size.
         View appRow = SettingsUI.rowNoChevron(this, R.mipmap.ic_launcher,
                 getString(R.string.scr_about_app_name), ver + " (" + code + ")", null);
-        // SettingsUI tints every row icon grey; the launcher icon must keep its own
-        // colors, so clear the filter and round the square PNG into an app-icon tile.
-        LinearLayout appRowLl = (LinearLayout) appRow;
-        if (appRowLl.getChildCount() > 0 && appRowLl.getChildAt(0) instanceof ImageView) {
-            ImageView icon = (ImageView) appRowLl.getChildAt(0);
-            icon.setColorFilter(null);
-            int tile = SettingsUI.dp(this, 28);
-            icon.setLayoutParams(new LinearLayout.LayoutParams(tile, tile));
-            icon.setClipToOutline(true);
-            icon.setOutlineProvider(new ViewOutlineProvider() {
-                @Override
-                public void getOutline(View view, Outline outline) {
-                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(),
-                            SettingsUI.dp(AboutActivity.this, 7));
-                }
-            });
-        }
+        applyAppIcon(appRow);
         c.addView(appRow);
         root.addView(c);
+    }
+
+    /**
+     * buildRow оборачивает иконку строки в круглый tonal-FrameLayout и тинтует её
+     * серым — для лаунчер-иконки это давало пустой блоб (первый ребёнок строки —
+     * обёртка, а не ImageView, поэтому прежняя проверка instanceof не срабатывала).
+     * Достаём реальную ImageView из обёртки, убираем серый круг и тинт, и показываем
+     * настоящую иконку приложения (adaptive → полностью скомпонованная) плиткой.
+     */
+    private void applyAppIcon(View appRow) {
+        if (!(appRow instanceof ViewGroup)) return;
+        ViewGroup row = (ViewGroup) appRow;
+        if (row.getChildCount() == 0 || !(row.getChildAt(0) instanceof FrameLayout)) return;
+        FrameLayout iconWrap = (FrameLayout) row.getChildAt(0);
+        iconWrap.setBackground(null);
+        if (iconWrap.getChildCount() == 0 || !(iconWrap.getChildAt(0) instanceof ImageView)) return;
+        ImageView icon = (ImageView) iconWrap.getChildAt(0);
+        icon.setColorFilter(null);
+
+        Drawable appDrawable;
+        try {
+            appDrawable = getPackageManager().getApplicationIcon(getPackageName());
+        } catch (Exception e) {
+            appDrawable = ContextCompat.getDrawable(this, R.mipmap.ic_launcher);
+        }
+        icon.setImageDrawable(appDrawable);
+        icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        int tile = SettingsUI.dp(this, 36);
+        icon.setLayoutParams(new FrameLayout.LayoutParams(tile, tile));
+        icon.setClipToOutline(true);
+        icon.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(),
+                        SettingsUI.dp(AboutActivity.this, 9));
+            }
+        });
     }
 
     private void openUrl(String url) {

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fullscreen image viewer (ChatGPT-style): black backdrop, generated content
+     centered, X on the left, download + white "Поделиться" pill on the right. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/viewerTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="10dp">
+
+        <FrameLayout
+            android:id="@+id/btnViewerClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/image_viewer_circle_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_close_white"
+                android:contentDescription="@string/image_viewer_close" />
+        </FrameLayout>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <FrameLayout
+            android:id="@+id/btnViewerDownload"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/image_viewer_circle_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_download"
+                android:contentDescription="@string/image_viewer_download" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/btnViewerShare"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/image_viewer_share_bg"
+            android:gravity="center"
+            android:paddingStart="26dp"
+            android:paddingEnd="26dp"
+            android:text="@string/image_viewer_share"
+            android:textColor="@android:color/black"
+            android:textSize="17sp"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ImageView
+            android:id="@+id/viewerImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:padding="12dp"
+            android:contentDescription="@string/image_viewer_content" />
+
+        <ProgressBar
+            android:id="@+id/viewerProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true" />
+    </FrameLayout>
+
+</LinearLayout>

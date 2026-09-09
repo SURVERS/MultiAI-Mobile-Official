@@ -3,6 +3,7 @@ package app.multiai.mobile.tools;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.DocumentsContract;
+import android.webkit.MimeTypeMap;
 
 import androidx.documentfile.provider.DocumentFile;
 
@@ -25,6 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.multiai.mobile.terminal.ToolsManager;
+import app.multiai.mobile.utils.SkillDiskScanner;
+import app.multiai.mobile.utils.SkillReader;
 
 /**
  * Local IDE tools exposed only by Work/Project mode.
@@ -139,6 +142,7 @@ public final class WorkModeTools {
                     case "search_grep": return searchGrep(args, token);
                     case "find_files": return findFiles(args, token);
                     case "execute_command": return executeCommand(args, token);
+                    case "read_skill": return readSkill(args, token);
                     case "invoke_subagent":
                         return invokeSubagent(args, token);
                     default: return error("UNKNOWN_TOOL", "Unknown Work Mode tool: " + name);
@@ -199,10 +203,13 @@ public final class WorkModeTools {
 
     private String writeFile(JSONObject args, OperationCancelToken token) throws Exception {
         checkpoint(token);
-        String rawPath = args.optString("path", "");
+        if (!(args.opt("path") instanceof String) || !(args.opt("content") instanceof String)) {
+            return error("INVALID_ARGUMENT", "write_file requires string path and content; nothing was written");
+        }
+        String rawPath = args.getString("path");
         if (isInvalidPath(rawPath)) return error("INVALID_PATH", "path must be relative to the project root");
         String path = normalizePath(rawPath);
-        String content = args.optString("content", "");
+        String content = args.getString("content");
         if (path.isEmpty()) return error("INVALID_PATH", "path is required");
         if (content.length() > MAX_FILE_CHARS) return error("FILE_TOO_LARGE", "content exceeds 200000 characters");
         DocumentFile file = resolveFile(path);
@@ -212,7 +219,16 @@ public final class WorkModeTools {
             return error("FILE_TOO_LARGE", "existing file exceeds 200000 characters");
         }
         if (file == null) file = createFile(path);
-        if (file == null || !file.canWrite()) return error("WRITE_FAILED", "Cannot create or write file");
+        if (file == null || !file.isFile() || !file.canWrite()) {
+            return error("WRITE_FAILED", "Cannot create or write project file: " + path);
+        }
+        String expectedName = path.substring(path.lastIndexOf('/') + 1);
+        if (!expectedName.equals(file.getName())) {
+            String actualName = file.getName();
+            boolean removed = !existed && file.delete();
+            return error("WRITE_FAILED", "Storage provider changed the requested filename: " + path
+                    + "; actual name: " + actualName + ". Content was not written. Stray document removed: " + removed);
+        }
         checkpoint(token); // last chance to abort before mutating the file
         try (OutputStream out = context.getContentResolver().openOutputStream(file.getUri(), "wt")) {
             if (out == null) return error("WRITE_FAILED", "Cannot open file for writing");
@@ -338,8 +354,24 @@ public final class WorkModeTools {
         checkpoint(token);
         String command = args.optString("cmd", args.optString("command", "")).trim();
         if (command.isEmpty()) return error("INVALID_ARGUMENT", "cmd is required");
+        // app install <path> — не shell-команда, а нативный запуск системного
+        // установщика APK. В терминале её перехватывает TerminalActivity; здесь
+        // делаем то же самое, иначе агент получает "command not found".
+        if (command.startsWith("app install ") || command.equals("app install")) {
+            return executeAppInstall(command, token);
+        }
+        // pkg install <id> — нативная установка пакета тулчейна (gradle, java, python...)
+        // через TerminalPackageManager; shell сам пакеты не качает.
+        if (command.equals("pkg install") || command.startsWith("pkg install ")) {
+            return executePkgInstall(command, token);
+        }
         if (!new app.multiai.mobile.terminal.TerminalPackageManager(context).isConfigured()) {
-            return error("TERMINAL_NOT_CONFIGURED", "Configure the terminal before running commands");
+            return error("TERMINAL_NOT_CONFIGURED",
+                    "Terminal is not configured. Install the toolchain first with: pkg install gradle (or list packages with: pkg install list)");
+        }
+        if (!hasAllFilesAccess()) {
+            return error("STORAGE_ACCESS_REQUIRED",
+                    "Terminal requires \"All files access\". Ask the user to grant it in Settings → Apps → MultiAI → Storage, then retry.");
         }
         long timeout = Math.max(1, Math.min(300, args.optLong("timeout_sec", DEFAULT_TIMEOUT_SEC)));
         toolsManager.initializeEnvironment();
@@ -350,7 +382,7 @@ public final class WorkModeTools {
         }
         checkpoint(token);
         String marker = "__MULTIAI_EXIT_" + Long.toUnsignedString(System.nanoTime(), 36) + "__";
-        String effective = "cd " + shellQuote(root) + " && (" + command + ")"
+        String effective = "cd " + shellQuote(root) + " && (\n" + command + "\n)"
                 + "; __multiai_code=$?; printf '\\n" + marker + "%s\\n' \"$__multiai_code\"";
         String output = toolsManager.execute(effective, timeout,
                 token == null ? null : token::check);
@@ -372,6 +404,124 @@ public final class WorkModeTools {
                 .put("exit_code", exitCode).put("timed_out", output.startsWith("TIMEOUT"))
                 .put("output", clip(output, MAX_RESULT_CHARS)).put("truncated", output.length() > MAX_RESULT_CHARS)
                 .toString();
+    }
+
+    /**
+     * Безопасный локальный read-only тул для полного SKILL.md — замена
+     * full-body системной инжекции по триггеру {@code ./slug}.
+     *
+     * <p>Принимает ТОЛЬКО валидный slug из {@link SkillReader#normalizeSlug}
+     * (белый список {@code [a-z0-9._-]}, без слэшей и ".."), ищет его в
+     * трёх конвенциях проекта (.multiai/skills, .claude/skills,
+     * .cursor/skills) и в глобальном {@code filesDir/.claude/skills}.
+     * В отличие от прежней инжекции, тело никогда не попадает в system
+     * prompt само по себе: AI обязан явно вызвать тул, и результат
+     * возвращается как обычный tool-result (не как системная инструкция).
+     * Cat/shell не используется — только SAF/Java чтение внутри белых
+     * директорий скиллов; произвольные файлы через этот тул недоступны.
+     */
+    private String readSkill(JSONObject args, OperationCancelToken token) throws Exception {
+        checkpoint(token);
+        String slug = SkillReader.normalizeSlug(args.optString("slug", ""));
+        if (slug == null) {
+            return error("INVALID_SLUG",
+                    "slug must be a lowercase skill identifier matching [a-z0-9][a-z0-9._-]* "
+                            + "(no paths, no '..', max 64 chars) — take it from the AVAILABLE SKILLS catalog");
+        }
+
+        // Проектные скиллы: три конвенции, родная (.multiai) имеет приоритет.
+        DocumentFile root = projectRoot();
+        if (root != null) {
+            for (String[] segments : SkillDiskScanner.SCAN_SEGMENTS_ORDER) {
+                DocumentFile dir = root;
+                for (String segment : segments) dir = findChildOrNull(dir, segment);
+                if (dir == null || !dir.isDirectory()) continue;
+                DocumentFile skillMd = findChildOrNull(dir, slug);
+                if (skillMd == null || !skillMd.isDirectory()) continue;
+                skillMd = findChildOrNull(skillMd, "SKILL.md");
+                if (skillMd == null || !skillMd.isFile()) continue;
+                return readSkillResult(skillMd.getUri(), slug,
+                        String.join("/", segments) + "/" + slug + "/SKILL.md");
+            }
+        }
+
+        // Глобальные скиллы (filesDir/.claude/skills, в т.ч. поставленные
+        // через "npx skills add -g") — обычный java.io, internal storage.
+        java.io.File global = new java.io.File(
+                context.getFilesDir(), ".claude/skills/" + slug + "/SKILL.md");
+        if (global.isFile()) {
+            return readSkillIoResult(global, slug, global.getAbsolutePath());
+        }
+        return error("SKILL_NOT_FOUND",
+                "No enabled skill with slug '" + slug
+                        + "': check the slug in the AVAILABLE SKILLS catalog");
+    }
+
+    private String readSkillResult(android.net.Uri uri, String slug, String relPath)
+            throws Exception {
+        String raw = readUriText(uri);
+        return skillResultJson(raw, slug, relPath, true);
+    }
+
+    private String readSkillIoResult(java.io.File file, String slug, String path) throws Exception {
+        String raw = readIoText(file);
+        return skillResultJson(raw, slug, path, false);
+    }
+
+    private String skillResultJson(String raw, String slug, String path, boolean fromProject)
+            throws Exception {
+        if (raw == null || raw.trim().isEmpty()) {
+            return error("SKILL_EMPTY", "SKILL.md for '" + slug + "' is empty or unreadable");
+        }
+        SkillReader.Body body = SkillReader.extractBody(raw, MAX_RESULT_CHARS);
+        return new JSONObject()
+                .put("slug", slug)
+                .put("path", path)
+                .put("scope", fromProject ? "workspace" : "global")
+                .put("content", body.text)
+                .put("truncated", body.truncated)
+                .toString();
+    }
+
+    private String readUriText(android.net.Uri uri) {
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            if (in == null) return null;
+            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[8192];
+            int read;
+            while ((read = in.read(chunk)) > 0) {
+                buffer.write(chunk, 0, read);
+                if (buffer.size() > MAX_FILE_CHARS * 2) break;
+            }
+            return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String readIoText(java.io.File file) {
+        try (InputStream in = new java.io.FileInputStream(file)) {
+            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[8192];
+            int read;
+            while ((read = in.read(chunk)) > 0) {
+                buffer.write(chunk, 0, read);
+                if (buffer.size() > MAX_FILE_CHARS * 2) break;
+            }
+            return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Дочерний элемент SAF-каталога по точному имени (без case-фолбэка — slug точный). */
+    private DocumentFile findChildOrNull(DocumentFile dir, String name) {
+        if (dir == null) return null;
+        try {
+            return dir.findFile(name);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /** Delete one non-root project file or directory through the SAF tree. */
@@ -507,8 +657,13 @@ public final class WorkModeTools {
             for (DocumentFile child : sorted(target.listFiles())) deleteTree(child, token, deleted);
         }
         checkpoint(token);
+        if (deleted[0] + deleted[1] >= MAX_DELETE_ENTRIES) {
+            throw new IllegalStateException("Deletion limit reached; deleted files=" + deleted[0]
+                    + ", directories=" + deleted[1] + "; remaining target=" + target.getName());
+        }
         if (!target.delete()) {
-            throw new IllegalStateException("Provider refused to delete: " + target.getName());
+            throw new IllegalStateException("Provider refused to delete: " + target.getName()
+                    + "; deleted files=" + deleted[0] + ", directories=" + deleted[1]);
         }
         if (directory) deleted[1]++; else deleted[0]++;
     }
@@ -618,14 +773,10 @@ public final class WorkModeTools {
             dir = next;
         }
         String name = parts[parts.length - 1];
-        String mime = "text/plain";
-        int dot = name.lastIndexOf('.');
-        if (dot >= 0) {
-            String ext = name.substring(dot + 1).toLowerCase(Locale.US);
-            if ("json".equals(ext)) mime = "application/json";
-            else if ("xml".equals(ext)) mime = "text/xml";
-            else if ("java".equals(ext) || "kt".equals(ext) || "js".equals(ext) || "ts".equals(ext) || "py".equals(ext) || "md".equals(ext)) mime = "text/plain";
-        }
+        String extension = name.contains(".")
+                ? name.substring(name.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT) : "";
+        String mime = ProjectFileMime.forExtension(extension,
+                MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension));
         return dir.createFile(mime, name);
     }
 
@@ -772,8 +923,133 @@ public final class WorkModeTools {
         return null;
     }
 
-    private String applyUnifiedPatch(String original, String patch) {
-        String[] source = original.replace("\r\n", "\n").split("\\n", -1);
+    /**
+     * Нативный перехват `pkg install <id>`: ставит пакет тулчейна (например
+     * gradle, java, android) через TerminalPackageManager с зависимостями.
+     * Работает даже когда терминал ещё не сконфигурирован — это и есть способ
+     * его сконфигурировать. Блокирует ход агента на время скачивания.
+     */
+    private String executePkgInstall(String command, OperationCancelToken token) throws Exception {
+        String ids = command.substring("pkg install".length()).trim();
+        app.multiai.mobile.terminal.TerminalPackageManager pm =
+                new app.multiai.mobile.terminal.TerminalPackageManager(context);
+        java.util.List<app.multiai.mobile.terminal.TerminalPackageManager.PackageSpec> manifest = pm.loadManifest();
+        if (ids.isEmpty() || "list".equals(ids)) {
+            StringBuilder available = new StringBuilder("Available packages: ");
+            for (app.multiai.mobile.terminal.TerminalPackageManager.PackageSpec spec : manifest) {
+                if (available.length() > 20) available.append(", ");
+                available.append(spec.id).append(" (").append(spec.name).append(')');
+            }
+            available.append(". Usage: pkg install <id> [<id>...] — dependencies and runtime libraries are installed automatically.");
+            return new JSONObject().put("command", command).put("success", true)
+                    .put("output", available.toString()).toString();
+        }
+        checkpoint(token);
+        if (!hasAllFilesAccess()) {
+            return error("STORAGE_ACCESS_REQUIRED",
+                    "Terminal packages require \"All files access\" (Android storage permission). "
+                            + "Ask the user to grant it in Settings → Apps → MultiAI → Storage, then retry.");
+        }
+        java.util.Set<String> wanted = new java.util.HashSet<>(java.util.Arrays.asList(ids.split("\\s+")));
+        java.util.Set<String> known = new java.util.HashSet<>();
+        for (app.multiai.mobile.terminal.TerminalPackageManager.PackageSpec spec : manifest) known.add(spec.id);
+        wanted.retainAll(known);
+        if (wanted.isEmpty()) {
+            StringBuilder available = new StringBuilder();
+            for (app.multiai.mobile.terminal.TerminalPackageManager.PackageSpec spec : manifest) {
+                if (available.length() > 0) available.append(", ");
+                available.append(spec.id);
+            }
+            return error("UNKNOWN_PACKAGE", "Unknown package id. Available: " + available);
+        }
+        // Библиотеки (runtime) должны ставиться самыми первыми: resolveSelection
+        // разворачивает зависимости, но порядок очереди идёт по порядку манифеста,
+        // поэтому добавляем runtime и его цепочку явно.
+        java.util.Set<String> withLibs = new java.util.HashSet<>(wanted);
+        for (app.multiai.mobile.terminal.TerminalPackageManager.PackageSpec spec : manifest) {
+            if (wanted.contains(spec.id) && spec.dependencies != null) {
+                withLibs.addAll(spec.dependencies);
+            }
+        }
+        for (app.multiai.mobile.terminal.TerminalPackageManager.PackageSpec spec : manifest) {
+            if ("runtime".equals(spec.id)) withLibs.add(spec.id); // общие либы — всегда
+        }
+        final StringBuilder out = new StringBuilder();
+        pm.install(manifest, withLibs, (stage, spec, done, total, message) -> out.append(message).append('\n'));
+        java.util.Set<String> installedNow = new java.util.HashSet<>();
+        for (String id : withLibs) {
+            if (pm.isPackageInstalled(id)) installedNow.add(id);
+        }
+        boolean ok = installedNow.containsAll(wanted);
+        String installed = String.join(", ", installedNow);
+        JSONObject result = new JSONObject().put("command", command)
+                .put("success", ok)
+                .put("installed", installedNow.isEmpty() ? "none" : installed)
+                .put("note", "Run execute_command again to use the newly installed tools; the environment is set up per command.")
+                .put("output", clip(out.toString(), 4000));
+        return ok ? result.toString() : result.put("error", "Package installation did not complete").toString();
+    }
+
+    /** Все либы и тулы ставятся на общее хранилище — без него терминал падает. */
+    private static boolean hasAllFilesAccess() {
+        return android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R
+                || android.os.Environment.isExternalStorageManager();
+    }
+
+    /**
+     * Нативный перехват `app install <path>` для агента: резолвит project-relative
+     * путь (или абсолютный /sdcard/...) и открывает системный установщик APK.
+     * Результат — JSON с полем output, как у обычной команды, чтобы агент видел
+     * что установщик запущен и ждёт подтверждения юзера.
+     */
+    private String executeAppInstall(String command, OperationCancelToken token) throws Exception {
+        String apkPath = command.substring("app install".length()).trim();
+        if (apkPath.isEmpty()) {
+            return error("INVALID_ARGUMENT", "Usage: app install <project-relative-or-absolute-path.apk>");
+        }
+        checkpoint(token);
+
+        java.io.File apkFile;
+        if (apkPath.startsWith("/")) {
+            apkFile = new java.io.File(apkPath);
+        } else {
+            String root = mappedProjectPath();
+            if (root == null) {
+                return error("PROJECT_PATH_UNAVAILABLE",
+                        "The selected SAF folder cannot be mapped to a shell path; choose a folder in primary device storage");
+            }
+            apkFile = new java.io.File(root, apkPath);
+        }
+        if (!apkFile.isFile()) {
+            return error("PATH_NOT_FOUND", "APK not found: " + apkFile.getAbsolutePath());
+        }
+
+        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        final String[] resultMsg = {"Установщик открыт ✓"};
+        android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+        main.post(() -> app.multiai.mobile.utils.ApkInstallHelper.installApkFromPath(
+                context, null, apkFile.getAbsolutePath(),
+                msg -> {
+                    resultMsg[0] = msg;
+                    latch.countDown();
+                }));
+        // Ждём только постановку интента в очередь (сам диалог установки — асинхронный,
+        // юзер подтверждает вручную; блокировать ход агента до подтверждения нельзя).
+        try {
+            latch.await(15, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return new JSONObject()
+                .put("command", command)
+                .put("apk", apkFile.getAbsolutePath())
+                .put("exit_code", 0)
+                .put("output", resultMsg[0] + " — system package installer is shown; the user must confirm the installation manually.")
+                .toString();
+    }
+
+    static String applyUnifiedPatch(String original, String patch) {
+        String[] source = original.isEmpty() ? new String[0] : original.replace("\r\n", "\n").split("\\n", -1);
         String[] patchLines = patch.replace("\r\n", "\n").split("\\n", -1);
         List<String> result = new ArrayList<>();
         int sourceCursor = 0, i = 0;
@@ -787,7 +1063,7 @@ public final class WorkModeTools {
                 String line = patchLines[i++];
                 if (line.isEmpty() && i == patchLines.length) break;
                 if (line.startsWith("\\")) continue;
-                if (line.isEmpty()) { if (sourceCursor >= source.length) return null; result.add(source[sourceCursor++]); continue; }
+                if (line.isEmpty()) { if (sourceCursor >= source.length || !source[sourceCursor].isEmpty()) return null; result.add(source[sourceCursor++]); continue; }
                 char kind = line.charAt(0); String value = line.substring(1);
                 if (kind == ' ') { if (sourceCursor >= source.length || !source[sourceCursor].equals(value)) return null; result.add(source[sourceCursor++]); }
                 else if (kind == '-') { if (sourceCursor >= source.length || !source[sourceCursor].equals(value)) return null; sourceCursor++; }

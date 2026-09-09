@@ -25,6 +25,11 @@ public class Chat {
     private String contextSummary;
     /** Сколько первых сообщений покрывает {@link #contextSummary}; UI-история не удаляется. */
     private int contextSummaryMessageCount;
+    private String injectedProjectRulesKey;
+
+    public String getInjectedProjectRulesKey() { return injectedProjectRulesKey; }
+
+    public void setInjectedProjectRulesKey(String key) { injectedProjectRulesKey = key; }
 
     public Chat() {
         this.id = UUID.randomUUID().toString();

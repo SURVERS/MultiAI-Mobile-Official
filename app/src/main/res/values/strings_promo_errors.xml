@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="promo_error_invalid">Промокод не найден. Проверь написание и условия акции.</string>
+    <string name="promo_error_expired">Срок действия промокода истёк.</string>
+    <string name="promo_error_limit">Лимит активаций промокода исчерпан.</string>
+    <string name="promo_error_network">Не удалось связаться с сервером. Проверь интернет. Если запрос уже дошёл до сервера, начисление могло пройти — сначала проверь баланс.</string>
+    <string name="promo_error_unknown">Сервер не подтвердил активацию. Подробности ниже.</string>
+    <string name="embedding_chat_unavailable">Embedding-модели не поддерживают чат. Выбери другую модель.</string>
+</resources>

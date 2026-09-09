@@ -35,6 +35,7 @@ import app.multiai.mobile.terminal.ToolsManager;
 import app.multiai.mobile.terminal.TerminalPackageManager;
 import app.multiai.mobile.terminal.TerminalService;
 import app.multiai.mobile.ui.kit.ModernToast;
+import app.multiai.mobile.utils.ApkInstallHelper;
 import app.multiai.mobile.utils.DrawerNavHelper;
 
 import java.io.File;
@@ -318,8 +319,23 @@ public class TerminalActivity extends AppCompatActivity {
             editCommand.setEnabled(false);
             btnExecute.setEnabled(false);
             extractExecutor.execute(() -> {
+                // Тихое автообновление либок: если в манифесте версия новее
+                // установленной — переустанавливаем без вопросов. Прогресс
+                // пишем прямо в терминал («Обновление библиотек. …»).
+                java.util.List<String> updatedLibs = null;
+                try {
+                    updatedLibs = packageManager.autoUpdateOutdated((stage, spec, current, total, message) -> {
+                        String line = getString(R.string.scr_term_lib_update, spec != null ? spec.name : "", message);
+                        mainHandler.post(() -> appendOutput(line + "\n"));
+                    });
+                } catch (Exception ignored) {
+                }
+                final java.util.List<String> note = updatedLibs;
                 toolsManager.initializeEnvironment();
                 mainHandler.post(() -> {
+                    if (note != null && !note.isEmpty()) {
+                        appendOutput(getString(R.string.scr_term_lib_updated, String.join(", ", note)) + "\n");
+                    }
                     terminalHistory.setLength(0);
                     toolsReady = true;
                     editCommand.setEnabled(true);
@@ -816,8 +832,28 @@ public class TerminalActivity extends AppCompatActivity {
         setupHeroIcon.setImageResource(R.drawable.ic_terminal_tools);
         setupArrow.setVisibility(View.GONE);
         startArrowAnimation();
+        // Сбрасываем прогресс ДО старта — иначе при докачке/удалении после
+        // первичной настройки бар стартует заполненным со старого значения.
+        displayedInstallProgress = 0;
+        targetInstallProgress = 0;
+        completedProgressWeight = 0;
+        currentStageWeight = 0;
+        lastInstallStage = null;
+        lastProgressPackageId = null;
+        installProgress.setProgressCompat(0, false);
         Set<String> removals = new HashSet<>(pendingRemoval);
         Set<String> installs = new HashSet<>(selectedPackages);
+        // Веса прогресса под фактическую очередь (удаление + установка),
+        // иначе общий процент считается от старого/нулевого totalInstallWeight.
+        totalInstallWeight = 10;
+        for (String id : removals) {
+            totalInstallWeight += Math.max(1, packageManager.installedBytes(id, packageManifest)) + 4L * 1024L * 1024L;
+        }
+        List<TerminalPackageManager.PackageSpec> installQueue =
+                packageManager.resolveSelection(packageManifest, installs);
+        for (TerminalPackageManager.PackageSpec item : installQueue) {
+            totalInstallWeight += Math.max(1, item.downloadBytes) + Math.max(1, item.unpackedBytes) + 4L * 1024L * 1024L;
+        }
         extractExecutor.execute(() -> {
             try {
                 if (!removals.isEmpty()) {
@@ -1154,6 +1190,23 @@ public class TerminalActivity extends AppCompatActivity {
             appendOutput(prompt());
             return;
         }
+        // app install <path> — системный установщик APK.
+        if (trimmed.startsWith("app install ")) {
+            String apkPath = trimmed.substring("app install ".length()).trim();
+            if (apkPath.isEmpty()) {
+                appendOutput(getString(R.string.scr_term_app_install_usage) + "\n");
+                appendOutput(prompt());
+            } else {
+                if (!apkPath.startsWith("/")) {
+                    apkPath = currentCwd + (currentCwd.endsWith("/") ? "" : "/") + apkPath;
+                }
+                final String finalPath = apkPath;
+                appendOutput(getString(R.string.scr_apk_preparing) + "\n");
+                ApkInstallHelper.installApkFromPath(
+                        this, this, finalPath, result -> appendOutput(result + "\n" + prompt()));
+            }
+            return;
+        }
         // exit/quit: tear down this activity (the shell dies with it).
         if (trimmed.equals("exit") || trimmed.equals("quit")) {
             finish();
@@ -1268,6 +1321,8 @@ public class TerminalActivity extends AppCompatActivity {
         appendOutput("  aapt2 / zipalign   Android SDK build tools\n");
         appendOutput("  adb                Android Debug Bridge (aarch64)\n");
         appendOutput("  apksigner          APK signing\n");
+        appendOutput("Built-in commands:\n");
+        appendOutput("  app install <path>  Запустить системный установщик APK (Android installer)\n");
         appendOutput("Shell: ls, cd, cat, mkdir, rm, cp, mv, grep, find, sed, awk, head, tail, echo, ...\n");
         appendOutput("Interactive prompts (read, adb pair, python input()) work: just keep typing.\n");
         appendOutput("Type /eof to close stdin, 'clear' to reset, 'exit' to close.\n");

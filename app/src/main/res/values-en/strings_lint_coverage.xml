@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="oauth_missing_scopes">Missing OAuth permissions: %1$s</string>
+    <string name="update_show_more">Show more</string>
+    <string name="update_show_less">Show less</string>
+</resources>

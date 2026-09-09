@@ -40,7 +40,7 @@ public class ToolsManager {
     private static final String NATIVE_ASSET_DIR = "native/arm64-v8a";
     private static final String EXEC_INTERCEPTOR = "libmultiaiexec.so";
     // Bump this when extraction/runtime repair logic changes.
-    private static final String TOOLS_VERSION = "v25-linker64-bootstrap";
+    private static final String TOOLS_VERSION = "v26-npx-chmod-before-after";
     private static final int MAX_CAPTURED_OUTPUT_CHARS = 1_000_000;
 
     /** Compatibility hook retained for old diagnostic call sites; never persists data. */
@@ -178,7 +178,8 @@ public class ToolsManager {
                 {"java", "java/bin/java"}, {"javac", "java/bin/javac"},
                 {"gradle", "gradle/bin/gradle"}, {"aapt2", "android-sdk/bin/aapt2"},
                 {"adb", "android-sdk/bin/adb"}, {"zipalign", "android-sdk/bin/zipalign"},
-                {"apksigner", "android-sdk/bin/apksigner"},
+                // apksigner поставляется как apksigner.jar (не ELF) — валидируем jar.
+                {"apksigner", "android-sdk/bin/apksigner.jar"},
                 {"clang", "python/clang/bin/clang"}, {"clang++", "python/clang/bin/clang++"},
                 {"cc", "python/clang/bin/cc"}, {"c++", "python/clang/bin/c++"},
                 {"ld", "python/clang/bin/ld.lld"}, {"ld.lld", "python/clang/bin/ld.lld"},
@@ -191,7 +192,10 @@ public class ToolsManager {
                 return file.exists() ? file : null;
             }
         }
-        return null;
+        // npm install -g: глобальные bin-скрипты живут в node-global/bin
+        // (NPM_CONFIG_PREFIX) — резолвим любую команду оттуда.
+        File globalBin = new File(toolsDir, "node-global/bin/" + command);
+        return globalBin.isFile() ? globalBin : null;
     }
 
     /**
@@ -254,9 +258,9 @@ public class ToolsManager {
             } catch (InterruptedException interrupted) {
                 Thread.currentThread().interrupt();
             }
-            if (cancelledFlag) return CANCELLED_PREFIX + " (by user)\n";
-            if (!exited) return "TIMEOUT (" + timeoutSec + "s)\n";
             synchronized (output) {
+                if (cancelledFlag) return CANCELLED_PREFIX + " (by user)\n" + output;
+                if (!exited) return "TIMEOUT (" + timeoutSec + "s)\n" + output;
                 return output.toString();
             }
         } catch (Exception e) {
@@ -485,6 +489,18 @@ public class ToolsManager {
                 null, null);
         appendLinkerFunction(script, "zipalign", new File(toolsDir, "android-sdk/bin/zipalign"),
                 null, null);
+        // apksigner — это .jar, не ELF. appendLinkerFunction его пропускает (isElf),
+        // поэтому задаём shell-функцию напрямую: apksigner → java -jar apksigner.jar.
+        File apksignerJar = new File(toolsDir, "android-sdk/bin/apksigner.jar");
+        if (apksignerJar.isFile()) {
+            String javaLibs = javaEnv != null ? javaEnv.get("LD_LIBRARY_PATH") : null;
+            script.append("apksigner() { ");
+            if (javaLibs != null && !javaLibs.isEmpty()) {
+                script.append("LD_LIBRARY_PATH=").append(shellQuote(javaLibs)).append(' ');
+            }
+            script.append("java -jar ").append(shellQuote(apksignerJar.getAbsolutePath()))
+                    .append(" \"$@\"; }\n");
+        }
         return script.toString();
     }
 
@@ -561,6 +577,10 @@ public class ToolsManager {
         pathEntries.append(new File(javaHome, "bin").getAbsolutePath()).append(":");
         pathEntries.append(new File(gradleDir, "bin").getAbsolutePath()).append(":");
         pathEntries.append(new File(androidHome, "bin").getAbsolutePath()).append(":");
+        // Глобальные npm-пакеты (npm install -g) кладут bin сюда (NPM_CONFIG_PREFIX).
+        File npmGlobalBin = new File(toolsDir, "node-global/bin");
+        npmGlobalBin.mkdirs();
+        pathEntries.append(npmGlobalBin.getAbsolutePath()).append(":");
         pathEntries.append(System.getenv("PATH") != null ? System.getenv("PATH") : "");
 
         StringBuilder ldLibraryPath = new StringBuilder();
@@ -675,6 +695,17 @@ public class ToolsManager {
         env.put("TMPDIR", tmpDir.getAbsolutePath());
         env.put("MALLOC_BIONIC_DISABLE_MEMORY_TAGGING", "1");
         env.put("OPENSSL_CONF", "/dev/null");
+        // Держим npm cache и global prefix внутри toolchain: child exec shim видит
+        // .bin-пакеты, а npm install -g не пытается писать в read-only /apex.
+        File npmCache = new File(toolsDir, "npm-cache");
+        File npmPrefix = new File(toolsDir, "node-global");
+        npmCache.mkdirs();
+        npmPrefix.mkdirs();
+        env.put("NPM_CONFIG_CACHE", npmCache.getAbsolutePath());
+        env.put("NPM_CONFIG_PREFIX", npmPrefix.getAbsolutePath());
+        env.put("npm_config_cache", npmCache.getAbsolutePath());
+        env.put("npm_config_prefix", npmPrefix.getAbsolutePath());
+        env.put("npm_config_script_shell", "/system/bin/sh");
         // Root of the bundled toolchain; the Python exec shim uses it to decide
         // which child processes must be routed through the linker.
         env.put("MULTIAI_TOOLS_DIR", toolsDir.getAbsolutePath());
@@ -805,7 +836,8 @@ public class ToolsManager {
                 "python/clang/bin/aarch64-linux-android-g++",
                 "git/bin/git", "curl/curl", "java/bin/java", "java/bin/javac", "java/bin/jar",
                 "gradle/bin/gradle", "android-sdk/bin/aapt2", "android-sdk/bin/adb",
-                "android-sdk/bin/zipalign", "android-sdk/bin/apksigner"
+                // apksigner — .jar, exec-бит ему не нужен (запускается через java -jar).
+                "android-sdk/bin/zipalign"
         };
         for (String relativePath : entryPoints) {
             File entryPoint = new File(toolsDir, relativePath);
@@ -1277,6 +1309,28 @@ public class ToolsManager {
      * broken shebangs pointing at a different install prefix. The wrappers
      * use the absolute path to the node binary so they work regardless of
      * PATH or shebang issues.
+     *
+     * <p>The npx wrapper is a belt-and-braces fix for the first-run
+     * "Permission denied": npm extracts packages with mode 0644 and shebang
+     * scripts land in the npx cache without the exec bit, so the first
+     * {@code npx <pkg>} (and child bins of freshly {@code npm install}ed
+     * projects) fail with EACCES on Android. The wrapper therefore:</p>
+     * <ol>
+     *   <li>forces a known-clean shell environment ({@code PATH} is resolved
+     *       from {@code MULTIAI_TOOLS_DIR}, {@code SHELL}/{@code BASH_ENV}
+     *       point to /system/bin/sh, {@code IFS} is reset) — npm resets
+     *       PATH when it thinks it is running as root, which dropped our
+     *       toolchain dirs and broke child bin resolution;</li>
+     *   <li>repairs the exec bit on every entry point of the npx/npm cache
+     *       <b>before</b> running (fixes cached runs, not just fresh ones);</li>
+     *   <li>runs the real npx-cli.js;</li>
+     *   <li>repairs again <b>after</b> the run (fixes packages this very run
+     *       just installed) and reports failures to DebugFileLog for field
+     *       diagnostics;</li>
+     *   <li>re-runs npx once when the first attempt died from a Permission
+     *       denied that the post-run repair then fixed (self-healing
+     *       first run).</li>
+     * </ol>
      */
     private void ensureNpmWrappers(File nodeHome) {
         File nodeBin = new File(nodeHome, "node");
@@ -1293,12 +1347,67 @@ public class ToolsManager {
             try {
                 java.io.FileWriter w = new java.io.FileWriter(wrapper);
                 w.write("#!/system/bin/sh\n");
-                w.write("exec \"" + nodePath + "\" \"" + entry[1] + "\" \"$@\"\n");
+                if ("npx".equals(entry[0])) {
+                    w.write(buildNpxWrapperScript(nodePath, entry[1]));
+                } else {
+                    w.write("exec \"" + nodePath + "\" \"" + entry[1] + "\" \"$@\"\n");
+                }
                 w.close();
                 wrapper.setExecutable(true, false);
-            } catch (Exception ignored) {
+            } catch (Exception error) {
+                app.multiai.mobile.utils.DebugFileLog.log("NpxWrapper",
+                        "failed to write " + wrapper + ": " + error);
             }
         }
+    }
+
+    /**
+     * The body (after the shebang) of the self-healing npx wrapper script.
+     * Package-private for the JVM unit test ({@code NpxWrapperScriptTest}).
+     */
+    static String buildNpxWrapperScript(String nodePath, String npxCli) {
+        return "# npx wrapper: repair exec bits around the real run (first-run Permission denied fix)\n"
+                // npm clears PATH when it believes it runs as root; re-resolve from
+                // MULTIAI_TOOLS_DIR (set by ToolsManager for every shell) so npm/npx
+                // children still find the bundled node/git. BASH_ENV/SHELL keep
+                // npm's shell spawning consistent on Android; IFS reset for safety.
+                + "MULTIAI_TOOLS_DIR=\"${MULTIAI_TOOLS_DIR:-$HOME/tools}\"\n"
+                + "PATH=\"$MULTIAI_TOOLS_DIR/python/clang/bin:$MULTIAI_TOOLS_DIR/python/bin:"
+                + "$MULTIAI_TOOLS_DIR/node:$MULTIAI_TOOLS_DIR/git/bin:$MULTIAI_TOOLS_DIR/curl:"
+                + "$MULTIAI_TOOLS_DIR/java/bin:$MULTIAI_TOOLS_DIR/gradle/bin:"
+                + "$MULTIAI_TOOLS_DIR/android-sdk/bin:/system/bin:/system/xbin\"\n"
+                + "export PATH\n"
+                + "SHELL=/system/bin/sh\n"
+                + "BASH_ENV=/system/bin/sh\n"
+                + "export SHELL BASH_ENV\n"
+                + "IFS=$(printf '\\t \\n')\n"
+                + "_cache=\"${NPM_CONFIG_CACHE:-$HOME/.npm}\"\n"
+                + "_chmod_cache() {\n"
+                // Toys' find lacks -path on some builds; -name '*' works everywhere.
+                // Log a short summary for field debugging (DebugFileLog reads logcat-less users).
+                + "  _fixed=0\n"
+                + "  find \"$_cache\" -type d -name .bin -print 2>/dev/null | while IFS= read -r _f; do\n"
+                + "    find \"$_f\" -type f -print 2>/dev/null | while IFS= read -r _b; do chmod +x \"$_b\" 2>/dev/null; done\n"
+                + "    _fixed=$((_fixed+1))\n"
+                + "  done\n"
+                + "  echo \"[npx-wrapper] chmod .bin dirs in $_cache: $_fixed\" >&2\n"
+                + "}\n"
+                + "_chmod_cache\n"
+                + "_run() { \"" + nodePath + "\" \"" + npxCli + "\" \"$@\"; }\n"
+                + "_run \"$@\"\n"
+                + "_rc=$?\n"
+                // Post-run repair: fix what THIS run just installed (mode 0644 bins).
+                + "_chmod_cache\n"
+                // Self-healing first run: the pre-run repair cannot know about
+                // packages npx is about to fetch. If the run failed, the post-run
+                // repair has now fixed those bits — retry once before giving up.
+                + "if [ $_rc -ne 0 ]; then\n"
+                + "  echo \"[npx-wrapper] first run failed (rc=$_rc), retrying after chmod\" >&2\n"
+                + "  _run \"$@\"\n"
+                + "  _rc=$?\n"
+                + "  _chmod_cache\n"
+                + "fi\n"
+                + "exit $_rc\n";
     }
 
     /**

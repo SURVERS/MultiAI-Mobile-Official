@@ -107,6 +107,7 @@
             android:paddingBottom="8dp"
             android:textColor="@color/user_bubble_text"
             android:textSize="16sp"
+            android:textIsSelectable="true"
             android:lineSpacingExtra="3dp" />
 
     </LinearLayout>

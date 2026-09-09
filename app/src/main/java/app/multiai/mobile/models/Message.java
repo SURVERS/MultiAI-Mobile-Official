@@ -26,6 +26,15 @@ public class Message {
     private String errorTitle;
     private String errorCode;
     private boolean retryable;
+    /**
+     * normalizedSlug Skill'а, вызванного триггером "./slug" в этом пользовательском
+     * сообщении (см. SkillInvocation). Пусто, если триггера не было. Персистится
+     * вместе с чатом, чтобы Retry ответа AI мог повторно применить тот же Skill
+     * без повторного парсинга уже очищенного текста.
+     */
+    private String usedSkillSlug;
+    /** Typing-пузырь рендерит shimmer-заглушку генерации изображения (не логотип MultiAI). */
+    private transient boolean imageGenerating = false;
 
     // 🔥 Для изображений
     private String imageBase64; // Base64 изображения (в памяти; на диск уходит в файл)
@@ -110,6 +119,13 @@ public class Message {
         message.setRetryable(retryable);
         return message;
     }
+
+    /** HTTP-статус ошибки (0/absent = ответа не было). Для карточки ошибки. */
+    private int errorHttpStatus;
+    /** Сырые технические данные (транспортная строка) для блока «Подробности». */
+    private String errorTechnical;
+    /** Раскрыт ли блок «Подробности» (UI-состояние, не сериализуется отдельно). */
+    private transient boolean errorDetailsExpanded;
 
     public String getContent() {
         return content;
@@ -287,9 +303,20 @@ public class Message {
     }
     
     // 🔥 Геттеры и сеттеры для изображений
+    private String imageBundlePath;
+
     public String getImageBase64() {
+        if (imageBase64 == null && imageBundlePath != null) {
+            try {
+                return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(imageBundlePath)),
+                        java.nio.charset.StandardCharsets.UTF_8);
+            } catch (java.io.IOException ignored) { }
+        }
         return imageBase64;
     }
+
+    public String getImageBundlePath() { return imageBundlePath; }
+    public void setImageBundlePath(String path) { imageBundlePath = path; }
 
     public void setImageBase64(String imageBase64) {
         this.imageBase64 = imageBase64;
@@ -422,12 +449,53 @@ public class Message {
         this.errorCode = errorCode;
     }
 
+    public int getErrorHttpStatus() {
+        return errorHttpStatus;
+    }
+
+    public void setErrorHttpStatus(int status) {
+        this.errorHttpStatus = status;
+    }
+
+    public String getErrorTechnical() {
+        return errorTechnical;
+    }
+
+    public void setErrorTechnical(String technical) {
+        this.errorTechnical = technical;
+    }
+
+    public boolean isErrorDetailsExpanded() {
+        return errorDetailsExpanded;
+    }
+
+    public void setErrorDetailsExpanded(boolean expanded) {
+        this.errorDetailsExpanded = expanded;
+    }
+
+    /** normalizedSlug вызванного через "./slug" Skill для этого сообщения, иначе null. */
+    public String getUsedSkillSlug() {
+        return usedSkillSlug;
+    }
+
+    public void setUsedSkillSlug(String usedSkillSlug) {
+        this.usedSkillSlug = usedSkillSlug;
+    }
+
     public boolean isRetryable() {
         return retryable;
     }
 
     public void setRetryable(boolean retryable) {
         this.retryable = retryable;
+    }
+
+    public boolean isImageGenerating() {
+        return imageGenerating;
+    }
+
+    public void setImageGenerating(boolean imageGenerating) {
+        this.imageGenerating = imageGenerating;
     }
 
     public boolean isStreaming() {
@@ -470,8 +538,22 @@ public class Message {
         return workingState;
     }
 
+    private boolean workflowStopped;
+
+    public boolean isWorkflowStopped() { return workflowStopped; }
+
+    public void setWorkflowStopped(boolean stopped) {
+        workflowStopped = stopped;
+        if (stopped) {
+            workingState = false;
+            streaming = false;
+            toolWorkflowSummary = true;
+        }
+    }
+
     public void setWorkingState(boolean workingState) {
         this.workingState = workingState;
+        if (workingState) workflowStopped = false;
     }
 
     public boolean isRetryPending() { return retryPending; }
@@ -711,6 +793,7 @@ public class Message {
     public long presentationFingerprint() {
         long hash = 1125899906842597L;
         hash = 31L * hash + type;
+        hash = 31L * hash + (workflowStopped ? 1 : 0);
         hash = 31L * hash + (workingState ? 1 : 0);
         hash = 31L * hash + (toolWorkflowSummary ? 1 : 0);
         hash = 31L * hash + (workflowCollapsedManually ? 1 : 0);

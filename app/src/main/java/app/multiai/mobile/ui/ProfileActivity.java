@@ -211,6 +211,14 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         if (app.multiai.mobile.utils.AppLockManager.get(this).routeIfLocked(this)) return;
         setContentView(R.layout.activity_profile);
+        findViewById(R.id.profileOfficialWebsite).setOnClickListener(view -> {
+            try {
+                startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://multiai.store")));
+            } catch (android.content.ActivityNotFoundException unavailable) {
+                ModernToast.show(this, getString(R.string.profile_website_unavailable));
+            }
+        });
         // Apply FLAG_SECURE if the user enabled «Блокировать скриншоты».
         app.multiai.mobile.utils.SecurityHelper.applySecure(this);
 
@@ -275,10 +283,16 @@ public class ProfileActivity extends AppCompatActivity {
                 });
             }
             @Override public void onError(String error, String detail) {
-                String msg = "access_denied".equals(error)
-                        ? getString(R.string.scr_signin_cancelled)
-                        : getString(R.string.profile_oauth_error, error);
-                runOnUiThread(() -> Toast.makeText(ProfileActivity.this, msg, Toast.LENGTH_SHORT).show());
+                String msg;
+                if ("access_denied".equals(error)) {
+                    msg = getString(R.string.scr_signin_cancelled);
+                } else if ("insufficient_scope".equals(error)
+                        && detail != null && !detail.trim().isEmpty()) {
+                    msg = getString(R.string.oauth_missing_scopes, detail);
+                } else {
+                    msg = getString(R.string.profile_oauth_error, error);
+                }
+                runOnUiThread(() -> Toast.makeText(ProfileActivity.this, msg, Toast.LENGTH_LONG).show());
             }
         });
         if (handled) {
@@ -1279,6 +1293,12 @@ public class ProfileActivity extends AppCompatActivity {
     // ══════════════════ UI (profile restore from OAuth store) ══════════════════
 
     private void loadProfile() {
+        // Обязательное обновление: профиль не показываем/не обновляем в блокированном состоянии.
+        if (app.multiai.mobile.utils.UpdateManager.isUnsupportedBlocked(this)) {
+            app.multiai.mobile.ui.kit.ModernToast.show(this,
+                    app.multiai.mobile.utils.UpdateManager.unsupportedMessage(this));
+            return;
+        }
         updateUI(store != null && store.hasRefreshToken());
     }
 
@@ -1513,21 +1533,72 @@ public class ProfileActivity extends AppCompatActivity {
                 JSONObject res = oauth.getAccountApi().billingPromo(code);
                 ui.post(() -> {
                     if (res.optBoolean("ok", false)) {
-                        long credited = res.optLong("tokens_credited", 0);
+                        long credited = res.optLong("tokens_credited", res.optLong("amount", 0));
+                        String type = res.optString("reward_type",
+                                res.optString("promo_type", res.optString("type", ""))).toLowerCase(java.util.Locale.ROOT);
+                        String reward;
+                        if ("tokens".equals(type) && credited > 0 && credited <= 10_000_000_000L) {
+                            reward = getString(R.string.profile_promo_ok,
+                                    String.format(java.util.Locale.US, "%,d", credited).replace(',', ' '));
+                        } else if ("subscription".equals(type)) {
+                            String plan = res.optString("plan_name", res.optString("plan", ""));
+                            long days = res.optLong("days", res.optLong("duration_days", 0));
+                            if (plan.trim().isEmpty() || days < 1 || days > 30) {
+                                showPromoError(new Exception(getString(R.string.promo_reward_invalid)));
+                                loadAccount();
+                                return;
+                            }
+                            reward = getString(R.string.promo_reward_subscription, plan, days);
+                        } else if ("discount".equals(type)) {
+                            long percent = res.optLong("discount_percent", res.optLong("percent", 0));
+                            if (percent < 1 || percent > 90) {
+                                showPromoError(new Exception(getString(R.string.promo_reward_invalid)));
+                                loadAccount();
+                                return;
+                            }
+                            reward = getString(R.string.promo_reward_discount, percent);
+                        } else {
+                            showPromoError(new Exception(getString("tokens".equals(type)
+                                    ? R.string.promo_reward_invalid : R.string.promo_reward_unsupported)));
+                            loadAccount();
+                            return;
+                        }
                         ModernToast.showSuccess(ProfileActivity.this,
                                 getString(R.string.profile_promo_success_title),
-                                getString(R.string.profile_promo_ok, credited),
+                                reward,
                                 getString(R.string.profile_promo_awesome));
                         loadAccount();
                     } else {
-                        ModernToast.show(this, getString(R.string.profile_promo_fail));
+                        showPromoError(new Exception(res.optString("error_description",
+                                res.optString("message", res.optString("error", "unknown_error")))));
                     }
                 });
             } catch (Exception e) {
-                ui.post(() -> ModernToast.show(this,
-                        getString(R.string.profile_promo_fail) + ": " + briefError(e)));
+                ui.post(() -> showPromoError(e));
             }
         }).start();
+    }
+
+    private void showPromoError(Exception error) {
+        String detail = error.getMessage();
+        if (detail == null || detail.trim().isEmpty()) detail = error.getClass().getSimpleName();
+        detail = detail.replaceAll("(?i)Bearer\\s+[^\\s]+", "Bearer [redacted]")
+                .replaceAll("https?://[^\\s]+", "[URL]");
+        if (detail.length() > 2000) detail = detail.substring(0, 2000) + "…";
+        if (error instanceof app.multiai.mobile.network.oauth.OAuthClient.OAuthException) {
+            int status = ((app.multiai.mobile.network.oauth.OAuthClient.OAuthException) error).http;
+            if (status > 0) detail = "HTTP " + status + "\n" + detail;
+        }
+        int reason = R.string.promo_error_unknown;
+        String code = error.getMessage() == null ? "" : error.getMessage();
+        if (error instanceof java.io.IOException) reason = R.string.promo_error_network;
+        else if (code.contains("promo_already_used")) reason = R.string.profile_err_promo_used;
+        else if (code.contains("invalid_promo_code")) reason = R.string.promo_error_invalid;
+        else if (code.contains("promo_expired") || code.contains("promo_code_expired")) reason = R.string.promo_error_expired;
+        else if (code.contains("promo_limit_reached") || code.contains("promo_exhausted")) reason = R.string.promo_error_limit;
+        else if (code.contains("insufficient_scope")) reason = R.string.profile_err_scope;
+        ModernDialog.show(this, getString(R.string.profile_promo_fail), getString(reason) + "\n\n" + detail,
+                getString(R.string.chat_cancel), getString(android.R.string.ok), false, () -> {});
     }
 
     /** Человекочитаемая причина ошибки OAuth/сети без стека. */
@@ -1669,6 +1740,24 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void renderSnapshot(JSONObject snap) {
         if (snap == null) return;
+
+        // Desktop уже использует snapshot.user.avatar_url как fallback к userinfo.picture.
+        // Mobile делает то же самое и сразу оповещает burger/settings об обновлении.
+        JSONObject user = snap.optJSONObject("user");
+        String snapshotAvatar = app.multiai.mobile.network.oauth.OAuthAvatar.fromProfileJson(user);
+        if (snapshotAvatar != null && store != null) {
+            String currentAvatar = store.getPicture();
+            boolean changed = !snapshotAvatar.equals(currentAvatar);
+            boolean persisted = !changed || store.updatePicture(snapshotAvatar);
+            imgAvatar.setImageTintList(null);
+            imgAvatar.setPadding(0, 0, 0, 0);
+            loadAvatar(snapshotAvatar);
+            if (changed && persisted) {
+                sendBroadcast(new Intent(OAuthLoginController.ACTION_PROFILE_UPDATED)
+                        .setPackage(getPackageName()));
+            }
+        }
+
         JSONObject account = snap.optJSONObject("account");
         if (account != null) {
             JSONObject wallet = account.optJSONObject("wallet");
@@ -2261,6 +2350,8 @@ public class ProfileActivity extends AppCompatActivity {
         // Брендовые model assets уже имеют правильные цвета — tint их портит.
         if (!hasModelIcon) {
             icon.setColorFilter(ContextCompat.getColor(this, R.color.icon_muted));
+        } else {
+            app.multiai.mobile.ui.kit.ModelCatalogUi.applyLogoContrast(this, icon, iconRes);
         }
         int iconSize = (int) ((hasModelIcon ? 22 : 16) * dp);
         android.widget.FrameLayout.LayoutParams iconLp = new android.widget.FrameLayout.LayoutParams(
@@ -2817,17 +2908,8 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private int modelIcon(String model) {
-        String m = model == null ? "" : model.toLowerCase(Locale.ROOT);
-        if (m.contains("claude")) return R.drawable.ic_model_claude;
-        if (m.contains("deepseek")) return R.drawable.ic_model_deepseek;
-        if (m.contains("gemini")) return R.drawable.ic_model_gemini;
-        if (m.contains("grok")) return R.drawable.ic_model_grok;
-        if (m.contains("kimi")) return R.drawable.ic_model_kimi;
-        if (m.contains("qwen")) return R.drawable.ic_model_qwen;
-        if (m.contains("gpt") || m.contains("openai") || m.contains("o3") || m.contains("o4")) {
-            return R.drawable.ic_model_openai;
-        }
-        return R.drawable.ic_s_sparkle;
+        Integer icon = app.multiai.mobile.ui.kit.ModelCatalogUi.iconFor(model);
+        return icon != null ? icon : R.drawable.ic_s_sparkle;
     }
 
     /**
