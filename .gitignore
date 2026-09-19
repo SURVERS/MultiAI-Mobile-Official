@@ -23,3 +23,6 @@ output.json
 *.jks
 *.keystore
 build_log.txt
+
+# APK signature files are build metadata, not source
+dist/*.idsig
