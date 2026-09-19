@@ -506,7 +506,7 @@
                     android:id="@+id/btnAttach"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@android:color/transparent"
                     android:clickable="true"
                     android:contentDescription="@string/attach"
                     android:elevation="5dp"

@@ -178,8 +178,18 @@ public final class ReportBugSheet {
         final Dialog sheet = ModernSheet.custom(host, host.getString(R.string.kit_report_bug_title), body);
         submit.setOnClickListener(v -> {
             if (!submit.isEnabled()) return;
-            ModernToast.show(host, host.getString(R.string.kit_report_bug_submitted));
-            sheet.dismiss();
+            String text = input.getText().toString().trim();
+            if (text.isEmpty()) return;
+            // Реальная отправка на бэкенд (раньше кнопка была заглушкой:
+            // только тост, без запроса — см. ревью 2026-09-16).
+            submit.setEnabled(false);
+            app.multiai.mobile.network.BackendApi.get().sendFeedback(
+                    host, "bug_report", text, ok -> host.runOnUiThread(() -> {
+                        ModernToast.show(host, host.getString(ok
+                                ? R.string.kit_report_bug_submitted
+                                : R.string.report_bug_failed));
+                        sheet.dismiss();
+                    }));
         });
         body.addView(submit);
 

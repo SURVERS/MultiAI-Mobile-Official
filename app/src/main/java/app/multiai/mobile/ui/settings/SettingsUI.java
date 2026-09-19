@@ -32,7 +32,7 @@ import app.multiai.mobile.utils.SecurityHelper;
  */
 public final class SettingsUI {
 
-    public static final int RADIUS_CARD = 24;
+    public static final int RADIUS_CARD = 20;
     public static final int GAP_SECTION = 28;
     public static final int SCREEN_PADDING = 16;
 
@@ -210,7 +210,7 @@ public final class SettingsUI {
         bg.setColor(colorCard(ctx));
         bg.setCornerRadius(dp(ctx, RADIUS_CARD));
         card.setBackground(bg);
-        card.setElevation(dp(ctx, 6));
+        card.setElevation(dp(ctx, 1));
         card.setOutlineProvider(new android.view.ViewOutlineProvider() {
             @Override
             public void getOutline(View view, android.graphics.Outline outline) {
@@ -459,9 +459,9 @@ public final class SettingsUI {
                 child.animate()
                         .alpha(1f)
                         .translationY(0f)
-                        .setDuration(350)
-                        .setStartDelay(i * 60L)
-                        .setInterpolator(new AccelerateDecelerateInterpolator())
+                        .setDuration(MotionKit.duration(300L))
+                        .setStartDelay(MotionKit.duration(Math.min(i * 35L, 140L)))
+                        .setInterpolator(MotionKit.STANDARD_EASING)
                         .start();
             }
         });

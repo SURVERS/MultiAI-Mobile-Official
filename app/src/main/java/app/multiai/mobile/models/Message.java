@@ -54,6 +54,11 @@ public class Message {
     private transient boolean toolWorkflowExpanded = false;
     private transient boolean workingState = false;
     private transient boolean retryPending = false;
+    /** True while the user is editing this message inline. */
+    private transient boolean editing = false;
+    private transient String editSnapshotImages;
+    private transient String editSnapshotFileName;
+    private transient String editSnapshotFileContent;
     /**
      * Пользователь явно свернул workflow вручную. Пока true, авто-раскрытие
      * (во время работы или после завершения хода) не срабатывает — ручное
@@ -174,6 +179,37 @@ public class Message {
 
     public void setThinkingExpanded(boolean expanded) {
         this.thinkingExpanded = expanded;
+    }
+
+    public boolean isEditing() {
+        return editing;
+    }
+
+    public void setEditing(boolean editing) {
+        this.editing = editing;
+    }
+
+    public void beginEditAttachmentSnapshot() {
+        editSnapshotImages = getImageBase64();
+        editSnapshotFileName = getAttachedFileName();
+        editSnapshotFileContent = getAttachedFileContent();
+    }
+
+    public void restoreEditAttachmentSnapshot() {
+        replaceImages(editSnapshotImages);
+        java.util.List<app.multiai.mobile.utils.FileAttachments.Entry> files =
+                app.multiai.mobile.utils.FileAttachments.unpack(editSnapshotFileName,
+                        editSnapshotFileContent);
+        replaceFiles(files);
+        editSnapshotImages = null;
+        editSnapshotFileName = null;
+        editSnapshotFileContent = null;
+    }
+
+    public void clearEditAttachmentSnapshot() {
+        editSnapshotImages = null;
+        editSnapshotFileName = null;
+        editSnapshotFileContent = null;
     }
 
     public void toggleThinking() {
@@ -312,8 +348,22 @@ public class Message {
                         java.nio.charset.StandardCharsets.UTF_8);
             } catch (java.io.IOException ignored) { }
         }
+        if (imageBase64 == null && imagePath != null) {
+            try {
+                return java.util.Base64.getEncoder().encodeToString(
+                        java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(imagePath)));
+            } catch (java.io.IOException ignored) { }
+        }
         return imageBase64;
     }
+
+    public void replaceImages(String payload) {
+        imageBase64 = payload;
+        imageBundlePath = null;
+        imagePath = null;
+    }
+
+    public String getPendingImageBase64() { return imageBase64; }
 
     public String getImageBundlePath() { return imageBundlePath; }
     public void setImageBundlePath(String path) { imageBundlePath = path; }
@@ -393,7 +443,21 @@ public class Message {
     }
     
     public String getAttachedFileContent() {
+        if (attachedFileContent == null && attachedFilePath != null) {
+            try {
+                return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(attachedFilePath)),
+                        java.nio.charset.StandardCharsets.UTF_8);
+            } catch (java.io.IOException ignored) { }
+        }
         return attachedFileContent;
+    }
+
+    public String getPendingFileContent() { return attachedFileContent; }
+
+    public void replaceFiles(java.util.List<app.multiai.mobile.utils.FileAttachments.Entry> files) {
+        attachedFileName = app.multiai.mobile.utils.FileAttachments.names(files);
+        attachedFileContent = app.multiai.mobile.utils.FileAttachments.pack(files);
+        attachedFilePath = null;
     }
     
     public void setAttachedFileContent(String content) {
@@ -406,7 +470,8 @@ public class Message {
     
     public boolean hasImage() {
         return (imageBase64 != null && !imageBase64.isEmpty())
-                || (imagePath != null && !imagePath.isEmpty());
+                || (imagePath != null && !imagePath.isEmpty())
+                || (imageBundlePath != null && !imageBundlePath.isEmpty());
     }
 
     public int getRevealStartCp() {

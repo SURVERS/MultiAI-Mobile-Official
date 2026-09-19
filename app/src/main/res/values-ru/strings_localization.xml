@@ -210,6 +210,11 @@
     <string name="store_subscriptions">Подписки</string>
     <string name="store_recommended">Рекомендуем</string>
     <string name="store_per_month">/ месяц</string>
+    <string name="store_period_p1m">месяц</string>
+    <string name="store_period_p3m">3 месяца</string>
+    <string name="store_period_p6m">6 месяцев</string>
+    <string name="store_period_p1y">год</string>
+    <string name="store_period_p7d">неделя</string>
     <string name="store_features">Возможности</string>
     <string name="store_buy">Купить</string>
     <string name="store_sub_pro_tagline">Комфортный старт для личных задач и спокойного темпа.</string>
@@ -237,6 +242,18 @@
     <string name="profile_promo_title">Промокод</string>
     <string name="profile_promo_hint">Введите промокод</string>
     <string name="profile_promo_activate">Активировать</string>
+    <string name="profile_my_keys">Мои ключи</string>
+    <string name="device_banned_title">Доступ ограничен</string>
+    <string name="device_banned_title_alt">Доступ к сервисам MultiAI ограничен</string>
+    <string name="device_banned_message">Устройство заблокировано. Обратитесь в поддержку MultiAI.</string>
+    <string name="device_banned_exit">Закрыть</string>
+    <string name="settings_report_bug">Сообщить об ошибке</string>
+    <string name="report_bug_title">Сообщить об ошибке</string>
+    <string name="report_bug_hint">Опиши, что случилось: что делал, что пошло не так…</string>
+    <string name="report_bug_send">Отправить</string>
+    <string name="report_bug_sent">Спасибо! Репорт отправлен разработчикам</string>
+    <string name="report_bug_failed">Не удалось отправить. Попробуй позже</string>
+    <string name="report_bug_empty">Сначала опиши проблему</string>
     <string name="profile_plan_tokens">Токенов в плане</string>
     <string name="profile_plan_requests">Запросов в месяц</string>
     <string name="profile_plan_next">Следующий платёж</string>
@@ -352,4 +369,5 @@
     <string name="tool_widget_timezone">%1$s · %2$s</string>
     <string name="voice_header_subtitle">%1$s · %2$s</string>
     <string name="voice_header_preview">«%1$s»</string>
+    <string name="voice_provider_voices">%1$s · голоса</string>
 </resources>

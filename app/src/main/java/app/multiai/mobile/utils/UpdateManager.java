@@ -74,6 +74,8 @@ public final class UpdateManager {
 
     private static volatile ReleaseInfo cachedUpdate;
     private static volatile boolean graceExpired;
+    private static final java.util.Set<String> postponedThisProcess =
+            java.util.Collections.synchronizedSet(new java.util.HashSet<>());
 
     /**
      * Проверить обновления при старте приложения. Фоновый поток; в UI-потоке
@@ -125,6 +127,8 @@ public final class UpdateManager {
                 .edit().putLong(KEY_LAST_CHECK, now).apply();
 
         new Thread(() -> {
+            // Сетевая сверка времени: high-water mark пополняется от 10+ серверов.
+            TimeGuard.refreshFromNetwork(activity.getApplicationContext());
             ReleaseInfo release = fetchLatestReleaseAsync();
             if (release == null || !isNewer(release.version, BuildConfig.VERSION_NAME)) return;
             cacheUpdate(app, release);
@@ -269,20 +273,24 @@ public final class UpdateManager {
 
     /** Юзер уже жал «Не сейчас» на этот релиз? */
     private static boolean isDismissed(Context ctx, ReleaseInfo release) {
-        android.content.SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        return release.tagName.equals(p.getString(KEY_DISMISSED_TAG, null));
+        return postponedThisProcess.contains(release.tagName);
     }
 
-    /** Прошло ли 3 дня с публикации (или с момента откладывания). */
+    /**
+     * Сброс «Не сейчас» — вызывается при возвращении приложения из фона
+     * или при новом запуске. После этого промпт обновления снова показывается.
+     */
+    public static void resetPostponed() {
+        postponedThisProcess.clear();
+    }
+
+    /** Прошло ли 3 дня с публикации (по защищённому времени TimeGuard). */
     private static boolean isGraceExpired(Context ctx, ReleaseInfo release) {
         long published = release.publishedAtMs;
         long graceMs = TimeUnit.DAYS.toMillis(GRACE_DAYS);
-        if (published > 0 && System.currentTimeMillis() - published >= graceMs) return true;
-        android.content.SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        long dismissedAt = p.getLong(KEY_DISMISSED_AT, 0L);
-        return dismissedAt > 0
-                && release.tagName.equals(p.getString(KEY_DISMISSED_TAG, null))
-                && System.currentTimeMillis() - dismissedAt >= graceMs;
+        // Откат системных часов грейс не продлевает: TimeGuard держит
+        // high-water mark, пополненную 10+ сетевыми time-API.
+        return published > 0 && TimeGuard.now(ctx) - published >= graceMs;
     }
 
     // ─────────── UI ───────────
@@ -319,8 +327,7 @@ public final class UpdateManager {
                 ? activity.getString(R.string.update_type_major)
                 : activity.getString(R.string.update_type_minor);
 
-        // ChatGPT-стиль: компактная шапка (версия/тип) + ченжлог в отдельном
-        // скролле с затуханием внизу, пока не развёрнут. Кнопки всегда видны.
+        // Ограничиваем только ченжлог, чтобы заголовок и кнопки оставались видимыми.
         float density = activity.getResources().getDisplayMetrics().density;
 
         android.widget.LinearLayout body = new android.widget.LinearLayout(activity);
@@ -333,16 +340,33 @@ public final class UpdateManager {
         versionLine.setTypeface(null, android.graphics.Typeface.BOLD);
         body.addView(versionLine);
 
-        String changelog = stripMarkdown(release.changelog);
-        boolean longChangelog = changelog.length() > 220 || changelog.chars().filter(c -> c == '\n').count() > 5;
-
-        final android.widget.ScrollView scroll = new android.widget.ScrollView(activity);
+        String changelog = release.changelog == null ? "" : release.changelog.trim();
+        final android.widget.ScrollView scroll = new android.widget.ScrollView(activity) {
+            @Override
+            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                int windowHeight = activity.getWindow().getDecorView().getHeight();
+                if (windowHeight <= 0) {
+                    windowHeight = getResources().getDisplayMetrics().heightPixels;
+                }
+                int maxHeight = (int) (windowHeight * 0.4f);
+                if (android.view.View.MeasureSpec.getMode(heightMeasureSpec)
+                        != android.view.View.MeasureSpec.UNSPECIFIED) {
+                    maxHeight = Math.min(maxHeight,
+                            android.view.View.MeasureSpec.getSize(heightMeasureSpec));
+                }
+                super.onMeasure(widthMeasureSpec, android.view.View.MeasureSpec.makeMeasureSpec(
+                        maxHeight, android.view.View.MeasureSpec.AT_MOST));
+            }
+        };
         scroll.setVerticalScrollBarEnabled(false);
+        scroll.setVerticalFadingEdgeEnabled(true);
+        scroll.setFadingEdgeLength((int) (24 * density));
+        scroll.setOverScrollMode(android.view.View.OVER_SCROLL_NEVER);
         android.widget.TextView changelogView = new android.widget.TextView(activity);
-        changelogView.setText(changelog);
-        changelogView.setTextColor(activity.getColor(R.color.text_secondary));
+        changelogView.setTextColor(activity.getColor(R.color.text_primary));
         changelogView.setTextSize(13.5f);
         changelogView.setLineSpacing(2 * density, 1f);
+        MarkdownRenderer.render(activity, changelogView, changelog);
         scroll.addView(changelogView);
         android.widget.LinearLayout.LayoutParams scrollLp = new android.widget.LinearLayout.LayoutParams(
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT,
@@ -350,48 +374,6 @@ public final class UpdateManager {
         scrollLp.topMargin = (int) (10 * density);
         scroll.setLayoutParams(scrollLp);
         body.addView(scroll);
-
-        // Разворот: длинный ченжлог схлопнут до 5 строк с fade-out снизу.
-        final int collapsedHeight = (int) (5 * 19 * density);
-        final android.widget.TextView toggle = new android.widget.TextView(activity);
-        if (longChangelog) {
-            scroll.getLayoutParams().height = collapsedHeight;
-            scroll.setLayoutParams(scrollLp);
-            toggle.setText(activity.getString(R.string.update_show_more));
-            toggle.setTextColor(activity.getColor(R.color.accent));
-            toggle.setTextSize(13);
-            toggle.setTypeface(null, android.graphics.Typeface.BOLD);
-            toggle.setPadding(0, (int) (6 * density), 0, 0);
-            toggle.setOnClickListener(v -> {
-                boolean expand = toggle.getVisibility() == android.view.View.VISIBLE
-                        && activity.getString(R.string.update_show_more).contentEquals(toggle.getText());
-                android.view.ViewGroup.LayoutParams lp = scroll.getLayoutParams();
-                if (expand) {
-                    lp.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-                    scroll.setLayoutParams(lp);
-                    toggle.setText(R.string.update_show_less);
-                    changelogView.setShadowLayer(0, 0, 0, 0);
-                } else {
-                    lp.height = collapsedHeight;
-                    scroll.setLayoutParams(lp);
-                    toggle.setText(R.string.update_show_more);
-                }
-                scroll.post(() -> scroll.fullScroll(android.view.View.FOCUS_UP));
-            });
-            // «Блюр» снизу, пока не развёрнуто: тень-градиент на тексте.
-            changelogView.setShadowLayer(0, 0, 14 * density, 0xFF161616);
-            android.widget.LinearLayout fadeWrap = new android.widget.LinearLayout(activity);
-            fadeWrap.setOrientation(android.widget.LinearLayout.VERTICAL);
-            android.view.ViewGroup parent = (android.view.ViewGroup) scroll.getParent();
-            parent.removeView(scroll);
-            android.widget.LinearLayout.LayoutParams wrapScrollLp = new android.widget.LinearLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
-            wrapScrollLp.topMargin = (int) (10 * density);
-            fadeWrap.addView(scroll, wrapScrollLp);
-            fadeWrap.addView(toggle);
-            body.addView(fadeWrap);
-        }
 
         android.app.Dialog dialog = app.multiai.mobile.ui.kit.ModernDialog.show(
                 activity,
@@ -422,9 +404,10 @@ public final class UpdateManager {
 
     /** «Не сейчас»: запоминаем релиз и момент — грейс 3 дня стартует заново. */
     private static void postpone(Activity activity, ReleaseInfo release) {
+        postponedThisProcess.add(release.tagName);
         activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                .putString(KEY_DISMISSED_TAG, release.tagName)
-                .putLong(KEY_DISMISSED_AT, System.currentTimeMillis())
+                .remove(KEY_DISMISSED_TAG)
+                .remove(KEY_DISMISSED_AT)
                 .apply();
     }
 
@@ -557,6 +540,8 @@ public final class UpdateManager {
                     .getLong(KEY_LAST_CHECK, 0L) >= CHECK_INTERVAL_MS) {
                 ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                         .edit().putLong(KEY_LAST_CHECK, now).apply();
+                // Блокирующая проверка тоже сверяет время с сетью.
+                TimeGuard.refreshFromNetwork(ctx);
                 ReleaseInfo release = fetchLatestReleaseAsync();
                 if (release != null && isNewer(release.version, BuildConfig.VERSION_NAME)) {
                     cacheUpdate(ctx, release);

@@ -1,29 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Lucide: mic (exact from github.com/lucide-icons/lucide) -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:pathData="M12,19v3"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="@android:color/transparent"/>
-    <path
-        android:pathData="M19,10v2a7,7 0,0 1,-14 0v-2"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="@android:color/transparent"/>
-    <path
-        android:pathData="M12,2L12,2A3,3 0,0 1,15 5L15,12A3,3 0,0 1,12 15L12,15A3,3 0,0 1,9 12L9,5A3,3 0,0 1,12 2z"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="@android:color/transparent"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M18.5848,13.4121C18.7715,12.9516 19.2961,12.7296 19.7567,12.916C20.217,13.1027 20.4391,13.6274 20.2528,14.0879C19.0405,17.0826 16.2438,19.2675 12.9003,19.6035V22C12.9003,22.4971 12.4969,22.9004 11.9999,22.9004C11.5029,22.9003 11.0995,22.497 11.0995,22V19.6035C7.7562,19.2673 4.9602,17.0823 3.7479,14.0879C3.5614,13.6272 3.7834,13.1026 4.244,12.916C4.7046,12.7298 5.2293,12.9517 5.4159,13.4121C6.4699,16.0157 9.0226,17.8496 12.0008,17.8496C14.9787,17.8493 17.531,16.0155 18.5848,13.4121Z"/>
+  <path android:fillColor="@color/icon" android:pathData="M11.9999,1.3496C14.7061,1.3496 16.9003,3.5438 16.9003,6.25V10.7334C16.9003,13.4396 14.7061,15.6338 11.9999,15.6338C9.2937,15.6337 7.0995,13.4396 7.0995,10.7334V6.25C7.0995,3.5438 9.2937,1.3497 11.9999,1.3496ZM11.9999,3.1504C10.2878,3.1505 8.9003,4.538 8.9003,6.25V10.7334C8.9003,12.4454 10.2878,13.8339 11.9999,13.834C13.7119,13.834 15.0995,12.4455 15.0995,10.7334V6.25C15.0995,4.5379 13.7119,3.1504 11.9999,3.1504Z" android:fillType="nonZero"/>
 </vector>

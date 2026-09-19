@@ -309,33 +309,23 @@ public class DevicesActivity extends AppCompatActivity {
     /**
      * Человекочитаемый срок неактивности: «1 неделя», «3 месяца», «6 месяцев»,
      * «1 год» вместо сырого «Через N дн.». Округляет к ближайшей крупной единице.
+     * Строки — через plurals, так что локализуются.
      */
     private String formatTtl(int days) {
         if (days >= 330) {
-            return russianQuantity(Math.max(1, Math.round(days / 365f)), "год", "года", "лет");
+            int n = Math.max(1, Math.round(days / 365f));
+            return getResources().getQuantityString(R.plurals.ttl_years, n, n);
         }
         if (days >= 25) {
-            return russianQuantity(Math.round(days / 30.4f), "месяц", "месяца", "месяцев");
+            int n = Math.round(days / 30.4f);
+            return getResources().getQuantityString(R.plurals.ttl_months, n, n);
         }
         if (days >= 7) {
-            return russianQuantity(Math.round(days / 7f), "неделя", "недели", "недель");
+            int n = Math.round(days / 7f);
+            return getResources().getQuantityString(R.plurals.ttl_weeks, n, n);
         }
-        return russianQuantity(Math.max(1, days), "день", "дня", "дней");
-    }
-
-    /** Русская плюрализация: 1 год / 2 года / 5 лет. */
-    private String russianQuantity(int n, String one, String few, String many) {
-        int mod10 = n % 10;
-        int mod100 = n % 100;
-        String word;
-        if (mod10 == 1 && mod100 != 11) {
-            word = one;
-        } else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-            word = few;
-        } else {
-            word = many;
-        }
-        return n + " " + word;
+        int n = Math.max(1, days);
+        return getResources().getQuantityString(R.plurals.ttl_days, n, n);
     }
 
     private void renderMessage(String message, boolean error) {

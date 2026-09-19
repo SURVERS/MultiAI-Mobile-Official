@@ -2,7 +2,7 @@
 <resources>
     <!-- Skills — экран списка -->
     <string name="skills_title">Skills</string>
-    <string name="skills_subtitle">Вызываются в Work Mode триггером «./slug» в начале сообщения — как у Desktop IDE.</string>
+    <string name="skills_subtitle">Пользовательские инструкции, которые AI подключает по команде в начале сообщения — как у Desktop IDE.</string>
     <string name="skills_settings_subtitle">Пользовательские инструкции для Work Mode</string>
     <string name="skills_installed">Установленные Skills</string>
     <string name="skills_empty">Нет установленных Skills.\nНажми + чтобы создать или импортировать первый.</string>
@@ -14,7 +14,6 @@
     <string name="skills_disable">Выключить</string>
     <string name="skills_actions">Действия</string>
     <string name="skills_deleted">Skill удалён</string>
-    <string name="skills_work_mode_only_note">⚠ Skills активны только в режиме Work, вызываются командой «./slug текст…»</string>
     <string name="skills_add_menu_create">Создать новый</string>
     <string name="skills_add_menu_import">Импортировать текст (SKILL.md)</string>
     <string name="skills_view">Просмотреть</string>
@@ -23,16 +22,16 @@
     <!-- Skill — редактор -->
     <string name="skill_new_title">Новый Skill</string>
     <string name="skill_edit_title">Редактор Skill</string>
-    <string name="skill_editor_subtitle">Заполни slug и текст — AI подключит их по команде «./slug» в Work Mode.</string>
+    <string name="skill_editor_subtitle">Заполни команду вызова и текст — AI подключит их, когда сообщение начинается с этой команды.</string>
     <string name="skill_identity_section">Профиль</string>
     <string name="skill_name">Имя</string>
     <string name="skill_name_hint">Например, Code Style Rules</string>
     <string name="skill_name_required">Укажи имя Skill</string>
-    <string name="skill_slug">Slug (команда вызова)</string>
+    <string name="skill_slug">Команда вызова</string>
     <string name="skill_slug_hint">code-style-rules</string>
-    <string name="skill_slug_helper">Вызывается в чате как «./%1$s текст…»</string>
-    <string name="skill_slug_required">Укажи slug — короткий идентификатор без пробелов</string>
-    <string name="skill_slug_taken">Такой slug уже занят другим Skill</string>
+    <string name="skill_slug_helper">Вызывается в чате: команда в начале сообщения, затем текст</string>
+    <string name="skill_slug_required">Укажи команду вызова — короткий идентификатор без пробелов</string>
+    <string name="skill_slug_taken">Такая команда вызова уже занята другим Skill</string>
     <string name="skill_description">Описание</string>
     <string name="skill_description_hint">Коротко: что делает этот Skill</string>
     <string name="skill_runtime_section">Настройки</string>
@@ -40,7 +39,7 @@
     <string name="skill_scope">Область</string>
     <string name="skill_scope_workspace_missing">Сначала выбери папку проекта в Work Mode</string>
     <string name="skill_content_section">Текст инструкции</string>
-    <string name="skill_content_note">Этот текст подключается в system prompt только когда сообщение начинается с «./slug».</string>
+    <string name="skill_content_note">Этот текст подключается в system prompt только когда сообщение начинается с команды вызова Skill.</string>
     <string name="skill_content_hint">Например: всегда пиши комментарии на русском языке, предпочитай Java 11 API…</string>
     <string name="skill_content_required">Укажи текст инструкции</string>
     <string name="skill_saved">Skill сохранён</string>
@@ -49,7 +48,7 @@
 
     <!-- Skill — импорт из произвольного текста (например, скачанный SKILL.md с GitHub) -->
     <string name="skill_import_title">Импорт Skill</string>
-    <string name="skill_import_subtitle">Вставь содержимое произвольного SKILL.md (например, из GitHub-репозитория skill-пакета) — распознаем имя, описание и slug автоматически.</string>
+    <string name="skill_import_subtitle">Вставь содержимое произвольного SKILL.md (например, из GitHub-репозитория skill-пакета) — распознаем имя, описание и команду вызова автоматически.</string>
     <string name="skill_import_paste_label">Содержимое SKILL.md или просто текст инструкции</string>
     <string name="skill_import_paste_hint">Вставь сюда содержимое файла…</string>
     <string name="skill_import_action">Разобрать и продолжить</string>

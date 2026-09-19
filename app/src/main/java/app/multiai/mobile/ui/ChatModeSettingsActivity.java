@@ -386,9 +386,18 @@ public class ChatModeSettingsActivity extends AppCompatActivity {
             return;
         }
         content.animate().cancel();
+        // Fade out → apply theme → fade back in. Without the fade-in the screen
+        // stays black when the night mode doesn't recreate the activity
+        // (e.g. re-selecting the already-active dark theme).
         content.animate().alpha(0f).scaleX(0.99f).scaleY(0.99f)
                 .setDuration(160)
-                .withEndAction(change)
+                .withEndAction(() -> {
+                    change.run();
+                    content.animate().cancel();
+                    content.animate().alpha(1f).scaleX(1f).scaleY(1f)
+                            .setDuration(160)
+                            .start();
+                })
                 .start();
     }
 

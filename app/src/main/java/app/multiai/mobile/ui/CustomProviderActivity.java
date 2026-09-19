@@ -210,6 +210,57 @@ public class CustomProviderActivity extends AppCompatActivity {
         modelsLabel.setTypeface(null, android.graphics.Typeface.BOLD);
         modelsSection.addView(modelsLabel);
 
+        // Manual model ID input + add button
+        LinearLayout manualModelRow = new LinearLayout(this);
+        manualModelRow.setOrientation(LinearLayout.HORIZONTAL);
+        manualModelRow.setGravity(Gravity.CENTER_VERTICAL);
+        manualModelRow.setPadding(0, SettingsUI.dp(this, 8), 0, 0);
+
+        EditText modelIdInput = styledInput(getString(R.string.custom_provider_model_hint));
+        LinearLayout.LayoutParams inputLp = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        inputLp.rightMargin = SettingsUI.dp(this, 8);
+        manualModelRow.addView(modelIdInput, inputLp);
+
+        TextView addModelBtn = new TextView(this);
+        addModelBtn.setText(R.string.custom_provider_add_model);
+        addModelBtn.setTextColor(AccentColor.contrastForeground(this));
+        addModelBtn.setTextSize(13);
+        addModelBtn.setTypeface(null, android.graphics.Typeface.BOLD);
+        addModelBtn.setGravity(Gravity.CENTER);
+        addModelBtn.setPadding(SettingsUI.dp(this, 14), SettingsUI.dp(this, 8),
+                SettingsUI.dp(this, 14), SettingsUI.dp(this, 8));
+        GradientDrawable addBg = new GradientDrawable();
+        addBg.setCornerRadius(SettingsUI.dp(this, 10));
+        addBg.setColor(AccentColor.resolve(this));
+        addModelBtn.setBackground(addBg);
+        addModelBtn.setClickable(true);
+        addModelBtn.setFocusable(true);
+        addModelBtn.setOnClickListener(v -> {
+            String modelId = modelIdInput.getText().toString().trim();
+            if (modelId.isEmpty()) return;
+            boolean alreadyExists = false;
+            for (CustomProvider.ProviderModel pm : provider.models) {
+                if (modelId.equals(pm.requestName)) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+            if (!alreadyExists) {
+                CustomProvider.ProviderModel manual = new CustomProvider.ProviderModel(
+                        modelId, modelId, 128000, 4096, null, null, null, 0, 0, 0);
+                provider.models.add(manual);
+                CustomProviderStore.save(this, provider);
+                renderProviders();
+                modelIdInput.setText("");
+                ModernToast.show(this, getString(R.string.custom_provider_model_added, modelId));
+            } else {
+                ModernToast.show(this, getString(R.string.custom_provider_model_exists));
+            }
+        });
+        manualModelRow.addView(addModelBtn);
+        modelsSection.addView(manualModelRow);
+
         if (provider.models.isEmpty()) {
             TextView noModels = new TextView(this);
             noModels.setText(R.string.custom_provider_no_models);
@@ -227,8 +278,7 @@ public class CustomProviderActivity extends AppCompatActivity {
             int shown = Math.min(provider.models.size(), 6);
             for (int i = 0; i < shown; i++) {
                 CustomProvider.ProviderModel model = provider.models.get(i);
-                View chip = staticChip(model.displayName == null || model.displayName.isEmpty()
-                        ? model.requestName : model.displayName);
+                View chip = modelChip(model, provider);
                 LinearLayout.LayoutParams cLp = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 cLp.rightMargin = SettingsUI.dp(this, 6);
@@ -236,7 +286,12 @@ public class CustomProviderActivity extends AppCompatActivity {
                 chips.addView(chip);
             }
             if (provider.models.size() > shown) {
+                // Вместо «+N» — кликабельная кнопка, открывающая sheet со всеми
+                // моделями; оттуда можно удалить любую, а не только видимые чипы.
                 View more = staticChip("+" + (provider.models.size() - shown));
+                more.setClickable(true);
+                more.setFocusable(true);
+                more.setOnClickListener(v -> showAllModelsSheet(provider));
                 chips.addView(more);
             }
             scroll.addView(chips);
@@ -244,6 +299,122 @@ public class CustomProviderActivity extends AppCompatActivity {
         }
 
         return card;
+    }
+
+    /**
+     * Sheet со всеми моделями провайдера (дизайн — системный ModernSheet).
+     * Любую модель можно удалить, а не только те, что влезли в чипы.
+     */
+    private void showAllModelsSheet(CustomProvider provider) {
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+
+        Runnable[] rebuild = new Runnable[1];
+        rebuild[0] = () -> {
+            list.removeAllViews();
+            if (provider.models.isEmpty()) {
+                TextView empty = new TextView(this);
+                empty.setText(R.string.custom_provider_no_models);
+                empty.setTextColor(SettingsUI.colorHint(this));
+                empty.setTextSize(13);
+                empty.setPadding(0, SettingsUI.dp(this, 12), 0, SettingsUI.dp(this, 12));
+                list.addView(empty);
+                return;
+            }
+            for (int i = 0; i < provider.models.size(); i++) {
+                CustomProvider.ProviderModel model = provider.models.get(i);
+                LinearLayout row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setGravity(Gravity.CENTER_VERTICAL);
+                row.setMinimumHeight(SettingsUI.dp(this, 48));
+                row.setPadding(0, SettingsUI.dp(this, 6), 0, SettingsUI.dp(this, 6));
+
+                TextView name = new TextView(this);
+                name.setText(model.displayName == null || model.displayName.isEmpty()
+                        ? model.requestName : model.displayName);
+                name.setTextColor(SettingsUI.colorText(this));
+                name.setTextSize(14);
+                name.setMaxLines(2);
+                name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                row.addView(name, new LinearLayout.LayoutParams(
+                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+                ImageView delete = new ImageView(this);
+                delete.setImageResource(R.drawable.ic_close);
+                delete.setColorFilter(SettingsUI.colorMutedIcon(this));
+                int dp8 = SettingsUI.dp(this, 8);
+                delete.setPadding(dp8, dp8, dp8, dp8);
+                delete.setContentDescription(getString(R.string.custom_provider_model_deleted));
+                delete.setOnClickListener(v -> {
+                    provider.models.remove(model);
+                    CustomProviderStore.save(this, provider);
+                    rebuild[0].run();
+                    renderProviders();
+                    ModernToast.show(this, getString(R.string.custom_provider_model_deleted));
+                });
+                row.addView(delete, new LinearLayout.LayoutParams(
+                        SettingsUI.dp(this, 36), SettingsUI.dp(this, 36)));
+                list.addView(row);
+            }
+        };
+        rebuild[0].run();
+
+        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        scroll.addView(list, new android.widget.ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        // Список не выше ~половины экрана
+        int maxListHeight = (int) (getResources().getDisplayMetrics().heightPixels * 0.45);
+        scroll.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, maxListHeight));
+        scroll.post(() -> {
+            int measured = list.getHeight() + SettingsUI.dp(this, 8);
+            scroll.getLayoutParams().height = Math.min(measured, maxListHeight);
+            scroll.requestLayout();
+        });
+
+        String title = getString(R.string.custom_provider_models) + " (" + provider.models.size() + ")";
+        app.multiai.mobile.ui.kit.ModernSheet.custom(this, title, scroll, true);
+    }
+
+    private View modelChip(CustomProvider.ProviderModel model, CustomProvider provider) {
+        LinearLayout chip = new LinearLayout(this);
+        chip.setOrientation(LinearLayout.HORIZONTAL);
+        chip.setGravity(Gravity.CENTER_VERTICAL);
+        chip.setPadding(SettingsUI.dp(this, 10), SettingsUI.dp(this, 5),
+                SettingsUI.dp(this, 6), SettingsUI.dp(this, 5));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(SettingsUI.dp(this, 12));
+        bg.setColor(SettingsUI.colorSurfaceTonal(this));
+        bg.setStroke(1, SettingsUI.colorStroke(this));
+        chip.setBackground(bg);
+
+        TextView label = new TextView(this);
+        label.setText(model.displayName == null || model.displayName.isEmpty()
+                ? model.requestName : model.displayName);
+        label.setTextColor(SettingsUI.colorText(this));
+        label.setTextSize(12);
+        chip.addView(label);
+
+        // Delete button (only for manually-added models — those with no info from provider)
+        boolean isManual = model.contextWindow == 128000 && model.maxOutputTokens == 4096
+                && model.priceInput == 0 && model.priceOutput == 0;
+        if (isManual) {
+            TextView delete = new TextView(this);
+            delete.setText("✕");
+            delete.setTextColor(SettingsUI.colorHint(this));
+            delete.setTextSize(12);
+            delete.setPadding(SettingsUI.dp(this, 4), 0, 0, 0);
+            delete.setClickable(true);
+            delete.setFocusable(true);
+            delete.setOnClickListener(v -> {
+                provider.models.remove(model);
+                CustomProviderStore.save(this, provider);
+                renderProviders();
+                ModernToast.show(this, getString(R.string.custom_provider_model_deleted));
+            });
+            chip.addView(delete);
+        }
+        return chip;
     }
 
     private View staticChip(String label) {
@@ -333,6 +504,8 @@ public class CustomProviderActivity extends AppCompatActivity {
         urlNote.setTextSize(12);
         body.addView(urlNote);
 
+        body.addView(SettingsUI.spacer(this, 12));
+
         if (editing) {
             body.addView(SettingsUI.spacer(this, 14));
             TextView reload = actionRow(getString(R.string.custom_provider_reload_models), false);
@@ -386,7 +559,7 @@ public class CustomProviderActivity extends AppCompatActivity {
                 renderProviders();
                 ModernToast.show(this, getString(R.string.custom_provider_updated));
             } else {
-                doAddProvider(pName, selectedParadigm[0], key, baseUrl);
+                doAddProvider(pName, selectedParadigm[0], key, baseUrl, "");
             }
         });
         body.addView(saveBtn, new LinearLayout.LayoutParams(
@@ -552,7 +725,7 @@ public class CustomProviderActivity extends AppCompatActivity {
     }
 
     /** Создаёт провайдер, автоматически подгружает модели в фоне. */
-    private void doAddProvider(String name, String paradigm, String apiKey, String baseURL) {
+    private void doAddProvider(String name, String paradigm, String apiKey, String baseURL, String manualModelId) {
         ModernToast.show(this, getString(R.string.custom_provider_fetching));
         CustomProvider provider = new CustomProvider();
         provider.displayName = name.isEmpty() ? (CustomProvider.PARADIGM_ANTHROPIC.equals(paradigm)
@@ -571,6 +744,22 @@ public class CustomProviderActivity extends AppCompatActivity {
                         m.priceInput, m.priceOutput, m.priceCached);
                 pm.kind = m.kind;
                 provider.models.add(pm);
+            }
+            // If manual model ID provided and not already fetched — add it
+            if (manualModelId != null && !manualModelId.trim().isEmpty()) {
+                String trimmedId = manualModelId.trim();
+                boolean alreadyExists = false;
+                for (CustomProvider.ProviderModel pm : provider.models) {
+                    if (trimmedId.equals(pm.requestName)) {
+                        alreadyExists = true;
+                        break;
+                    }
+                }
+                if (!alreadyExists) {
+                    CustomProvider.ProviderModel manual = new CustomProvider.ProviderModel(
+                            trimmedId, trimmedId, 128000, 4096, null, null, null, 0, 0, 0);
+                    provider.models.add(manual);
+                }
             }
             CustomProviderStore.save(this, provider);
             runOnUiThread(() -> {

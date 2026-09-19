@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -53,6 +54,13 @@
             android:name=".ui.BiometricGateActivity"
             android:exported="false"
             android:launchMode="singleTask"
+            android:theme="@style/Theme.MultiAiIde" />
+
+        <activity
+            android:name=".ui.BanActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
             android:theme="@style/Theme.MultiAiIde" />
 
         <activity
@@ -132,6 +140,11 @@
         </activity>
         <activity android:name=".ui.ProfileActivity" android:exported="false" />
         <activity android:name=".ui.StoreActivity" android:exported="false" />
+
+        <service
+            android:name=".utils.GenerationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <service
             android:name=".terminal.TerminalService"

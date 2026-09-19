@@ -270,6 +270,30 @@
         <item quantity="many">%1$d выбрано</item>
         <item quantity="other">%1$d выбрано</item>
     </plurals>
+    <plurals name="ttl_years">
+        <item quantity="one">%1$d год</item>
+        <item quantity="few">%1$d года</item>
+        <item quantity="many">%1$d лет</item>
+        <item quantity="other">%1$d лет</item>
+    </plurals>
+    <plurals name="ttl_months">
+        <item quantity="one">%1$d месяц</item>
+        <item quantity="few">%1$d месяца</item>
+        <item quantity="many">%1$d месяцев</item>
+        <item quantity="other">%1$d месяцев</item>
+    </plurals>
+    <plurals name="ttl_weeks">
+        <item quantity="one">%1$d неделя</item>
+        <item quantity="few">%1$d недели</item>
+        <item quantity="many">%1$d недель</item>
+        <item quantity="other">%1$d недель</item>
+    </plurals>
+    <plurals name="ttl_days">
+        <item quantity="one">%1$d день</item>
+        <item quantity="few">%1$d дня</item>
+        <item quantity="many">%1$d дней</item>
+        <item quantity="other">%1$d дней</item>
+    </plurals>
     <string name="scr_file_not_found">Файл не найден</string>
     <string name="scr_nothing_selected">Ничего не выбрано</string>
     <string name="scr_deleted_count">Удалено: %1$d</string>

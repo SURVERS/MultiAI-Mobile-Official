@@ -356,12 +356,14 @@ public class PersistentShell {
             try { Thread.sleep(200); } catch (InterruptedException ignored) {
                 if (!alive.get()) return;
             }
-            if (commandInFlight && !inputMode) {
-                long since = System.currentTimeMillis() - lastOutputTime;
-                if (since > IDLE_TIMEOUT_MS) {
-                    inputMode = true;
-                    final String c = lastCwd;
-                    tools.postOnUi(() -> listener.onCommandDone(-1, c, true));
+            synchronized (this) {
+                if (commandInFlight && !inputMode) {
+                    long since = System.currentTimeMillis() - lastOutputTime;
+                    if (since > IDLE_TIMEOUT_MS) {
+                        inputMode = true;
+                        final String c = lastCwd;
+                        tools.postOnUi(() -> listener.onCommandDone(-1, c, true));
+                    }
                 }
             }
         }

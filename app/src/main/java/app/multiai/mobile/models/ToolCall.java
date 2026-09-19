@@ -95,71 +95,76 @@ public class ToolCall {
     }
 
     public String getDisplayText() {
+        return getDisplayText(null);
+    }
+
+    /** Localized display text for tool status cards. */
+    public String getDisplayText(android.content.Context ctx) {
         if (!isSupportedToolName(name)) {
-            return "Недоступный инструмент";
+            return ctx != null ? ctx.getString(R.string.tool_unsupported) : "Недоступный инструмент";
         }
 
         if ("loading".equals(status)) {
             switch (name) {
                 case "get_weather":
-                    return "Получаю погоду: " + params.getOrDefault("city", "...") + "...";
+                    return ctx != null ? ctx.getString(R.string.tool_weather_loading, params.getOrDefault("city", "...")) : "Получаю погоду: " + params.getOrDefault("city", "...") + "...";
                 case "web_search":
-                    return "Ищу: \"" + params.getOrDefault("query", "...") + "\"...";
+                    return ctx != null ? ctx.getString(R.string.tool_search_loading, params.getOrDefault("query", "...")) : "Ищу: \"" + params.getOrDefault("query", "...") + "\"...";
                 case "url_fetch":
-                    return "Читаю: " + params.getOrDefault("url", "...") + "...";
+                    return ctx != null ? ctx.getString(R.string.tool_fetch_loading, params.getOrDefault("url", "...")) : "Читаю: " + params.getOrDefault("url", "...") + "...";
                 case "get_current_time":
-                    return "Получаю время: " + params.getOrDefault("timezone", "...") + "...";
+                    return ctx != null ? ctx.getString(R.string.tool_time_loading, params.getOrDefault("timezone", "...")) : "Получаю время: " + params.getOrDefault("timezone", "...") + "...";
                 case "save_memory":
-                    return "Сохраняю воспоминание...";
+                    return ctx != null ? ctx.getString(R.string.tool_memory_saving) : "Сохраняю воспоминание...";
                 case "summarize_chat_history":
-                    return "Сжимаю историю диалога отдельной AI-моделью...";
+                    return ctx != null ? ctx.getString(R.string.tool_summarize_history) : "Сжимаю историю диалога отдельной AI-моделью...";
                 case "summarize_past_chat":
-                    return "Изучаю прошлый чат отдельной AI-моделью...";
+                    return ctx != null ? ctx.getString(R.string.tool_summarize_past) : "Изучаю прошлый чат отдельной AI-моделью...";
                 case "read_file":
-                    return "Читаю файл...";
+                    return ctx != null ? ctx.getString(R.string.tool_read_file) : "Читаю файл...";
                 case "write_file":
-                    return "Записываю файл...";
+                    return ctx != null ? ctx.getString(R.string.tool_write_file) : "Записываю файл...";
                 case "edit_file":
-                    return "Правлю файл...";
+                    return ctx != null ? ctx.getString(R.string.tool_edit_file) : "Правлю файл...";
                 case "delete_path":
-                    return "Удаляю путь...";
+                    return ctx != null ? ctx.getString(R.string.tool_delete_path) : "Удаляю путь...";
                 case "move_path":
-                    return "Перемещаю путь...";
+                    return ctx != null ? ctx.getString(R.string.tool_move_path) : "Перемещаю путь...";
                 case "list_dir":
-                    return "Изучаю структуру проекта...";
+                    return ctx != null ? ctx.getString(R.string.tool_list_dir) : "Изучаю структуру проекта...";
                 case "search_grep":
-                    return "Ищу в проекте...";
+                    return ctx != null ? ctx.getString(R.string.tool_search_grep) : "Ищу в проекте...";
                 case "find_files":
-                    return "Ищу файлы...";
+                    return ctx != null ? ctx.getString(R.string.tool_find_files) : "Ищу файлы...";
                 case "execute_command":
-                    return "Выполняю: " + params.getOrDefault("cmd", "...") + "...";
+                    return ctx != null ? ctx.getString(R.string.tool_exec_loading, params.getOrDefault("cmd", "...")) : "Выполняю: " + params.getOrDefault("cmd", "...") + "...";
                 case "invoke_subagent":
-                    return "Запускаю сабагента...";
+                    return ctx != null ? ctx.getString(R.string.tool_subagent_loading) : "Запускаю сабагента...";
                 case "project_rules":
                     return "Including project rules";
                 case "enter_plan_mode":
-                    return "Включаю Plan Mode...";
+                    return ctx != null ? ctx.getString(R.string.tool_plan_mode_enter) : "Включаю Plan Mode...";
                 case "present_plan":
-                    return "Показываю план...";
+                    return ctx != null ? ctx.getString(R.string.tool_present_plan) : "Показываю план...";
                 case "question":
-                    return "Ожидаю ответ пользователя...";
+                    return ctx != null ? ctx.getString(R.string.tool_question_waiting) : "Ожидаю ответ пользователя...";
                 default:
-                    return "Выполняю инструмент...";
+                    return ctx != null ? ctx.getString(R.string.tool_generic_loading) : "Выполняю инструмент...";
             }
         }
 
         JSONObject result = getResult();
         if ("error".equals(status)) {
-            return result != null
-                    ? result.optString("error", "Ошибка выполнения инструмента")
-                    : "Ошибка выполнения инструмента";
+            String fallback = ctx != null ? ctx.getString(R.string.tool_error) : "Ошибка выполнения инструмента";
+            return result != null ? result.optString("error", fallback) : fallback;
         }
 
         try {
             switch (name) {
                 case "get_weather":
                     if (result != null) {
-                        String city = result.optString("city", params.getOrDefault("city", "Город"));
+                        String city = result.optString("city", params.getOrDefault("city",
+                                ctx != null ? ctx.getString(R.string.tool_city_fallback) : "Город"));
                         String temp = result.optString("temp_c", "?");
                         String weather = result.optString("weather",
                                 result.optString("description", ""));
@@ -168,14 +173,18 @@ public class ToolCall {
                     break;
                 case "web_search":
                     if (result != null && result.has("results")) {
-                        return "Найдено " + result.getJSONArray("results").length() + " результатов";
+                        int n = result.getJSONArray("results").length();
+                        return ctx != null ? ctx.getResources().getQuantityString(R.plurals.tool_results_found, n, n)
+                                : "Найдено " + n + " результатов";
                     }
                     break;
                 case "url_fetch":
                     if (result != null) {
-                        String title = result.optString("title", "Страница");
+                        String title = result.optString("title",
+                                ctx != null ? ctx.getString(R.string.tool_page_fallback) : "Страница");
                         int length = result.optInt("length", 0);
-                        return "Загружено: " + title + " (" + length + " символов)";
+                        return ctx != null ? ctx.getString(R.string.tool_fetch_done, title, length)
+                                : "Загружено: " + title + " (" + length + " символов)";
                     }
                     break;
                 case "get_current_time":
@@ -184,67 +193,75 @@ public class ToolCall {
                     break;
                 case "save_memory":
                     if (result != null && result.optBoolean("success", false)) {
-                        return "Воспоминание сохранено";
+                        return ctx != null ? ctx.getString(R.string.tool_memory_saved) : "Воспоминание сохранено";
                     }
                     break;
                 case "summarize_chat_history":
                     if (result != null && result.optBoolean("skipped", false)) {
-                        return "История уже достаточно компактная";
+                        return ctx != null ? ctx.getString(R.string.tool_history_compact) : "История уже достаточно компактная";
                     }
                     if (result != null && result.optBoolean("success", false)) {
-                        return "История чата сжата и сохранена";
+                        return ctx != null ? ctx.getString(R.string.tool_history_saved) : "История чата сжата и сохранена";
                     }
                     break;
                 case "summarize_past_chat":
                     if (result != null && result.optBoolean("needs_selection", false)) {
-                        return "Нужен выбор чата";
+                        return ctx != null ? ctx.getString(R.string.tool_chat_selection_needed) : "Нужен выбор чата";
                     }
                     if (result != null && !result.optString("chat_title", "").isEmpty()) {
-                        return "Прошлый чат изучен: «" + result.optString("chat_title") + "»";
+                        return ctx != null ? ctx.getString(R.string.tool_past_chat_read, result.optString("chat_title", ""))
+                                : "Прошлый чат изучен: «" + result.optString("chat_title", "") + "»";
                     }
                     if (result != null && result.optBoolean("success", false)) {
-                        return "Прошлые чаты не найдены";
+                        return ctx != null ? ctx.getString(R.string.tool_no_past_chats) : "Прошлые чаты не найдены";
                     }
                     break;
                 case "read_file":
-                    return "Файл прочитан";
+                    return ctx != null ? ctx.getString(R.string.tool_file_read) : "Файл прочитан";
                 case "write_file":
                 case "edit_file":
-                    return "Файл обновлён";
+                    return ctx != null ? ctx.getString(R.string.tool_file_updated) : "Файл обновлён";
                 case "delete_path":
-                    return "Путь удалён";
+                    return ctx != null ? ctx.getString(R.string.tool_path_deleted) : "Путь удалён";
                 case "move_path":
-                    return "Путь перемещён";
+                    return ctx != null ? ctx.getString(R.string.tool_path_moved) : "Путь перемещён";
                 case "list_dir":
                     return result != null && result.optJSONArray("entries") != null
-                            ? "Найдено объектов: " + result.optJSONArray("entries").length() : "Действие завершено";
+                            ? (ctx != null ? ctx.getString(R.string.tool_entries_found, result.optJSONArray("entries").length())
+                                : "Найдено объектов: " + result.optJSONArray("entries").length())
+                            : (ctx != null ? ctx.getString(R.string.tool_done) : "Действие завершено");
                 case "search_grep":
                     return result != null && result.optJSONArray("matches") != null
-                            ? "Совпадений: " + result.optJSONArray("matches").length() : "Действие завершено";
+                            ? (ctx != null ? ctx.getString(R.string.tool_matches_found, result.optJSONArray("matches").length())
+                                : "Совпадений: " + result.optJSONArray("matches").length())
+                            : (ctx != null ? ctx.getString(R.string.tool_done) : "Действие завершено");
                 case "find_files":
                     return result != null && result.optJSONArray("files") != null
-                            ? "Найдено файлов: " + result.optJSONArray("files").length() : "Действие завершено";
+                            ? (ctx != null ? ctx.getString(R.string.tool_files_found, result.optJSONArray("files").length())
+                                : "Найдено файлов: " + result.optJSONArray("files").length())
+                            : (ctx != null ? ctx.getString(R.string.tool_done) : "Действие завершено");
                 case "execute_command":
-                    return "Команда завершена";
+                    return ctx != null ? ctx.getString(R.string.tool_command_done) : "Команда завершена";
                 case "invoke_subagent":
-                    return "Сабагент завершил задачу";
+                    return ctx != null ? ctx.getString(R.string.tool_subagent_done) : "Сабагент завершил задачу";
                 case "project_rules":
                     return "Including project rules";
                 case "enter_plan_mode":
-                    return "План готов к исследованию";
+                    return ctx != null ? ctx.getString(R.string.tool_plan_ready) : "План готов к исследованию";
                 case "present_plan":
-                    return "План подтверждён";
+                    return ctx != null ? ctx.getString(R.string.tool_plan_confirmed) : "План подтверждён";
                 case "todo":
-                    return "План обновлён";
+                    return ctx != null ? ctx.getString(R.string.tool_plan_updated) : "План обновлён";
                 case "question":
                     return result != null && result.optBoolean("dismissed", false)
-                            ? "Вопрос пропущен" : "Ответ получен";
+                            ? (ctx != null ? ctx.getString(R.string.tool_question_skipped) : "Вопрос пропущен")
+                            : (ctx != null ? ctx.getString(R.string.tool_answer_received) : "Ответ получен");
                 default:
                     break;
             }
         } catch (Exception ignored) {
         }
-        return "Действие завершено";
+        return ctx != null ? ctx.getString(R.string.tool_done) : "Действие завершено";
     }
 
     public String getEmoji() {

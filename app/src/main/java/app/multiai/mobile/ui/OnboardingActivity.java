@@ -666,11 +666,14 @@ public class OnboardingActivity extends AppCompatActivity {
 
         app.multiai.mobile.utils.AppSettings settings =
                 new app.multiai.mobile.utils.AppSettings(this);
+        boolean darkThemeActive = (getResources().getConfiguration().uiMode
+                & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                == android.content.res.Configuration.UI_MODE_NIGHT_YES;
         LinearLayout themeRow = setupOptionRow();
         themeRow.addView(buildSetupOption(R.drawable.ic_moon, null,
                 getString(R.string.scr_onb_theme_dark), getString(R.string.scr_onb_theme_dark_desc),
-                "dark".equals(settings.getTheme()), v -> {
-                    if ("dark".equals(settings.getTheme())) return; // same-theme re-tap must not fade to black
+                darkThemeActive, v -> {
+                    if (darkThemeActive) return;
                     animatePreferenceChange(() -> {
                         settings.setTheme("dark");
                         app.multiai.mobile.MultiAIApp.applyTheme("dark");
@@ -679,8 +682,8 @@ public class OnboardingActivity extends AppCompatActivity {
         themeRow.addView(setupOptionGap());
         themeRow.addView(buildSetupOption(R.drawable.ic_s_sun, null,
                 getString(R.string.scr_onb_theme_light), getString(R.string.scr_onb_theme_light_desc),
-                "light".equals(settings.getTheme()), v -> {
-                    if ("light".equals(settings.getTheme())) return;
+                !darkThemeActive, v -> {
+                    if (!darkThemeActive) return;
                     animatePreferenceChange(() -> {
                         settings.setTheme("light");
                         app.multiai.mobile.MultiAIApp.applyTheme("light");
@@ -769,6 +772,7 @@ public class OnboardingActivity extends AppCompatActivity {
         desc.setGravity(Gravity.CENTER);
         desc.setMaxLines(3);
         card.addView(desc);
+        card.setSelected(selected);
         card.setOnClickListener(selected ? null : listener);
         card.setClickable(!selected);
         return card;
@@ -787,7 +791,16 @@ public class OnboardingActivity extends AppCompatActivity {
                 .scaleY(0.985f)
                 .setDuration(160)
                 .setInterpolator(new AccelerateDecelerateInterpolator())
-                .withEndAction(applyChange)
+                .withEndAction(() -> {
+                    try {
+                        applyChange.run();
+                    } finally {
+                        // Applying an already effective configuration may not recreate the activity.
+                        viewPager.setAlpha(1f);
+                        viewPager.setScaleX(1f);
+                        viewPager.setScaleY(1f);
+                    }
+                })
                 .start();
     }
 

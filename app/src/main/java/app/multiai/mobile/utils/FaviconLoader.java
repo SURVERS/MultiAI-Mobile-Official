@@ -34,7 +34,9 @@ import app.multiai.mobile.R;
 public final class FaviconLoader {
 
     private static final Map<String, Bitmap> MEMORY = new ConcurrentHashMap<>();
-    private static final Map<String, Boolean> IN_FLIGHT = new ConcurrentHashMap<>();
+    private static final Map<String, java.util.List<java.lang.ref.WeakReference<ImageView>>> IN_FLIGHT =
+            new java.util.HashMap<>();
+    private static final android.os.Handler MAIN = new android.os.Handler(android.os.Looper.getMainLooper());
     private static final ExecutorService EXEC = Executors.newFixedThreadPool(2);
 
     private FaviconLoader() {}
@@ -85,42 +87,54 @@ public final class FaviconLoader {
                             int fallbackRes, int tintRes, String letterLabel) {
         String host = hostOf(baseUrl);
         if (host == null) {
+            view.setTag(null);
             showFallback(view, fallbackRes, tintRes);
             return;
         }
         view.setTag(host);
-        Bitmap cached = MEMORY.get(host);
-        if (cached != null) {
-            log("cache-hit " + host);
-            showBitmap(view, cached);
-            return;
-        }
-        showFallback(view, fallbackRes, tintRes);
-        if (IN_FLIGHT.putIfAbsent(host, Boolean.TRUE) != null) {
-            log("in-flight skip " + host);
-            return;
+        synchronized (IN_FLIGHT) {
+            Bitmap cached = MEMORY.get(host);
+            if (cached != null) {
+                showBitmap(view, cached);
+                return;
+            }
+            showFallback(view, fallbackRes, tintRes);
+            java.util.List<java.lang.ref.WeakReference<ImageView>> waiting = IN_FLIGHT.get(host);
+            if (waiting != null) {
+                waiting.removeIf(reference -> reference.get() == null || reference.get() == view);
+                waiting.add(new java.lang.ref.WeakReference<>(view));
+                return;
+            }
+            waiting = new java.util.ArrayList<>();
+            waiting.add(new java.lang.ref.WeakReference<>(view));
+            IN_FLIGHT.put(host, waiting);
         }
 
-        File diskFile = diskFile(ctx, host);
+        Context application = ctx.getApplicationContext();
         EXEC.execute(() -> {
-            Bitmap bmp = loadFromDisk(diskFile);
-            log(bmp != null ? "disk-hit " + host : "download " + host + " from " + baseUrl);
-            if (bmp == null) bmp = download(baseUrl, host, diskFile);
-            IN_FLIGHT.remove(host);
-            if (bmp == null) {
-                log("FAILED " + host + " → letter avatar");
-                // Сайт не отдал иконку — кружок с буквой провайдера (не вилка).
-                bmp = letterBitmap(letterLabel != null ? letterLabel : host);
-                if (bmp == null) return;
-                MEMORY.put(host, bmp);
-            } else {
-                log("OK " + host + " " + bmp.getWidth() + "x" + bmp.getHeight());
-                MEMORY.put(host, bmp);
+            Bitmap bmp = null;
+            try {
+                File diskFile = diskFile(application, host);
+                bmp = loadFromDisk(diskFile);
+                if (bmp == null) bmp = download(baseUrl, host, diskFile);
+                if (bmp == null) bmp = letterBitmap(letterLabel != null ? letterLabel : host);
+            } catch (Exception e) {
+                log("load failed " + host + ": " + e.getClass().getSimpleName());
+            } finally {
+                final Bitmap result = bmp;
+                final java.util.List<java.lang.ref.WeakReference<ImageView>> waiting;
+                // Cache publication and waiter removal must be atomic with registration.
+                synchronized (IN_FLIGHT) {
+                    if (result != null) MEMORY.put(host, result);
+                    waiting = IN_FLIGHT.remove(host);
+                }
+                if (result != null && waiting != null) MAIN.post(() -> {
+                    for (java.lang.ref.WeakReference<ImageView> reference : waiting) {
+                        ImageView target = reference.get();
+                        if (target != null && host.equals(target.getTag())) showBitmap(target, result);
+                    }
+                });
             }
-            final Bitmap result = bmp;
-            view.post(() -> {
-                if (host.equals(view.getTag())) showBitmap(view, result);
-            });
         });
     }
 

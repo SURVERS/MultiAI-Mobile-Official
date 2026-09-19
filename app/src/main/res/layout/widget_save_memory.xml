@@ -27,44 +27,13 @@
             android:contentDescription="@null" />
     </FrameLayout>
 
-    <LinearLayout
+    <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/lay_memory_saved"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.02" />
-
-            <TextView
-                android:id="@+id/memoryName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/w_memory_name_placeholder"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
-                android:layout_marginTop="2dp"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
-            <TextView
-                android:id="@+id/memoryContent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/w_memory_content_placeholder"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:layout_marginTop="3dp"
-                android:lineSpacingExtra="2dp"
-                android:maxLines="2"
-                android:ellipsize="end" />
-
-    </LinearLayout>
+        android:text="@string/lay_memory_saved"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.02" />
 </LinearLayout>

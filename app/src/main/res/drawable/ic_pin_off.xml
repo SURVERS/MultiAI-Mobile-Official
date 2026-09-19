@@ -1,28 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Push pin with slash (unpin action). Stroke based, theme-aware via @color/icon. -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/icon"
-        android:strokeWidth="1.6"
-        android:strokeLineJoin="round"
-        android:strokeLineCap="round"
-        android:pathData="M9,4h6l-1,6 3,3v2H7v-2l3,-3z" />
-    <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/icon"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M12,15v5" />
-    <!-- Slash -->
-    <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/icon"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M4,4l16,16" />
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M12.964 3.215a3.002 3.002 0 0 1 4.55 -0.32l3.622 3.674a3.003 3.003 0 0 1 -0.388 4.547l-2.152 1.545a1 1 0 1 1 -1.167 -1.626l2.152 -1.545a1 1 0 0 0 0.13 -1.516L16.088 4.3a1 1 0 0 0 -1.517 0.107l-1.76 2.375a1 1 0 1 1 -1.608 -1.192l1.76 -2.375Zm-9.67 0.061a1 1 0 0 1 1.415 0l16.013 16.015a1.001 1.001 0 0 1 -1.416 1.415l-3.295 -3.296v0.145c0 1.292 -0.827 2.44 -2.053 2.848l-0.46 0.154a3.002 3.002 0 0 1 -3.072 -0.726l-2.421 -2.42 -4.297 4.296a1 1 0 1 1 -1.415 -1.416l4.296 -4.296 -2.42 -2.421a3.003 3.003 0 0 1 -0.726 -3.073l0.154 -0.46a3.002 3.002 0 0 1 2.848 -2.053h0.144L3.294 4.692a1.001 1.001 0 0 1 0 -1.416ZM8.59 9.99H6.445a1 1 0 0 0 -0.95 0.685l-0.153 0.46a1 1 0 0 0 0.242 1.024l3.128 3.128v0.002l3.129 3.128a1 1 0 0 0 1.024 0.241l0.46 -0.153a1 1 0 0 0 0.684 -0.95v-2.146L8.591 9.99Z" android:fillType="nonZero"/>
 </vector>

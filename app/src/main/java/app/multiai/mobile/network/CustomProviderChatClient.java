@@ -276,7 +276,8 @@ public final class CustomProviderChatClient {
             for (String image : app.multiai.mobile.utils.ImageAttachments.unpack(imageBase64)) {
                 blocks.put(new JSONObject().put("type", "image").put("source",
                         new JSONObject().put("type", "base64")
-                                .put("media_type", "image/jpeg").put("data", image)));
+                                .put("media_type", "image/jpeg")
+                                .put("data", stripDataUri(image))));
             }
             blocks.put(new JSONObject().put("type", "text").put("text", userMessage));
             userMsg.put("content", blocks);
@@ -308,6 +309,17 @@ public final class CustomProviderChatClient {
         body.put("stream", stream);
         putTools(body, useTools, false, toolPolicy);
         return body;
+    }
+
+    /** Data-URI префикс и пробельные символы в base64 — наружу только чистые данные. */
+    private static String stripDataUri(String image) {
+        if (image == null) return "";
+        String value = image;
+        if (value.startsWith("data:")) {
+            int comma = value.indexOf(',');
+            if (comma >= 0) value = value.substring(comma + 1);
+        }
+        return value.replaceAll("\\s", "");
     }
 
     private JSONObject buildAnthropicBodyFromArray(String modelId, String systemPrompt,
@@ -367,6 +379,65 @@ public final class CustomProviderChatClient {
                     }
                     cleaned.put(new JSONObject().put("role", "assistant").put("content", blocks));
                     continue;
+                }
+            }
+            if ("user".equals(role)) {
+                // OpenAI-формат картинок (image_url + data-URI) конвертируем в
+                // блоки image/source, которые ждёт Messages API — иначе
+                // провайдер пытается декодировать data-URI как base64 и падает
+                // с "Non-base64 digit found".
+                Object contentObj = m.opt("content");
+                if (contentObj instanceof JSONArray) {
+                    JSONArray parts = (JSONArray) contentObj;
+                    boolean hasImagePart = false;
+                    for (int p = 0; p < parts.length(); p++) {
+                        JSONObject part = parts.optJSONObject(p);
+                        if (part != null && "image_url".equals(part.optString("type"))) {
+                            hasImagePart = true;
+                            break;
+                        }
+                    }
+                    if (hasImagePart) {
+                        JSONArray converted = new JSONArray();
+                        int convertedImages = 0;
+                        for (int p = 0; p < parts.length(); p++) {
+                            JSONObject part = parts.optJSONObject(p);
+                            if (part == null) continue;
+                            if ("image_url".equals(part.optString("type"))) {
+                                JSONObject wrapper = part.optJSONObject("image_url");
+                                String url = wrapper != null ? wrapper.optString("url", "") : "";
+                                String mediaType = "image/jpeg";
+                                String base64 = url;
+                                if (url.startsWith("data:")) {
+                                    int comma = url.indexOf(',');
+                                    if (comma >= 0) {
+                                        String meta = url.substring(5, comma); // image/jpeg;base64
+                                        int semi = meta.indexOf(';');
+                                        if (semi > 0) mediaType = meta.substring(0, semi);
+                                        base64 = url.substring(comma + 1);
+                                    } else {
+                                        base64 = "";
+                                    }
+                                }
+                                base64 = base64.replaceAll("\\s", "");
+                                if (!base64.isEmpty()) {
+                                    converted.put(new JSONObject().put("type", "image")
+                                            .put("source", new JSONObject()
+                                                    .put("type", "base64")
+                                                    .put("media_type", mediaType)
+                                                    .put("data", base64)));
+                                    convertedImages++;
+                                }
+                                continue;
+                            }
+                            converted.put(part);
+                        }
+                        cleaned.put(new JSONObject().put("role", "user").put("content", converted));
+                        app.multiai.mobile.utils.AiDebugLog.log(
+                                "Anthropic convert: " + convertedImages + " image block(s), dataLen="
+                                        + (convertedImages > 0 ? "ok" : "none"));
+                        continue;
+                    }
                 }
             }
             cleaned.put(m);

@@ -57,6 +57,12 @@ public final class DrawerNavHelper {
     public static void setup(Activity host, NavTarget active, NavCallback callback,
                              View.OnClickListener settingsClick,
                              View.OnClickListener profileClick) {
+        // Версия приложения в футере drawer вместо хардкода «1.3».
+        TextView drawerVersion = host.findViewById(R.id.drawerVersionLabel);
+        if (drawerVersion != null) {
+            drawerVersion.setText(host.getString(R.string.drawer_version,
+                    app.multiai.mobile.BuildConfig.VERSION_NAME));
+        }
         configureRow(host, R.id.nav_chat, R.drawable.ic_chat,
                 R.string.chat, R.string.nav_subtitle_chat,
                 NavTarget.CHAT, active, callback);

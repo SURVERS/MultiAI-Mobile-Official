@@ -1,20 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Lucide: plus -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:pathData="M12,5v14"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:fillColor="@android:color/transparent"/>
-    <path
-        android:pathData="M5,12h14"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:fillColor="@android:color/transparent"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M12,4.09961C12.4971,4.09961 12.9004,4.50294 12.9004,5V11.0996H19C19.4971,11.0996 19.9004,11.5029 19.9004,12C19.9004,12.4971 19.4971,12.9004 19,12.9004H12.9004V19C12.9004,19.4971 12.4971,19.9004 12,19.9004C11.5029,19.9004 11.0996,19.4971 11.0996,19V12.9004H5C4.50294,12.9004 4.09961,12.4971 4.09961,12C4.09961,11.5029 4.50294,11.0996 5,11.0996H11.0996V5C11.0996,4.50294 11.5029,4.09961 12,4.09961Z"/>
 </vector>

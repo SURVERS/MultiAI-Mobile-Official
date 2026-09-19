@@ -622,119 +622,28 @@
                     android:layout_marginTop="12dp"
                     android:visibility="gone">
 
-                    <LinearLayout
+                    <!-- Promo activation -->
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="8dp">
+                        android:text="@string/profile_promo_title"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium" />
 
-                        <ImageView
-                            android:layout_width="15dp"
-                            android:layout_height="15dp"
-                            android:src="@drawable/ic_key"
-                            android:tint="@color/text_hint"
-                            android:contentDescription="@null" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:text="@string/profile_active_key"
-                            android:textColor="@color/text_hint"
-                            android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/keysList"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-
-                    <TextView
-                        android:id="@+id/keysEmpty"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/lay_keys_empty"
-                        android:textColor="@color/text_hint"
-                        android:textSize="14sp"
-                        android:padding="24dp"
-                        android:gravity="center"
-                        android:background="@drawable/profile_card_bg"
-                        android:visibility="gone" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="12dp">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnCreateKey"
-                            android:layout_width="0dp"
-                            android:layout_height="46dp"
-                            android:layout_weight="1"
-                            android:text="@string/lay_keys_create"
-                            android:textColor="@color/icon_on_accent"
-                            android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"
-                            app:backgroundTint="@color/accent"
-                            app:cornerRadius="12dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnClearSelect"
-                            android:layout_width="0dp"
-                            android:layout_height="46dp"
-                            android:layout_weight="1"
-                            android:layout_marginStart="10dp"
-                            android:text="@string/lay_keys_clear_select"
-                            android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium"
-                            app:backgroundTint="@color/surface_tonal"
-                            app:strokeColor="@color/stroke"
-                            app:strokeWidth="1dp"
-                            app:cornerRadius="12dp" />
-                    </LinearLayout>
-
-                    <!-- Promo activation -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="10dp"
                         android:background="@drawable/profile_card_bg"
                         android:padding="16dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="15dp"
-                                android:layout_height="15dp"
-                                android:src="@drawable/ic_s_sparkle"
-                                android:tint="@color/text_hint"
-                                android:contentDescription="@null" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:text="@string/profile_promo_title"
-                                android:textColor="@color/text_hint"
-                                android:textSize="13sp"
-                                android:fontFamily="sans-serif-medium" />
-                        </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginTop="10dp">
+                            android:gravity="center_vertical">
 
                             <EditText
                                 android:id="@+id/promoInput"
@@ -766,6 +675,78 @@
                                 app:backgroundTint="@color/accent"
                                 app:cornerRadius="12dp" />
                         </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Keys list -->
+                    <TextView
+                        android:id="@+id/keysListTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="@string/profile_my_keys"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <ScrollView
+                        android:id="@+id/keysScroll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:scrollbars="none"
+                        android:nestedScrollingEnabled="true">
+
+                        <LinearLayout
+                            android:id="@+id/keysList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </ScrollView>
+
+                    <TextView
+                        android:id="@+id/keysEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/lay_keys_empty"
+                        android:textColor="@color/text_hint"
+                        android:textSize="14sp"
+                        android:padding="24dp"
+                        android:gravity="center"
+                        android:background="@drawable/profile_card_bg"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="14dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCreateKey"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:layout_weight="1"
+                            android:text="@string/lay_keys_create"
+                            android:textColor="@color/icon_on_accent"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
+                            app:backgroundTint="@color/accent"
+                            app:cornerRadius="12dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnClearSelect"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:text="@string/lay_keys_clear_select"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium"
+                            app:backgroundTint="@color/surface_tonal"
+                            app:strokeColor="@color/stroke"
+                            app:strokeWidth="1dp"
+                            app:cornerRadius="12dp" />
                     </LinearLayout>
 
                 </LinearLayout>

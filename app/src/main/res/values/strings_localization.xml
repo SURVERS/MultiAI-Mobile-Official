@@ -97,4 +97,5 @@
     <string name="tool_widget_timezone">%1$s · %2$s</string>
     <string name="voice_header_subtitle">%1$s · %2$s</string>
     <string name="voice_header_preview">«%1$s»</string>
+    <string name="voice_provider_voices">%1$s · голоса</string>
 </resources>

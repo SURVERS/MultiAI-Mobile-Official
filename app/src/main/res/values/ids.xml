@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- IDs for dynamically created views -->
+    <item name="editMessageField" type="id" />
+    <item name="editCard" type="id" />
+    <item name="editActionsRow" type="id" />
+    <item name="editSendButton" type="id" />
+    <item name="editCancelButton" type="id" />
+    <item name="editAttachButton" type="id" />
+    <item name="editWarning" type="id" />
+</resources>

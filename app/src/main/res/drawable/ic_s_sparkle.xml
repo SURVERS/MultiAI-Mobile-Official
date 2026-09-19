@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Персонализация: искра/sparkle -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp"
-    android:viewportWidth="24" android:viewportHeight="24">
-    <path android:pathData="M12,3 L13.5,9 L19.5,10.5 L13.5,12 L12,18 L10.5,12 L4.5,10.5 L10.5,9 Z"
-          android:strokeColor="@color/text_primary" android:strokeWidth="1.6"
-          android:fillColor="#00000000" android:strokeLineJoin="round" android:strokeLineCap="round"/>
-    <path android:pathData="M18.5,16 L19,18 L21,18.5 L19,19 L18.5,21 L18,19 L16,18.5 L18,18 Z"
-          android:strokeColor="@color/text_primary" android:strokeWidth="1.4"
-          android:fillColor="#00000000" android:strokeLineJoin="round"/>
+<vector xmlns:aapt="http://schemas.android.com/aapt" xmlns:android="http://schemas.android.com/apk/res/android" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M12,4C7.582,4 4,7.582 4,12C4,16.418 7.582,20 12,20C16.418,20 20,16.418 20,12C20,7.582 16.418,4 12,4ZM2,12C2,6.477 6.477,2 12,2C17.523,2 22,6.477 22,12C22,17.523 17.523,22 12,22C6.477,22 2,17.523 2,12ZM7.399,14.201C7.841,13.869 8.468,13.958 8.799,14.4C10.37,16.49 13.63,16.49 15.2,14.4C15.532,13.958 16.159,13.869 16.601,14.201C17.042,14.533 17.131,15.16 16.799,15.601C14.429,18.757 9.571,18.757 7.201,15.601C6.869,15.16 6.958,14.533 7.399,14.201Z"/>
 </vector>

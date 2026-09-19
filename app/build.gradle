@@ -25,8 +25,8 @@ android {
         applicationId "app.multiai.mobile"
         minSdk 28
         targetSdk 35
-        versionCode 10
-        versionName "0.0.10"
+        versionCode 28
+        versionName "1.0.7"
 
         // MultiAI OAuth client config. These are NOT secrets — a native public client
         // has no client_secret. Replace the placeholders with the real values the

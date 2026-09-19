@@ -148,7 +148,7 @@ public class FilesActivity extends AppCompatActivity {
         
         // Настраиваем RecyclerView
         recyclerFiles.setLayoutManager(new LinearLayoutManager(this));
-        recyclerFiles.setItemAnimator(null);
+        recyclerFiles.setItemAnimator(app.multiai.mobile.ui.kit.MotionKit.listAnimator());
 
         buildSelectionBar();
     }

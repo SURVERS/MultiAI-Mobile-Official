@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp"
-    android:viewportWidth="24" android:viewportHeight="24">
-    <path android:pathData="M6.5,16C4.01,16 2,13.99 2,11.5C2,9.01 4.01,7 6.5,7C7.04,7 7.55,7.1 8.03,7.29C8.74,4.21 11.5,2 14.75,2C18.55,2 21.63,5.08 21.63,8.88C21.63,12.68 18.55,15.76 14.75,15.76C14.46,15.76 14.17,15.74 13.89,15.7C13.42,15.9 12.93,16 12.4,16L6.5,16Z"
-        android:fillColor="#FFFFFF"/>
-    <path android:pathData="M8,19m-1,0a1,1 0,2 2,0a1,1 0,2 -2,0" android:fillColor="#FFFFFF"/>
-    <path android:pathData="M12,21m-1,0a1,1 0,2 2,0a1,1 0,2 -2,0" android:fillColor="#FFFFFF"/>
-    <path android:pathData="M16,19m-1,0a1,1 0,2 2,0a1,1 0,2 -2,0" android:fillColor="#FFFFFF"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M6 20c0.552 0 1 0.448 1 1s-0.448 1-1 1-1-0.448-1-1 0.448-1 1-1zm8 0c0.552 0 1 0.448 1 1s-0.448 1-1 1-1-0.448-1-1 0.448-1 1-1zm-3.75-1c0.552 0 1 0.448 1 1s-0.448 1-1 1-1-0.448-1-1 0.448-1 1-1zM12 4c3.557 0 6.492 2.654 6.938 6.089C21.251 10.528 23 12.559 23 15c0 1.852-1.007 3.467-2.499 4.33-0.478 0.277-1.09 0.114-1.366-0.364-0.277-0.478-0.114-1.09 0.364-1.366C20.398 17.079 21 16.109 21 15c0-1.657-1.343-3-3-3-0.552 0-1-0.448-1-1 0-2.761-2.239-5-5-5-2.189 0-4.052 1.408-4.729 3.371-0.123 0.357-0.437 0.615-0.812 0.665C4.506 10.3 3 11.975 3 14c0 0.902 0.298 1.731 0.8 2.399 0.332 0.442 0.242 1.069-0.199 1.401-0.442 0.332-1.069 0.243-1.401-0.198C1.447 16.599 1 15.35 1 14c0-2.831 1.96-5.203 4.598-5.835C6.685 5.712 9.142 4 12 4z"/>
+  <path android:fillColor="@color/icon" android:pathData="M7 17c0.552 0 1 0.448 1 1s-0.448 1-1 1-1-0.448-1-1 0.448-1 1-1zm8 0c0.552 0 1 0.448 1 1s-0.448 1-1 1-1-0.448-1-1 0.448-1 1-1zm-3.75-1c0.552 0 1 0.448 1 1s-0.448 1-1 1-1-0.448-1-1 0.448-1 1-1zM8 14c0.552 0 1 0.448 1 1s-0.448 1-1 1-1-0.448-1-1 0.448-1 1-1zm8 0c0.552 0 1 0.448 1 1s-0.448 1-1 1-1-0.448-1-1 0.448-1 1-1z"/>
 </vector>

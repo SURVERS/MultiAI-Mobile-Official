@@ -153,6 +153,18 @@ public final class OAuthRefreshCoordinator {
                 return false;
             }
             if (operationStore.isRefreshInFlight()) {
+                // Marker present: a previous refresh was interrupted (process death
+                // mid-rotation is the common case). The stored token may still be
+                // valid server-side — try to resume the rotation with it instead of
+                // destroying the session unconditionally. Only a server rejection
+                // (grant already consumed) tombstones the family now.
+                if (tryResumeInterruptedRefreshLocked(app, operationStore, session)) {
+                    return true;
+                }
+                if (!operationStore.isRefreshInFlight()) {
+                    // Resume completed successfully inside the helper.
+                    return false;
+                }
                 invalidateCurrentFamilyLocked(operationStore, session);
                 return false;
             }
@@ -178,16 +190,25 @@ public final class OAuthRefreshCoordinator {
         OAuthClient.TokenResponse refreshedTokens = null;
         Exception networkFailure = null;
         boolean requestAttempted = false;
-        try {
-            if (operationMetadata == null) {
-                operationMetadata = client.fetchMetadata();
-                cachedMetadata = operationMetadata;
+        // One transparent retry for pre-server transport failures (VPN toggle,
+        // DNS blip): the rotating token was provably not presented, so a retry
+        // cannot burn it. If the retry DOES reach the server and loses the
+        // response, the outer logic fails closed exactly as before.
+        for (int attempt = 0; attempt < 2; attempt++) {
+            try {
+                if (operationMetadata == null) {
+                    operationMetadata = client.fetchMetadata();
+                    cachedMetadata = operationMetadata;
+                }
+                requestAttempted = true;
+                refreshedTokens = client.refresh(
+                        operationMetadata, currentRefresh, expectedVersion).first;
+                break;
+            } catch (Exception failure) {
+                networkFailure = failure;
+                if (attempt == 0 && isUnreachableTransportFailure(failure)) continue;
+                break;
             }
-            requestAttempted = true;
-            refreshedTokens = client.refresh(
-                    operationMetadata, currentRefresh, expectedVersion).first;
-        } catch (Exception failure) {
-            networkFailure = failure;
         }
 
         boolean success = false;
@@ -209,8 +230,17 @@ public final class OAuthRefreshCoordinator {
                         if (!operationStore.cancelRefresh(expectedVersion)) {
                             invalidateCurrentFamilyLocked(operationStore, session);
                         }
+                    } else if (isUnreachableTransportFailure(networkFailure)) {
+                        // The request never reached the server (VPN toggle, DNS,
+                        // route/connect failure): the rotating token was not
+                        // presented. Keep the family and release the marker so
+                        // the next attempt refreshes normally.
+                        if (!operationStore.cancelRefresh(expectedVersion)) {
+                            invalidateCurrentFamilyLocked(operationStore, session);
+                        }
                     } else {
-                        // The server may have consumed the old token: fail closed.
+                        // Response lost after sending, or the server rejected the
+                        // grant: the old token may be consumed — fail closed (§10).
                         invalidateCurrentFamilyLocked(operationStore, session);
                     }
                 } else {
@@ -313,6 +343,35 @@ public final class OAuthRefreshCoordinator {
         }
     }
 
+    /**
+     * True when the failure happened before an HTTP response existed — the
+     * rotating token provably never reached the server. A lost response after
+     * sending (timeout mid-exchange, connection reset mid-read) is NOT here:
+     * the server may have consumed the token, so it stays fail-closed. Worst
+     * case of keeping a consumed family: the next refresh gets invalid_grant
+     * and wipes the session then — no weaker than the old behaviour.
+     */
+    private static boolean isUnreachableTransportFailure(@Nullable Exception failure) {
+        if (!(failure instanceof java.io.IOException)) return false;
+        Throwable cause = failure;
+        // Unwrap the OkHttp cause chain to the root exception.
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        if (cause instanceof java.net.SocketTimeoutException) {
+            // Connect timeout = TCP handshake never completed, request not sent.
+            // Read/call timeout = request was sent, response lost: fail closed.
+            String msg = String.valueOf(cause.getMessage())
+                    .toLowerCase(java.util.Locale.US);
+            return msg.contains("connect");
+        }
+        return cause instanceof java.net.UnknownHostException        // DNS down (VPN mid-switch)
+                || cause instanceof java.net.ConnectException        // route unreachable / refused
+                || cause instanceof java.net.SocketException         // "Network is unreachable", socket closed on connect
+                || cause instanceof javax.net.ssl.SSLException       // TLS handshake aborted
+                || cause instanceof java.io.InterruptedIOException;  // connect timeout / call aborted
+    }
+
     private static boolean canReuseCurrent(@NonNull OAuthSession session,
                                            @Nullable String rejectedAccessToken) {
         if (!session.isAccessTokenFresh(System.currentTimeMillis())) return false;
@@ -354,6 +413,79 @@ public final class OAuthRefreshCoordinator {
         tokenFamilyGeneration++;
         session.clearTokens();
         return durable;
+    }
+
+    /**
+     * Attempts to recover a session whose refresh was interrupted by process
+     * death (in-flight marker set, rotation never completed). Replays the
+     * refresh grant with the still-stored token:
+     * <ul>
+     *   <li>server accepts → rotation completes, CAS releases the marker,
+     *       session restored ({@code true});</li>
+     *   <li>server rejects the grant as consumed/rejected → token family is
+     *       proven dead, tombstone it (marker cleared via clearAll, {@code false});</li>
+     *   <li>transport unreachable → leave everything as-is so a later call
+     *       retries (marker stays, {@code false}).</li>
+     * </ul>
+     * Must be called while holding TOKEN_FAMILY_LOCK; performs network I/O.
+     */
+    private static boolean tryResumeInterruptedRefreshLocked(@NonNull Context app,
+                                                             @NonNull OAuthStore store,
+                                                             @NonNull OAuthSession session) {
+        final String storedToken = store.getRefreshTokenForResume();
+        final int storedVersion = store.getRefreshVersionIgnoringInFlight();
+        if (isBlank(storedToken) || storedVersion < 1) return false;
+
+        OAuthClient client = new OAuthClient();
+        OAuthClient.Metadata metadata = cachedMetadata;
+        OAuthClient.TokenResponse tokens = null;
+        Exception failure = null;
+        boolean requestAttempted = false;
+        for (int attempt = 0; attempt < 2; attempt++) {
+            try {
+                if (metadata == null) {
+                    metadata = client.fetchMetadata();
+                    cachedMetadata = metadata;
+                }
+                requestAttempted = true;
+                tokens = client.refresh(metadata, storedToken, storedVersion).first;
+                break;
+            } catch (Exception e) {
+                failure = e;
+                if (attempt == 0 && isUnreachableTransportFailure(e)) continue;
+                break;
+            }
+        }
+
+        if (failure != null && !requestAttempted) {
+            // Discovery failed: nothing was presented to the server. Roll the
+            // marker back so normal refresh can proceed later.
+            store.cancelRefresh(storedVersion);
+            return false;
+        }
+        if (failure != null && isUnreachableTransportFailure(failure)) {
+            // Never reached the server: token not consumed. Release the marker
+            // and let the normal CAS path retry with the same token.
+            store.cancelRefresh(storedVersion);
+            return false;
+        }
+
+        String scope = tokens == null || isBlank(tokens.scope) ? store.getScope() : tokens.scope;
+        if (tokens != null && validRotatedResponse(tokens)
+                && OAuthConfig.hasRequiredScopes(scope)
+                && store.storeRefreshTokenCas(tokens.refreshToken, storedVersion, scope)) {
+            tokenFamilyGeneration++;
+            session.setAccessToken(tokens.accessToken, tokens.tokenType,
+                    tokens.expiresIn, scope, System.currentTimeMillis());
+            return true;
+        }
+
+        if (failure == null) {
+            // The server answered but rejected the grant or returned an invalid
+            // response: the interrupted rotation consumed the family. Fail closed.
+            invalidateCurrentFamilyLocked(store, session);
+        }
+        return false;
     }
 
     private static boolean isBlank(@Nullable String value) {

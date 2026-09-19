@@ -175,11 +175,15 @@ public class VoiceSettingsActivity extends AppCompatActivity {
             if (headerPreview != null) headerPreview.setText("");
             return;
         }
-        headerName.setText(current.display);
+        headerName.setText(current.displayName("en".equals(settings.getLanguage())));
         String prov = VoiceCatalog.providerName(current.provider);
-        String sub = current.subtitle();
+        boolean english = "en".equals(settings.getLanguage());
+        String sub = current.subtitle(english);
         headerSubtitle.setText(sub.isEmpty() ? prov : sub + " · " + prov);
-        if (headerPreview != null) headerPreview.setText("«" + current.previewText() + "»");
+        if (headerPreview != null) {
+            headerPreview.setText(getString(R.string.voice_header_preview,
+                    current.previewText(english)));
+        }
         if (listenButton != null) {
             boolean currentPreview = current.id.equals(previewingId);
             listenButton.setText(currentPreview ? getString(R.string.voice_stop)
@@ -368,7 +372,8 @@ public class VoiceSettingsActivity extends AppCompatActivity {
         listContainer.addView(SettingsUI.spacer(this, 16));
 
         TextView label = SettingsUI.sectionLabel(this,
-                VoiceCatalog.providerName(viewingProvider) + " · голоса");
+                getString(R.string.voice_provider_voices,
+                        VoiceCatalog.providerName(viewingProvider)));
         listContainer.addView(label);
         LinearLayout.LayoutParams labelLp = (LinearLayout.LayoutParams) label.getLayoutParams();
         labelLp.bottomMargin = SettingsUI.dp(this, 8);
@@ -422,7 +427,7 @@ public class VoiceSettingsActivity extends AppCompatActivity {
                 ? ((accent & 0x00FFFFFF) | 0x33000000) : SettingsUI.colorSurfaceTonal(this));
         play.setBackground(new android.graphics.drawable.RippleDrawable(csl, playBg, null));
         play.setContentDescription(getString(R.string.voice_preview_content_description,
-                voice.display));
+                voice.displayName("en".equals(settings.getLanguage()))));
         play.setClickable(true);
         play.setFocusable(true);
         play.setOnClickListener(v -> previewVoice(voice));
@@ -436,13 +441,13 @@ public class VoiceSettingsActivity extends AppCompatActivity {
         texts.setLayoutParams(tLp);
 
         TextView name = new TextView(this);
-        name.setText(voice.display);
+        name.setText(voice.displayName("en".equals(settings.getLanguage())));
         name.setTextColor(SettingsUI.colorText(this));
         name.setTextSize(16);
         name.setTypeface(null, selected ? Typeface.BOLD : Typeface.NORMAL);
         texts.addView(name);
 
-        String subtitle = voice.subtitle();
+        String subtitle = voice.subtitle("en".equals(settings.getLanguage()));
         if (!subtitle.isEmpty()) {
             TextView sub = new TextView(this);
             sub.setText(subtitle);
@@ -471,7 +476,8 @@ public class VoiceSettingsActivity extends AppCompatActivity {
                 && voice.id.equals(settings.getTtsVoice());
         stopPreview();
         settings.setTtsSelection(voice.provider, voice.id);
-        ModernToast.show(this, getString(R.string.voice_selected, voice.display));
+        ModernToast.show(this, getString(R.string.voice_selected,
+                    voice.displayName("en".equals(settings.getLanguage()))));
         buildList();
         updateHeader();
         // Voice picker should make a choice audible immediately. Otherwise it
@@ -504,7 +510,9 @@ public class VoiceSettingsActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 TtsEngine.SynthesisResult result = TtsEngine.synthesizeWithFallback(
-                        this, voice.provider, voice.id, voice.previewText(), rate, pitch, volume);
+                        this, voice.provider, voice.id,
+                        voice.previewText("en".equals(settings.getLanguage())),
+                        rate, pitch, volume);
                 final float playbackSpeed = VoiceCatalog.PROVIDER_QWEN.equals(result.provider)
                         ? requestedSpeed : 1f;
                 runOnUiThread(() -> {

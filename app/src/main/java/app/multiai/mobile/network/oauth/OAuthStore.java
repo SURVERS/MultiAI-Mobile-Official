@@ -154,6 +154,34 @@ public final class OAuthStore {
         }
     }
 
+    /**
+     * Token for resuming a refresh interrupted by process death. Unlike
+     * {@link #getRefreshToken()} it ignores the in-flight marker — the marker
+     * is exactly why the normal getter returns null.
+     */
+    @Nullable
+    public String getRefreshTokenForResume() {
+        SharedPreferences encrypted = prefs;
+        if (encrypted == null || isInvalidated()) return null;
+        try {
+            String token = sane(encrypted.getString(K_REFRESH, null));
+            return token != null && token.startsWith("ma-oauth-rt-") ? token : null;
+        } catch (RuntimeException corruptStore) {
+            return null;
+        }
+    }
+
+    /** Refresh version even when an interrupted-refresh marker is present. */
+    public int getRefreshVersionIgnoringInFlight() {
+        SharedPreferences encrypted = prefs;
+        if (encrypted == null || isInvalidated()) return 0;
+        try {
+            return encrypted.getInt(K_REFRESH_VER, 0);
+        } catch (RuntimeException corruptStore) {
+            return 0;
+        }
+    }
+
     public int getRefreshVersion() {
         SharedPreferences encrypted = prefs;
         if (encrypted == null || isInvalidated()) return 0;
@@ -235,7 +263,6 @@ public final class OAuthStore {
         synchronized (STORE_LOCK) {
             try {
                 if (isInvalidated()
-                        || !encrypted.getBoolean(K_REFRESH_IN_FLIGHT, false)
                         || encrypted.getInt(K_REFRESH_VER, 0) != expectedVersion) {
                     return false;
                 }

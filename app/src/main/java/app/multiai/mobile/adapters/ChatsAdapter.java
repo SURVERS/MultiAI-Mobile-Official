@@ -137,9 +137,10 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
             chatPreview.setText(chat.getLastMessagePreview());
 
             // Accessibility: announce pinned/archived state alongside the title.
-            StringBuilder desc = new StringBuilder(title == null ? itemView.getContext().getString(app.multiai.mobile.R.string.chat) : title);
-            if (chat.isPinned()) desc.append(", закреплён");
-            if (chat.isArchived()) desc.append(", в архиве");
+            android.content.Context a11yCtx = itemView.getContext();
+            StringBuilder desc = new StringBuilder(title == null ? a11yCtx.getString(app.multiai.mobile.R.string.chat) : title);
+            if (chat.isPinned()) desc.append(", ").append(a11yCtx.getString(app.multiai.mobile.R.string.chat_a11y_pinned));
+            if (chat.isArchived()) desc.append(", ").append(a11yCtx.getString(app.multiai.mobile.R.string.chat_a11y_archived));
             itemView.setContentDescription(desc.toString());
 
             // Подсветка активного чата

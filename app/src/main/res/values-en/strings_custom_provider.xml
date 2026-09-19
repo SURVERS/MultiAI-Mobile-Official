@@ -18,6 +18,12 @@
     <string name="custom_provider_models">Models</string>
     <string name="custom_provider_add_model">Add model</string>
     <string name="custom_provider_model_hint">Model ID, e.g. gpt-4o</string>
+    <string name="custom_provider_model_id">Model ID (optional)</string>
+    <string name="custom_provider_model_id_hint">e.g. gpt-4o, claude-3-opus</string>
+    <string name="custom_provider_model_id_note">If set — added manually, even when /v1/models is unavailable</string>
+    <string name="custom_provider_model_added">Model "%1$s" added</string>
+    <string name="custom_provider_model_exists">Model is already in the list</string>
+    <string name="custom_provider_model_deleted">Model deleted</string>
     <string name="custom_provider_no_models">No models — add manually or reload provider</string>
     <string name="custom_provider_fetching">Adding provider…</string>
     <string name="custom_provider_added">Provider added, %1$d models loaded</string>

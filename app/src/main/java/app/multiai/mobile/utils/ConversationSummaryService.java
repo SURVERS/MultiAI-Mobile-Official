@@ -11,6 +11,8 @@ import app.multiai.mobile.models.ToolCall;
 import app.multiai.mobile.network.MultiAiClient;
 import app.multiai.mobile.tools.OperationCancelToken;
 
+import static app.multiai.mobile.MultiAIApp.APP;
+
 /**
  * Creates a compact, model-readable record of an older conversation segment.
  * The caller owns persistence; this class never changes the visible transcript.
@@ -89,6 +91,16 @@ public final class ConversationSummaryService {
     private static String runChild(String modelId, String systemPrompt, String userPrompt,
                                    List<Message> transcript, OperationCancelToken cancelToken)
             throws SummaryException {
+        // Check if this is a custom provider model — use its client instead
+        app.multiai.mobile.utils.CustomProviderStore.ResolvedCustomModel resolved =
+                app.multiai.mobile.utils.CustomProviderStore.resolve(APP, modelId);
+        if (resolved != null) {
+            app.multiai.mobile.network.CustomProviderChatClient customClient =
+                    new app.multiai.mobile.network.CustomProviderChatClient();
+            return runChildCustom(customClient, resolved.provider, resolved.requestName,
+                    systemPrompt, userPrompt, transcript, cancelToken);
+        }
+
         MultiAiClient child = new MultiAiClient();
         AtomicReference<String> content = new AtomicReference<>();
         AtomicReference<String> error = new AtomicReference<>();
@@ -128,6 +140,84 @@ public final class ConversationSummaryService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             child.cancel();
+            throw new SummaryException("INTERRUPTED", "Суммаризация была прервана");
+        }
+
+        if (error.get() != null && !error.get().trim().isEmpty()) {
+            throw new SummaryException("CHILD_ERROR", error.get().trim());
+        }
+        String summary = normalizeSummary(content.get());
+        if (summary.isEmpty()) {
+            throw new SummaryException("EMPTY_RESPONSE", "Дочерняя модель вернула пустую сводку");
+        }
+        return summary;
+    }
+
+    /** Run child request via custom provider client. */
+    private static String runChildCustom(app.multiai.mobile.network.CustomProviderChatClient client,
+                                          app.multiai.mobile.models.CustomProvider provider,
+                                          String modelId, String systemPrompt, String userPrompt,
+                                          List<Message> transcript, OperationCancelToken cancelToken)
+            throws SummaryException {
+        AtomicReference<String> content = new AtomicReference<>();
+        AtomicReference<String> error = new AtomicReference<>();
+        CountDownLatch completed = new CountDownLatch(1);
+
+        client.sendMessageStream(provider, modelId, systemPrompt, transcript, userPrompt,
+                null, false, false, null, new MultiAiClient.StreamCallback() {
+                    @Override
+                    public void onContextInfo(int usedPct, int usedTokens, int maxTokens, boolean summarized) {}
+
+                    @Override
+                    public void onThinking(String thinking) {}
+
+                    @Override
+                    public void onThinkingEnd() {}
+
+                    @Override
+                    public void onToolCall(ToolCall toolCall) {}
+
+                    @Override
+                    public void onToolResult(ToolCall toolCall) {}
+
+                    @Override
+                    public void onContent(String text) {
+                        String current = content.get();
+                        content.set(current == null ? text : current + text);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        completed.countDown();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        error.set(message);
+                        completed.countDown();
+                    }
+                });
+
+        long deadlineNanos = System.nanoTime()
+                + TimeUnit.MILLISECONDS.toNanos(CHILD_TIMEOUT_MS);
+        try {
+            while (completed.getCount() > 0L) {
+                if (cancelToken != null && cancelToken.check()) {
+                    client.cancel();
+                    throw new SummaryException("CANCELLED", "Суммаризация отменена");
+                }
+                long remainingNanos = deadlineNanos - System.nanoTime();
+                if (remainingNanos <= 0L) {
+                    client.cancel();
+                    throw new SummaryException("TIMEOUT", "Не удалось получить сводку за отведённое время");
+                }
+                completed.await(Math.min(250L,
+                        Math.max(1L, TimeUnit.NANOSECONDS.toMillis(remainingNanos))),
+                        TimeUnit.MILLISECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            client.cancel();
             throw new SummaryException("INTERRUPTED", "Суммаризация была прервана");
         }
 

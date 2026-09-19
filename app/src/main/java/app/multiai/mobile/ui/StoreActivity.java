@@ -179,7 +179,8 @@ public class StoreActivity extends AppCompatActivity {
             card.setPadding(pad, pad, pad, pad);
             LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            cp.bottomMargin = (int) (10 * dp);
+            if (i == 0) cp.topMargin = (int) (14 * dp);
+            cp.bottomMargin = (int) (12 * dp);
             card.setLayoutParams(cp);
 
             LinearLayout header = new LinearLayout(this);
@@ -340,16 +341,17 @@ public class StoreActivity extends AppCompatActivity {
         }).start();
     }
 
-    /** Группа вендора для «Ценности по моделям»: GPT / Claude / Китай / Другие. */
+    /** Группа вендора для «Ценности по моделям»: GPT / Claude / China / Other.
+     *  Ключи совпадают с XML-лейблами (barClaude/valueCn), не переводятся. */
     private static String vendorGroup(String id) {
         String s = id.toLowerCase();
         if (s.contains("gpt") || s.contains("o1") || s.contains("o3") || s.contains("o4")) return "GPT";
         if (s.contains("claude")) return "Claude";
         if (s.contains("deepseek") || s.contains("glm") || s.contains("qwen")
                 || s.contains("mimo") || s.contains("nemotron") || s.contains("hy3")
-                || s.contains("laguna") || s.contains("kimi") || s.contains("ernie")) return "Китай";
+                || s.contains("laguna") || s.contains("kimi") || s.contains("ernie")) return "China";
         if (s.contains("gemini")) return "Gemini";
-        return "Другие";
+        return "Other";
     }
 
     private void refreshValueByModels() {
@@ -364,7 +366,7 @@ public class StoreActivity extends AppCompatActivity {
             valueRows.clear();
             for (java.util.Map.Entry<String, Double> e : multipliers.entrySet()) {
                 String group = vendorGroup(e.getKey());
-                if (!"Claude".equals(group) && !"GPT".equals(group) && !"Китай".equals(group)) {
+                if (!"Claude".equals(group) && !"GPT".equals(group) && !"China".equals(group)) {
                     continue;
                 }
                 double effectiveTokens = tokens * (min / e.getValue());
@@ -374,7 +376,7 @@ public class StoreActivity extends AppCompatActivity {
 
         double claude = valueRows.getOrDefault("Claude", 0d);
         double gpt = valueRows.getOrDefault("GPT", 0d);
-        double china = valueRows.getOrDefault("Китай", 0d);
+        double china = valueRows.getOrDefault("China", 0d);
         if (claude + gpt + china <= 0) return;
 
         title.setVisibility(View.VISIBLE);
@@ -433,15 +435,15 @@ public class StoreActivity extends AppCompatActivity {
         segment.setLayoutParams(lp);
     }
 
-    /** ISO-период по-русски. */
+    /** ISO-период биллинга — локализуется. */
     private String prettyPeriod(String iso) {
         if (iso == null) return "";
         switch (iso) {
-            case "P1M": return "месяц";
-            case "P3M": return "3 месяца";
-            case "P6M": return "6 месяцев";
-            case "P1Y": return "год";
-            case "P7D": return "неделя";
+            case "P1M": return getString(R.string.store_period_p1m);
+            case "P3M": return getString(R.string.store_period_p3m);
+            case "P6M": return getString(R.string.store_period_p6m);
+            case "P1Y": return getString(R.string.store_period_p1y);
+            case "P7D": return getString(R.string.store_period_p7d);
             default: return iso;
         }
     }

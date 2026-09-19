@@ -59,6 +59,9 @@
     <color name="error_chip_bg">#FF262629</color>
     <color name="error_accent_soft_bg">#33F04444</color>
     <color name="error_accent_soft_border">#66F04444</color>
+    <color name="error_auth_soft_bg">#33818CF8</color>
+    <color name="error_auth_soft_border">#66818CF8</color>
+    <color name="error_auth_text">#FFA5B4FC</color>
 
     <!-- Chat Mode thinking-card test palette. -->
     <color name="thinking_card">#FF101011</color>

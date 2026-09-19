@@ -56,7 +56,7 @@
     <string name="report_bug">Report a bug</string>
     <string name="about">About</string>
     <string name="logout">Log out</string>
-    <string name="drawer_version">Version 1.3</string>
+    <string name="drawer_version">Version %s</string>
     <string name="archive_title">Archive</string>
     <string name="archive_empty_title">Archive is empty</string>
     <string name="archive_empty_subtitle">Archived chats will appear here</string>

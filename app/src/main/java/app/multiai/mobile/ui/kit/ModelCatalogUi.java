@@ -15,10 +15,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
+import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -28,6 +31,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import app.multiai.mobile.R;
 import app.multiai.mobile.models.CustomProvider;
@@ -1582,5 +1588,45 @@ public final class ModelCatalogUi {
             sb.append(l);
         }
         return sb.toString();
+    }
+
+    // ─────────── кастомные модели (ручной ввод) ───────────
+
+    private static final String CUSTOM_MODELS_PREF = "multiaiide_settings";
+    private static final String KEY_CUSTOM_MODELS = "custom_models";
+
+    /** Сохранить название кастомной модели в SharedPreferences. */
+    static void saveCustomModel(Context ctx, String name) {
+        try {
+            SharedPreferences sp = ctx.getSharedPreferences(CUSTOM_MODELS_PREF, Context.MODE_PRIVATE);
+            String raw = sp.getString(KEY_CUSTOM_MODELS, "[]");
+            JSONArray arr = new JSONArray(raw);
+            // Дедуп
+            for (int i = 0; i < arr.length(); i++) {
+                if (name.equalsIgnoreCase(arr.getString(i))) return;
+            }
+            arr.put(name);
+            sp.edit().putString(KEY_CUSTOM_MODELS, arr.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+
+    /** Загрузить список сохранённых кастомных моделей. */
+    static List<ModelInfo> loadSavedCustomModels(Context ctx) {
+        List<ModelInfo> result = new ArrayList<>();
+        try {
+            SharedPreferences sp = ctx.getSharedPreferences(CUSTOM_MODELS_PREF, Context.MODE_PRIVATE);
+            String raw = sp.getString(KEY_CUSTOM_MODELS, "[]");
+            JSONArray arr = new JSONArray(raw);
+            for (int i = 0; i < arr.length(); i++) {
+                String name = arr.getString(i);
+                JSONObject fake = new JSONObject();
+                fake.put("id", "ma-" + name.toLowerCase(Locale.ROOT));
+                fake.put("display_name", name);
+                fake.put("billing_free", true);
+                fake.put("category", "other");
+                result.add(new ModelInfo(fake));
+            }
+        } catch (Exception ignored) {}
+        return result;
     }
 }

@@ -43,11 +43,15 @@ public final class ModernSheet {
         public final CharSequence label;
         public final int iconRes;          // 0 = no icon
         public final boolean destructive;  // renders label in @color/error
+        public final boolean disabled;     // non-clickable label-only header
         public final Object tag;           // optional payload for the caller
 
-        public MenuItem(CharSequence label) { this(label, 0, false, null); }
+        public MenuItem(CharSequence label) { this(label, 0, false, false, null); }
         public MenuItem(CharSequence label, int iconRes, boolean destructive, Object tag) {
-            this.label = label; this.iconRes = iconRes; this.destructive = destructive; this.tag = tag;
+            this(label, iconRes, destructive, false, tag);
+        }
+        public MenuItem(CharSequence label, int iconRes, boolean destructive, boolean disabled, Object tag) {
+            this.label = label; this.iconRes = iconRes; this.destructive = destructive; this.disabled = disabled; this.tag = tag;
         }
     }
 
@@ -170,10 +174,10 @@ public final class ModernSheet {
                             d.dismiss();
                         } else {
                             sheet.animate().translationY(0f)
-                                    .setDuration(MotionKit.STANDARD)
+                                    .setDuration(MotionKit.duration(MotionKit.STANDARD))
                                     .setInterpolator(MotionKit.STANDARD_EASING).start();
                             backdrop.animate().alpha(1f)
-                                    .setDuration(MotionKit.STANDARD)
+                                    .setDuration(MotionKit.duration(MotionKit.STANDARD))
                                     .setInterpolator(MotionKit.STANDARD_EASING).start();
                         }
                         return true;
@@ -232,18 +236,27 @@ public final class ModernSheet {
         row.setMinimumHeight(UiKit.dp(ctx, 50));
         int padV = UiKit.dp(ctx, 10);
         row.setPadding(0, padV, 0, padV);
-        row.setBackground(UiKit.rippleRounded(ctx, UiKit.RADIUS_MD,
-                ContextCompat.getColor(ctx, R.color.ripple)));
-        row.setOnClickListener(click);
+        if (item.disabled) {
+            row.setBackground(null);
+            row.setOnClickListener(null);
+        } else {
+            row.setBackground(UiKit.rippleRounded(ctx, UiKit.RADIUS_MD,
+                    ContextCompat.getColor(ctx, R.color.ripple)));
+            row.setOnClickListener(click);
+            MotionKit.attachPress(row, 0.985f);
+        }
 
         if (item.iconRes != 0) {
-            int tint = ContextCompat.getColor(ctx, item.destructive ? R.color.error : R.color.icon);
+            int tint = ContextCompat.getColor(ctx, item.disabled ? R.color.text_hint
+                    : item.destructive ? R.color.error : R.color.icon);
             row.addView(UiKit.icon(ctx, item.iconRes, 22, tint));
             ((LinearLayout.LayoutParams) row.getChildAt(0).getLayoutParams()).setMarginEnd(UiKit.dp(ctx, 14));
         }
 
-        TextView label = UiKit.text(ctx, item.label, 15,
-                item.destructive ? R.color.error : R.color.text_primary, false);
+        TextView label = UiKit.text(ctx, item.label, item.disabled ? 12 : 15,
+                item.disabled ? R.color.text_hint
+                        : item.destructive ? R.color.error : R.color.text_primary,
+                false);
         row.addView(label);
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(

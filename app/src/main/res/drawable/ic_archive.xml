@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Архив: контейнер с крышкой и стрелкой вниз. Аккуратный stroke-стиль
-     под остальную иконографию настроек (1.7dp, скруглённые стыки). -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp"
-    android:viewportWidth="24" android:viewportHeight="24">
-    <!-- Крышка архива -->
-    <path android:pathData="M3.5,4.5 L20.5,4.5 A1.5,1.5 0 0,1 22,6 L22,8 A1.5,1.5 0 0,1 20.5,9.5 L3.5,9.5 A1.5,1.5 0 0,1 2,8 L2,6 A1.5,1.5 0 0,1 3.5,4.5 Z"
-          android:strokeColor="@color/text_primary" android:strokeWidth="1.7"
-          android:fillColor="#00000000" android:strokeLineJoin="round"/>
-    <!-- Корпус -->
-    <path android:pathData="M4,9.5 L4,18.5 A2,2 0 0,0 6,20.5 L18,20.5 A2,2 0 0,0 20,18.5 L20,9.5"
-          android:strokeColor="@color/text_primary" android:strokeWidth="1.7"
-          android:fillColor="#00000000" android:strokeLineCap="round"/>
-    <!-- Стрелка вниз (положить в архив) -->
-    <path android:pathData="M9.2,12.6 L12,15.4 L14.8,12.6 M12,15 L12,9.5"
-          android:strokeColor="@color/text_primary" android:strokeWidth="1.7"
-          android:fillColor="#00000000" android:strokeLineCap="round" android:strokeLineJoin="round"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M2.5,6C2.5,4.34315 3.84315,3 5.5,3H18.5C20.1569,3 21.5,4.34315 21.5,6V7C21.5,7.61337 21.3159,8.18374 21,8.6589V15.2413C21,16.0463 21,16.7106 20.9558,17.2518C20.9099,17.8139 20.8113,18.3306 20.564,18.816C20.1805,19.5686 19.5686,20.1805 18.816,20.564C18.3306,20.8113 17.8139,20.9099 17.2518,20.9558C16.7106,21 16.0463,21 15.2413,21H8.75868C7.95372,21 7.28936,21 6.74817,20.9558C6.18608,20.9099 5.66937,20.8113 5.18404,20.564C4.43139,20.1805 3.81947,19.5686 3.43597,18.816C3.18868,18.3306 3.09012,17.8139 3.04419,17.2518C2.99998,16.7106 2.99999,16.0463 3,15.2413L3,8.6589C2.68408,8.18374 2.5,7.61337 2.5,7V6ZM5.5,8H18.5C19.0523,8 19.5,7.55228 19.5,7V6C19.5,5.44772 19.0523,5 18.5,5H5.5C4.94772,5 4.5,5.44772 4.5,6V7C4.5,7.55228 4.94772,8 5.5,8ZM5,10V15.2C5,16.0566 5.00078,16.6389 5.03755,17.089C5.07337,17.5274 5.1383,17.7516 5.21799,17.908C5.40973,18.2843 5.7157,18.5903 6.09202,18.782C6.24842,18.8617 6.47262,18.9266 6.91104,18.9624C7.36113,18.9992 7.94342,19 8.8,19H15.2C16.0566,19 16.6389,18.9992 17.089,18.9624C17.5274,18.9266 17.7516,18.8617 17.908,18.782C18.2843,18.5903 18.5903,18.2843 18.782,17.908C18.8617,17.7516 18.9266,17.5274 18.9624,17.089C18.9992,16.6389 19,16.0566 19,15.2V10H5ZM15,13C15,13.5523 14.5523,14 14,14H10C9.44772,14 9,13.5523 9,13C9,12.4477 9.44772,12 10,12H14C14.5523,12 15,12.4477 15,13Z" android:fillType="nonZero"/>
 </vector>

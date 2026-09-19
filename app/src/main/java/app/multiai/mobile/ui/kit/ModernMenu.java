@@ -86,6 +86,7 @@ public final class ModernMenu {
         anchor.getLocationOnScreen(loc);
         int anchorBottom = loc[1] + anchor.getHeight();
         int displayH = ctx.getResources().getDisplayMetrics().heightPixels;
+        int displayW = ctx.getResources().getDisplayMetrics().widthPixels;
 
         int gravity;
         int y;
@@ -98,6 +99,12 @@ public final class ModernMenu {
             gravity = Gravity.TOP;
         }
 
+        // For right-aligned user bubbles: if anchor is on the right half of screen,
+        // anchor popup to the right edge instead of the left.
+        if (loc[0] + anchor.getWidth() / 2 >= displayW / 2) {
+            gravity |= Gravity.END;
+        }
+
         popup.showAsDropDown(anchor, 0, y, gravity);
 
         // Smooth enter animation: fade-in + scale-up from the top edge (pivotY=0)
@@ -108,7 +115,7 @@ public final class ModernMenu {
         list.animate()
                 .alpha(1f)
                 .scaleY(1f)
-                .setDuration(MotionKit.STANDARD)
+                .setDuration(MotionKit.duration(MotionKit.STANDARD))
                 .setInterpolator(MotionKit.STANDARD_EASING)
                 .start();
 
@@ -123,19 +130,28 @@ public final class ModernMenu {
         int padV = UiKit.dp(ctx, 10);
         int padH = UiKit.dp(ctx, 10);
         row.setPadding(padH, padV, padH, padV);
-        row.setBackground(UiKit.rippleRounded(ctx, UiKit.RADIUS_SM,
-                ContextCompat.getColor(ctx, R.color.ripple)));
-        row.setOnClickListener(click);
+        if (item.disabled) {
+            row.setBackground(null);
+            row.setOnClickListener(null);
+        } else {
+            row.setBackground(UiKit.rippleRounded(ctx, UiKit.RADIUS_SM,
+                    ContextCompat.getColor(ctx, R.color.ripple)));
+            row.setOnClickListener(click);
+            MotionKit.attachPress(row, 0.985f);
+        }
 
         if (item.iconRes != 0) {
-            int tint = ContextCompat.getColor(ctx, item.destructive ? R.color.error : R.color.icon);
+            int tint = ContextCompat.getColor(ctx, item.disabled ? R.color.text_hint
+                    : item.destructive ? R.color.error : R.color.icon);
             row.addView(UiKit.icon(ctx, item.iconRes, 20, tint));
             ((LinearLayout.LayoutParams) row.getChildAt(row.getChildCount() - 1).getLayoutParams())
                     .setMarginEnd(UiKit.dp(ctx, 12));
         }
 
-        android.widget.TextView label = UiKit.text(ctx, item.label, 14,
-                item.destructive ? R.color.error : R.color.text_primary, false);
+        android.widget.TextView label = UiKit.text(ctx, item.label, item.disabled ? 12 : 14,
+                item.disabled ? R.color.text_hint
+                        : item.destructive ? R.color.error : R.color.text_primary,
+                false);
         row.addView(label);
         return row;
     }

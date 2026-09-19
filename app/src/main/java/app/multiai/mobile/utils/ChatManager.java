@@ -36,6 +36,7 @@ public class ChatManager {
     private static final String KEY_CLOUD_RETRY_AT = "cloud_retry_at";
     private static final int MAX_CLOUD_ATTACHMENT_BYTES = 1_500_000;
     private static final int MAX_CLOUD_ATTACHMENTS_TOTAL_BYTES = 3_000_000;
+    private static final Object CHAT_STORE_LOCK = new Object();
     private static final java.util.concurrent.ScheduledExecutorService SYNC_EXECUTOR =
             java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "chats-cloud-sync");
@@ -249,7 +250,7 @@ public class ChatManager {
                 for (app.multiai.mobile.models.Message m : c.getMessages()) {
                     if (m.hasImage()) m.ensureImageAttachmentId();
                     if (m.hasAttachedFile()) m.ensureFileAttachmentId();
-                    if (m.getImageBase64() != null && !m.getImageBase64().isEmpty()) {
+                    if (m.getPendingImageBase64() != null && !m.getPendingImageBase64().isEmpty()) {
                         java.io.File f = new java.io.File(dir,
                                 m.ensureImageAttachmentId() + "_" + sanitizeFileName(
                                         m.getImageName() != null ? m.getImageName() : "image.jpg"));
@@ -259,6 +260,8 @@ public class ChatManager {
                             java.io.File bundle = new java.io.File(dir, m.ensureImageAttachmentId() + ".images.json");
                             java.nio.file.Files.write(bundle.toPath(), payload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                             m.setImageBundlePath(bundle.getAbsolutePath());
+                        } else {
+                            m.setImageBundlePath(null);
                         }
                         try (java.io.FileOutputStream fos = new java.io.FileOutputStream(f)) {
                             String first = images.get(0);
@@ -270,7 +273,7 @@ public class ChatManager {
                         } catch (Exception ignored) {
                         }
                     }
-                    if (m.getAttachedFileContent() != null && !m.getAttachedFileContent().isEmpty()) {
+                    if (m.getPendingFileContent() != null && !m.getPendingFileContent().isEmpty()) {
                         java.io.File f = new java.io.File(dir,
                                 m.ensureFileAttachmentId() + "_" + sanitizeFileName(
                                         m.getAttachedFileName() != null ? m.getAttachedFileName() : "file.txt"));
@@ -409,6 +412,7 @@ public class ChatManager {
     }
 
     private void updateChatInternal(Chat updatedChat, boolean heavy) {
+        synchronized (CHAT_STORE_LOCK) {
         if (updatedChat == null) return;
         // A deleted UUID is never reusable. This also blocks a stale Activity
         // instance from resurrecting a chat after another device deleted it.
@@ -438,6 +442,7 @@ public class ChatManager {
         String json = gson.toJson(chats);
         persistChatsJson(json);
         if (heavy) syncToCloud();
+        }
     }
 
     /**
@@ -768,6 +773,7 @@ public class ChatManager {
     }
 
     public boolean mergeCloudSnapshot(String cloudData) {
+        synchronized (CHAT_STORE_LOCK) {
         if (cloudData == null || cloudData.trim().isEmpty()) return false;
         try {
             long cloudRevision = 0L;
@@ -816,7 +822,10 @@ public class ChatManager {
             for (Chat chat : localChats) {
                 if (chat == null || chat.getId() == null) continue;
                 Chat cloud = merged.get(chat.getId());
-                if (cloud == null || chat.getUpdatedAt() > cloud.getUpdatedAt()) {
+                boolean localHasMoreMessages = cloud != null
+                        && chat.getMessages().size() > cloud.getMessages().size();
+                if (cloud == null || chat.getUpdatedAt() > cloud.getUpdatedAt()
+                        || (chat.getUpdatedAt() == cloud.getUpdatedAt() && localHasMoreMessages)) {
                     merged.put(chat.getId(), chat);
                     localWon = true;
                 }
@@ -848,6 +857,7 @@ public class ChatManager {
             return true;
         } catch (Exception ignored) {
             return false;
+        }
         }
     }
 

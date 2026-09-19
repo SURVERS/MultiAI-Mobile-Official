@@ -17,6 +17,11 @@ public final class ImageAttachmentStrip {
     public interface Remove { void remove(int index); }
     private ImageAttachmentStrip() {}
     public static void render(View root, String payload, Remove remove) {
+        render(root, payload, remove, null, null, null);
+    }
+
+    public static void render(View root, String payload, Remove remove, String fileName,
+                              String fileContent, Remove removeFile) {
         ViewGroup host = (ViewGroup) root;
         View old = host.findViewWithTag("multi-image-strip");
         if (old != null) host.removeView(old);
@@ -27,8 +32,10 @@ public final class ImageAttachmentStrip {
         View legacyImage = host.findViewById(R.id.imageAttachment);
         if (legacyImage != null) legacyImage.setVisibility(View.GONE);
         java.util.List<String> images = ImageAttachments.unpack(payload);
-        host.setVisibility(images.isEmpty() ? View.GONE : View.VISIBLE);
-        if (images.isEmpty()) return;
+        java.util.List<app.multiai.mobile.utils.FileAttachments.Entry> files =
+                app.multiai.mobile.utils.FileAttachments.unpack(fileName, fileContent);
+        host.setVisibility(images.isEmpty() && files.isEmpty() ? View.GONE : View.VISIBLE);
+        if (images.isEmpty() && files.isEmpty()) return;
         Context ctx = host.getContext();
         float density = ctx.getResources().getDisplayMetrics().density;
         HorizontalScrollView scroll = new HorizontalScrollView(ctx);
@@ -73,5 +80,37 @@ public final class ImageAttachmentStrip {
             cross.setPadding(padding,padding,padding,padding);
             button.addView(cross, new FrameLayout.LayoutParams((int)(24*density), (int)(24*density), Gravity.TOP|Gravity.CENTER_HORIZONTAL));
         }
+        for (int i = 0; i < files.size(); i++) {
+            final int index = i;
+            LinearLayout tile = new LinearLayout(ctx);
+            tile.setOrientation(LinearLayout.VERTICAL);
+            tile.setGravity(Gravity.CENTER);
+            tile.setPadding((int)(12*density), 0, (int)(12*density), 0);
+            row.addView(tile, new LinearLayout.LayoutParams((int)(152*density), (int)(104*density)));
+            android.widget.TextView name = new android.widget.TextView(ctx);
+            name.setText(files.get(i).name);
+            name.setTextColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.icon));
+            name.setTextSize(13);
+            name.setMaxLines(2);
+            name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            tile.addView(name, new LinearLayout.LayoutParams(-1, -2));
+            if (removeFile != null) {
+                ImageView cross = new ImageView(ctx);
+                cross.setImageResource(R.drawable.ic_close);
+                cross.setColorFilter(androidx.core.content.ContextCompat.getColor(ctx, R.color.icon));
+                cross.setPadding((int)(14*density), (int)(14*density), (int)(14*density), (int)(14*density));
+                cross.setContentDescription(ctx.getString(R.string.remove_attachment) + " " + files.get(i).name);
+                cross.setFocusable(true);
+                cross.setOnClickListener(v -> removeFile.remove(index));
+                tile.addView(cross, new LinearLayout.LayoutParams((int)(48*density), (int)(48*density)));
+            }
+        }
+        // Плавное появление стрипа при добавлении/перерисовке вложений
+        scroll.setAlpha(0f);
+        scroll.setTranslationY(6*density);
+        scroll.animate().alpha(1f).translationY(0f)
+                .setDuration(180)
+                .setInterpolator(new android.view.animation.DecelerateInterpolator(1.4f))
+                .start();
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp"
-    android:viewportWidth="24" android:viewportHeight="24">
-    <path android:pathData="M4,8h4V4H4v4zm6,12h4v-4h-4v4zm-6,0h4v-4H4v4zm0,-6h4v-4H4v4zm6,0h4v-4h-4v4zm6,-10v4h4V4h-4zm-6,4h4V4h-4v4zm6,6h4v-4h-4v4zm0,6h4v-4h-4v4z"
-        android:fillColor="@color/text_secondary"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M8.793,13.102C9.953,13.102 10.894,14.043 10.894,15.203V19.803C10.894,20.962 9.953,21.903 8.793,21.903H4.194C3.034,21.903 2.093,20.962 2.093,19.803V15.203C2.093,14.043 3.034,13.102 4.194,13.102H8.793ZM4.194,14.903C4.028,14.903 3.894,15.038 3.894,15.203V19.803C3.894,19.968 4.028,20.103 4.194,20.103H8.793C8.959,20.103 9.093,19.968 9.093,19.803V15.203C9.093,15.038 8.959,14.903 8.793,14.903H4.194Z" android:fillType="nonZero"/>
+  <path android:fillColor="@color/icon" android:pathData="M19.799,13.1C20.959,13.1 21.9,14.04 21.9,15.2V19.8C21.9,20.96 20.959,21.9 19.799,21.9H15.2C14.04,21.9 13.099,20.959 13.099,19.8V15.2C13.099,14.04 14.04,13.1 15.2,13.1H19.799ZM15.2,14.9C15.034,14.901 14.9,15.035 14.9,15.2V19.8C14.9,19.965 15.034,20.099 15.2,20.1H19.799C19.965,20.1 20.099,19.965 20.099,19.8V15.2C20.099,15.035 19.965,14.9 19.799,14.9H15.2Z" android:fillType="nonZero"/>
+  <path android:fillColor="@color/icon" android:pathData="M8.793,2.103C9.953,2.103 10.894,3.043 10.894,4.203V8.803C10.894,9.963 9.953,10.903 8.793,10.903H4.194C3.034,10.903 2.093,9.963 2.093,8.803V4.203C2.093,3.043 3.034,2.103 4.194,2.103H8.793ZM4.194,3.903C4.028,3.903 3.894,4.038 3.894,4.203V8.803C3.894,8.968 4.028,9.103 4.194,9.103H8.793C8.959,9.103 9.093,8.968 9.093,8.803V4.203C9.093,4.038 8.959,3.903 8.793,3.903H4.194Z" android:fillType="nonZero"/>
+  <path android:fillColor="@color/icon" android:pathData="M19.799,2.1C20.959,2.1 21.9,3.04 21.9,4.2V8.8C21.9,9.96 20.959,10.9 19.799,10.9H15.2C14.04,10.9 13.099,9.96 13.099,8.8V4.2C13.099,3.04 14.04,2.1 15.2,2.1H19.799ZM15.2,3.9C15.034,3.901 14.9,4.035 14.9,4.2V8.8C14.9,8.965 15.034,9.099 15.2,9.1H19.799C19.965,9.1 20.099,8.965 20.099,8.8V4.2C20.099,4.035 19.965,3.9 19.799,3.9H15.2Z" android:fillType="nonZero"/>
 </vector>

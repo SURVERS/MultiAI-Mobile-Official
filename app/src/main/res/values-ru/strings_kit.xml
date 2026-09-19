@@ -88,7 +88,7 @@
     <string name="lay_web_search">Web поиск</string>
 
     <!-- ═══════════════ widget_save_memory.xml ═══════════════ -->
-    <string name="lay_memory_saved">Сохранил в память</string>
+    <string name="lay_memory_saved">Память обновлена</string>
 
     <!-- ═══════════════ item_chat_list.xml ═══════════════ -->
     <string name="lay_new_chat">Новый чат</string>

@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -135,6 +136,8 @@ public class ProfileActivity extends AppCompatActivity {
     // Keys tab
     private LinearLayout keysList;
     private TextView keysEmpty;
+    private TextView keysListTitle;
+    private ScrollView keysScroll;
 
     // Usage tab
     private UsageChartView usageChart;
@@ -356,6 +359,8 @@ public class ProfileActivity extends AppCompatActivity {
         // Keys
         keysList = findViewById(R.id.keysList);
         keysEmpty = findViewById(R.id.keysEmpty);
+        keysListTitle = findViewById(R.id.keysListTitle);
+        keysScroll = findViewById(R.id.keysScroll);
 
         // Usage
         usageChart = findViewById(R.id.usageChart);
@@ -1834,9 +1839,16 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (keys == null || keys.length() == 0) {
             keysEmpty.setVisibility(View.VISIBLE);
+            if (keysListTitle != null) keysListTitle.setText(R.string.profile_my_keys);
+            if (keysScroll != null) capKeysScrollHeight(0);
             return;
         }
         keysEmpty.setVisibility(View.GONE);
+        if (keysListTitle != null) {
+            keysListTitle.setText(getString(R.string.profile_my_keys)
+                    + " (" + keys.length() + ")");
+        }
+        if (keysScroll != null) capKeysScrollHeight(keys.length());
 
         LayoutInflater inflater = LayoutInflater.from(this);
         float dp = getResources().getDisplayMetrics().density;
@@ -1935,6 +1947,21 @@ public class ProfileActivity extends AppCompatActivity {
 
             keysList.addView(item);
         }
+    }
+
+    /** Если ключей много — список ограничивается по высоте и скроллится внутри,
+     *  чтобы не листать весь экран. До 3 карточек показываем целиком. */
+    private void capKeysScrollHeight(int count) {
+        if (keysScroll == null) return;
+        float dp = getResources().getDisplayMetrics().density;
+        int maxH = (int) (340 * dp); // ~3.5 карточки, дальше внутренний скролл
+        android.view.ViewGroup.LayoutParams lp = keysScroll.getLayoutParams();
+        if (count > 3) {
+            lp.height = maxH;
+        } else {
+            lp.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+        }
+        keysScroll.setLayoutParams(lp);
     }
 
     private void showKeyMenu(View anchor, String keyName) {

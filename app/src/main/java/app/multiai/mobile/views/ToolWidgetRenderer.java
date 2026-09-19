@@ -113,7 +113,7 @@ public final class ToolWidgetRenderer {
 
     /** Compact safe fallback for tool types without a specialised widget yet. */
     private static View renderGenericTool(Context ctx, ToolCall call) {
-        return renderGenericTool(ctx, call.getName(), call.getDisplayText(), call.getStatus(),
+        return renderGenericTool(ctx, call.getName(), call.getDisplayText(ctx), call.getStatus(),
                 call.getIconRes());
     }
 
@@ -123,7 +123,7 @@ public final class ToolWidgetRenderer {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setMinimumHeight((int) dp(ctx, 40));
         row.setPadding((int) dp(ctx, 2), (int) dp(ctx, 2), (int) dp(ctx, 2), (int) dp(ctx, 2));
-        row.setForeground(selectableForeground(ctx));
+        // No ripple foreground — prevents pressed-state leak across recycled views
 
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(iconRes != 0 ? iconRes : R.drawable.ic_file_outline);
@@ -175,7 +175,7 @@ public final class ToolWidgetRenderer {
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setMinimumHeight((int) dp(ctx, 40));
         header.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
-        header.setForeground(selectableForeground(ctx));
+        
 
         ImageView icon = new ImageView(ctx);
         // Собственная иконка правил, а не общий ic_file_outline из Explore.
@@ -269,7 +269,7 @@ public final class ToolWidgetRenderer {
         card.setGravity(Gravity.CENTER_VERTICAL);
         card.setMinimumHeight((int) dp(ctx, 48));
         card.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
-        card.setForeground(selectableForeground(ctx));
+        
 
         String presetId = call.getParams().getOrDefault("preset_id", "");
         if (presetId.trim().isEmpty()) presetId = app.multiai.mobile.utils.SubagentStore.BUILTIN_GENERAL_ID;
@@ -341,7 +341,7 @@ public final class ToolWidgetRenderer {
     private static View renderTodo(Context ctx, ToolCall call) {
         LinearLayout root = new LinearLayout(ctx);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setGravity(Gravity.END);
+        root.setGravity(Gravity.START);
         JSONObject result = call.getResult();
         JSONArray items = result != null ? result.optJSONArray("items") : null;
         if (items == null) {
@@ -362,13 +362,16 @@ public final class ToolWidgetRenderer {
                 break;
             }
         }
+        boolean allDone = items.length() > 0 && completed == items.length();
         if (summary.isEmpty() && items.length() > 0) {
             JSONObject item = items.optJSONObject(Math.max(0, Math.min(completed, items.length() - 1)));
             if (item != null) summary = item.optString("title", "");
         }
 
         TextView chip = new TextView(ctx);
-        chip.setText((completed > 0 ? "✓  " : "○  ") + summary);
+        String progress = completed + "/" + items.length();
+        chip.setText(allDone ? "✓  " + progress
+                : (summary.isEmpty() ? "○  " + progress : "◉  " + summary + "  ·  " + progress));
         chip.setTextColor(color(ctx, R.color.text_primary));
         chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         chip.setSingleLine(true);
@@ -412,17 +415,29 @@ public final class ToolWidgetRenderer {
             JSONObject item = items.optJSONObject(i);
             if (item == null) continue;
             String status = item.optString("status", "pending");
-            TextView row = new TextView(ctx);
-            row.setText(("completed".equals(status) ? "✓  "
-                    : "in_progress".equals(status) ? "◉  " : "○  ")
-                    + item.optString("title", ""));
-            row.setTextColor(color(ctx, "completed".equals(status)
-                    ? R.color.text_disabled : R.color.text_secondary));
-            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+            boolean done = "completed".equals(status);
+            boolean active = "in_progress".equals(status);
+            LinearLayout row = new LinearLayout(ctx);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
             row.setPadding(0, (int) dp(ctx, 5), 0, 0);
-            if ("completed".equals(status)) {
-                row.setPaintFlags(row.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-            }
+            TextView glyph = new TextView(ctx);
+            glyph.setText(done ? "✓" : active ? "◉" : "○");
+            glyph.setTextColor(color(ctx, done
+                    ? R.color.syntax_string
+                    : active ? R.color.accent : R.color.text_hint));
+            glyph.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+            glyph.setTypeface(Typeface.DEFAULT_BOLD, active ? Typeface.BOLD : Typeface.NORMAL);
+            row.addView(glyph, new LinearLayout.LayoutParams(
+                    (int) dp(ctx, 20), LinearLayout.LayoutParams.WRAP_CONTENT));
+            TextView title = new TextView(ctx);
+            title.setText(item.optString("title", ""));
+            title.setTextColor(color(ctx, done ? R.color.text_disabled
+                    : active ? R.color.text_primary : R.color.text_secondary));
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+            if (done) title.setPaintFlags(title.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+            row.addView(title, new LinearLayout.LayoutParams(0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             card.addView(row);
         }
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
@@ -443,7 +458,7 @@ public final class ToolWidgetRenderer {
         LinearLayout row = new LinearLayout(ctx);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setMinimumHeight((int) dp(ctx, 40));
-        row.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
+        row.setPadding((int) dp(ctx, 12), (int) dp(ctx, 4), (int) dp(ctx, 12), (int) dp(ctx, 4));
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(R.drawable.ic_plan_mode);
         icon.setColorFilter(color(ctx, R.color.icon_muted));
@@ -490,8 +505,8 @@ public final class ToolWidgetRenderer {
         LinearLayout root = new LinearLayout(ctx);
         root.setGravity(Gravity.CENTER_VERTICAL);
         root.setMinimumHeight((int) dp(ctx, 40));
-        root.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
-        root.setForeground(selectableForeground(ctx));
+        root.setPadding((int) dp(ctx, 12), (int) dp(ctx, 4), (int) dp(ctx, 12), (int) dp(ctx, 4));
+        
 
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(R.drawable.ic_plan_mode);
@@ -547,7 +562,7 @@ public final class ToolWidgetRenderer {
         card.setPadding((int) dp(ctx, 14), (int) dp(ctx, 11),
                 (int) dp(ctx, 14), (int) dp(ctx, 11));
         card.setBackground(outlinedSurface(ctx, 14));
-        card.setForeground(selectableForeground(ctx));
+        
 
         LinearLayout header = new LinearLayout(ctx);
         header.setGravity(Gravity.CENTER_VERTICAL);
@@ -693,6 +708,18 @@ public final class ToolWidgetRenderer {
         LinearLayout title = new LinearLayout(ctx);
         title.setGravity(Gravity.CENTER_VERTICAL);
         title.setMinimumHeight((int) dp(ctx, 30));
+
+        // Tool icon based on tool name
+        ImageView toolIcon = new ImageView(ctx);
+        int iconRes = exploreToolIcon(call.getName());
+        if (iconRes != 0) {
+            toolIcon.setImageResource(iconRes);
+            toolIcon.setColorFilter(color(ctx, R.color.icon_muted));
+            LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(
+                    (int) dp(ctx, 16), (int) dp(ctx, 16));
+            iconLp.rightMargin = (int) dp(ctx, 6);
+            title.addView(toolIcon, iconLp);
+        }
 
         boolean rowFailed = hasFailed(call);
         TextView label = new TextView(ctx);
@@ -888,6 +915,20 @@ public final class ToolWidgetRenderer {
         String normalized = path.replace('\\', '/');
         int slash = normalized.lastIndexOf('/');
         return slash >= 0 ? normalized.substring(slash + 1) : normalized;
+    }
+
+    /** Icon for each tool type shown in the Explore block rows. */
+    private static int exploreToolIcon(String toolName) {
+        if ("read_file".equals(toolName)) return R.drawable.ic_tool_read;
+        if ("write_file".equals(toolName)) return R.drawable.ic_tool_write;
+        if ("edit_file".equals(toolName)) return R.drawable.ic_tool_write;
+        if ("execute_command".equals(toolName)) return R.drawable.ic_tool_terminal;
+        if ("delete_path".equals(toolName)) return R.drawable.ic_tool_delete;
+        if ("search_grep".equals(toolName)) return R.drawable.ic_tool_grep;
+        if ("find_files".equals(toolName)) return R.drawable.ic_tool_grep;
+        if ("list_dir".equals(toolName)) return R.drawable.ic_folder_outline;
+        if ("read_skill".equals(toolName)) return R.drawable.ic_skill_flask;
+        return 0;
     }
 
     private static ImageView createFileIcon(Context ctx, String name) {
@@ -1244,7 +1285,16 @@ public final class ToolWidgetRenderer {
         for (DiffOp op : ops) if (op.kind != '=') { hasChanges = true; break; }
 
         int index = 0;
+        int initialChildren = parent.getChildCount();
         while (index < ops.size()) {
+            if (parent.getChildCount() - initialChildren >= 120) {
+                addHiddenLines(ctx, parent, ops.size() - index);
+                for (int i = index; i < ops.size(); i++) {
+                    if (ops.get(i).kind == '+') stats.additions++;
+                    if (ops.get(i).kind == '-') stats.deletions++;
+                }
+                break;
+            }
             DiffOp current = ops.get(index);
             if (current.kind != '=') {
                 if (current.kind == '+') stats.additions++;
@@ -1260,10 +1310,12 @@ public final class ToolWidgetRenderer {
             while (end < ops.size() && ops.get(end).kind == '=') end++;
             int count = end - index;
             if (!hasChanges || count <= 4) {
-                for (int i = index; i < end; i++) {
+                int visibleEnd = Math.min(end, index + 120);
+                for (int i = index; i < visibleEnd; i++) {
                     DiffOp op = ops.get(i);
                     addDiffRow(ctx, parent, op.oldNo, op.newNo, " ", op.text, false, false);
                 }
+                if (visibleEnd < end) addHiddenLines(ctx, parent, end - visibleEnd);
             } else {
                 for (int i = index; i < index + 2; i++) {
                     DiffOp op = ops.get(i);
@@ -1680,25 +1732,9 @@ public final class ToolWidgetRenderer {
 
     // ───────────────────── SAVE MEMORY ─────────────────────
     private static View renderSaveMemory(Context ctx, ToolCall toolCall, JSONObject data) {
-        View root = LayoutInflater.from(ctx).inflate(R.layout.widget_save_memory, null);
-
-        // Пробуем достать name/content из result, иначе из исходных params тула
-        String name = data.optString("name", "");
-        String content = data.optString("content", "");
-        if (name.isEmpty()) name = toolCall.getParams().getOrDefault("name", "");
-        if (content.isEmpty()) content = toolCall.getParams().getOrDefault("content", "");
-
-        TextView nameView = root.findViewById(R.id.memoryName);
-        TextView contentView = root.findViewById(R.id.memoryContent);
-
-        nameView.setText(name.isEmpty() ? "—" : name);
-        if (content.isEmpty()) {
-            contentView.setVisibility(View.GONE);
-        } else {
-            contentView.setText(content);
-        }
-
-        return root;
+        // Компактный блок «Память обновлена»: деталей (что именно записала
+        // модель) намеренно не показываем.
+        return LayoutInflater.from(ctx).inflate(R.layout.widget_save_memory, null);
     }
 
     // ───────────────────── WEB SEARCH ─────────────────────
@@ -1731,7 +1767,7 @@ public final class ToolWidgetRenderer {
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setMinimumHeight((int) dp(ctx, 34));
         header.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
-        header.setForeground(selectableForeground(ctx));
+        
 
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(R.drawable.ic_magnify);
@@ -1788,7 +1824,7 @@ public final class ToolWidgetRenderer {
             LinearLayout row = new LinearLayout(ctx);
             row.setGravity(Gravity.CENTER_VERTICAL);
             row.setMinimumHeight((int) dp(ctx, 30));
-            row.setForeground(selectableForeground(ctx));
+            
 
             TextView index = new TextView(ctx);
             index.setText(String.valueOf(citation));
@@ -1863,7 +1899,7 @@ public final class ToolWidgetRenderer {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setMinimumHeight((int) dp(ctx, 34));
         row.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
-        row.setForeground(selectableForeground(ctx));
+        
 
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(R.drawable.ic_open_in_new);
@@ -1936,7 +1972,7 @@ public final class ToolWidgetRenderer {
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setMinimumHeight((int) dp(ctx, 34));
         header.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
-        header.setForeground(selectableForeground(ctx));
+        
 
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(R.drawable.ic_memory_note_check);
@@ -2019,7 +2055,7 @@ public final class ToolWidgetRenderer {
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setMinimumHeight((int) dp(ctx, 34));
         header.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
-        header.setForeground(selectableForeground(ctx));
+        
 
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(R.drawable.ic_memory_note_check);
@@ -2111,7 +2147,7 @@ public final class ToolWidgetRenderer {
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setMinimumHeight((int) dp(ctx, 34));
         header.setPadding((int) dp(ctx, 2), 0, (int) dp(ctx, 2), 0);
-        header.setForeground(selectableForeground(ctx));
+        
 
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(R.drawable.ic_error_warning);
@@ -2272,7 +2308,12 @@ public final class ToolWidgetRenderer {
             TypedValue value = new TypedValue();
             if (ctx.getTheme().resolveAttribute(
                     android.R.attr.selectableItemBackground, value, true)) {
-                if (value.resourceId != 0) return ctx.getDrawable(value.resourceId);
+                if (value.resourceId != 0) {
+                    Drawable drawable = ctx.getDrawable(value.resourceId);
+                    // Mutate so each view gets its own state — otherwise the
+                    // shared drawable leaks pressed state across recycled views.
+                    return drawable != null ? drawable.mutate() : null;
+                }
             }
         } catch (Exception ignored) {
         }

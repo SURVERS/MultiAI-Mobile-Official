@@ -93,7 +93,6 @@ public class ChatActivity extends AppCompatActivity implements
     private ImageButton buttonAttachPhoto;
     private ImageButton buttonStop;
     private ImageButton buttonMic;
-    private LinearLayout attachMenu;
     private LinearLayout emptyState;
     
     // 🎤 Voice input
@@ -103,6 +102,7 @@ public class ChatActivity extends AppCompatActivity implements
     private DrawerLayout drawerLayout;
     private ImageButton btnNewChat;
     private boolean attachMenuOpen = false;
+    private android.widget.PopupWindow attachPopup;
     private boolean isInForeground = true;
     private androidx.constraintlayout.motion.widget.MotionLayout inputMotionLayout;
     private boolean inputKeyboardVisible = false;
@@ -121,34 +121,47 @@ public class ChatActivity extends AppCompatActivity implements
     private View btnRemoveAttachment;
 
     /** ChatGPT-стиль: фото — скруглённая плитка, файл — карточка иконка+имя. */
+    /** Плавное появление/скрытие карточки вложения у поля ввода. */
+    private void animateAttachmentCard(View card, boolean show) {
+        if (card == null) return;
+        card.animate().cancel();
+        if (show) {
+            card.setVisibility(View.VISIBLE);
+            card.setAlpha(0f);
+            card.setTranslationY(dpToPx(8));
+            card.animate().alpha(1f).translationY(0f)
+                    .setDuration(200)
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator(1.4f))
+                    .start();
+        } else {
+            card.animate().alpha(0f).translationY(dpToPx(8))
+                    .setDuration(200)
+                    .setInterpolator(new android.view.animation.AccelerateInterpolator(1.2f))
+                    .withEndAction(() -> {
+                        card.setVisibility(View.GONE);
+                        card.setAlpha(1f);
+                        card.setTranslationY(0f);
+                    }).start();
+        }
+    }
+
     private void showAttachmentInline(boolean isImage) {
-        if (isImage) {
-            app.multiai.mobile.views.ImageAttachmentStrip.render(imagePreviewCard, selectedImageBase64, index -> {
-                selectedImageBase64 = app.multiai.mobile.utils.ImageAttachments.remove(selectedImageBase64, index);
-                showAttachmentInline(true);
-                updateSendMicVisibility();
-            });
-            return;
-        }
-        View strip = imagePreviewCard.findViewWithTag("multi-image-strip");
-        if (strip != null) ((android.view.ViewGroup) imagePreviewCard).removeView(strip);
-        if (btnRemoveAttachment != null) btnRemoveAttachment.setVisibility(View.VISIBLE);
-        if (attachmentImageBox != null) attachmentImageBox.setVisibility(isImage ? View.VISIBLE : View.GONE);
-        if (attachmentFileBox != null) attachmentFileBox.setVisibility(isImage ? View.GONE : View.VISIBLE);
-        if (imagePreviewCard != null) imagePreviewCard.setVisibility(View.VISIBLE);
-        if (btnRemoveAttachment != null) {
-            if (!isImage && attachmentFileBox != null) {
-                attachmentFileBox.post(() -> {
-                    btnRemoveAttachment.setX(Math.max(0f,
-                            attachmentFileBox.getRight() - btnRemoveAttachment.getWidth() * 0.5f));
-                    btnRemoveAttachment.setY(dpToPx(8));
-                });
-            } else {
-                // The visual 24dp badge is centered inside the 48dp touch target.
-                btnRemoveAttachment.setX(dpToPx(100));
-                btnRemoveAttachment.setY(0f);
-            }
-        }
+        if (imagePreviewCard == null) return;
+        imagePreviewCard.animate().cancel();
+        imagePreviewCard.setAlpha(1f);
+        imagePreviewCard.setTranslationY(0f);
+        app.multiai.mobile.views.ImageAttachmentStrip.render(imagePreviewCard, selectedImageBase64, index -> {
+            selectedImageBase64 = app.multiai.mobile.utils.ImageAttachments.remove(selectedImageBase64, index);
+            showAttachmentInline(true);
+        }, attachedFileName, attachedFileContent, index -> {
+            java.util.List<app.multiai.mobile.utils.FileAttachments.Entry> files =
+                    app.multiai.mobile.utils.FileAttachments.unpack(attachedFileName, attachedFileContent);
+            files.remove(index);
+            attachedFileName = app.multiai.mobile.utils.FileAttachments.names(files);
+            attachedFileContent = app.multiai.mobile.utils.FileAttachments.pack(files);
+            showAttachmentInline(false);
+        });
+        updateSendMicVisibility();
     }
     
     // Adapters
@@ -305,6 +318,34 @@ public class ChatActivity extends AppCompatActivity implements
     private volatile boolean planModeActive = false;
     private volatile long planModeEpoch = -1L;
     private String planModePreviousAccess = "ask";
+
+    /** Последний список todo (для merge по id между вызовами тула). */
+    private JSONArray lastTodoItems;
+
+    /** Приводит статус задачи к pending | in_progress | completed (алиасы моделей). */
+    private static String normalizeTodoStatus(String raw) {
+        String s = raw == null ? "" : raw.trim().toLowerCase(java.util.Locale.ROOT);
+        if (oneOfTodo(s, "completed", "complete", "done", "finished", "done_ok", "resolved")) return "completed";
+        if (oneOfTodo(s, "in_progress", "in-progress", "inprogress", "in progress",
+                "active", "current", "doing", "started")) return "in_progress";
+        return "pending";
+    }
+
+    private static boolean oneOfTodo(String value, String... options) {
+        for (String option : options) {
+            if (option.equals(value)) return true;
+        }
+        return false;
+    }
+
+    private static JSONObject findTodoItemById(JSONArray items, String id) {
+        if (items == null || id == null) return null;
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.optJSONObject(i);
+            if (item != null && id.equals(item.optString("id"))) return item;
+        }
+        return null;
+    }
     private final java.util.List<PlanExitRequest> activePlanExitRequests =
             java.util.Collections.synchronizedList(new java.util.ArrayList<>());
 
@@ -470,7 +511,8 @@ public class ChatActivity extends AppCompatActivity implements
         return "read_file".equals(name) || "list_dir".equals(name)
                 || "search_grep".equals(name) || "find_files".equals(name)
                 || "read_skill".equals(name)
-                || "execute_command".equals(name) || "present_plan".equals(name);
+                || "execute_command".equals(name) || "present_plan".equals(name)
+                || "question".equals(name) || "invoke_subagent".equals(name);
     }
 
     private void releasePendingPlanExitRequests() {
@@ -594,6 +636,7 @@ public class ChatActivity extends AppCompatActivity implements
     // Model selector
     private TextView btnModelSelector;
     private TextView brandingPill;
+    private app.multiai.mobile.ui.kit.MultiAiConnectionStatus connectionStatus;
     private String selectedModelId;
     private String selectedModelName;
     private String selectedEffort;
@@ -810,7 +853,16 @@ public class ChatActivity extends AppCompatActivity implements
         pickImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
+                isPickerOpening = false;
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    if (editAttachTarget != null) {
+                        Message target = editAttachTarget;
+                        editAttachTarget = null;
+                        for (Uri uri : app.multiai.mobile.utils.PhotoPicker.results(result.getData())) {
+                            attachImageToMessage(target, uri);
+                        }
+                        return;
+                    }
                     for (Uri uri : app.multiai.mobile.utils.PhotoPicker.results(result.getData())) loadImage(uri);
                 }
             }
@@ -820,8 +872,15 @@ public class ChatActivity extends AppCompatActivity implements
         cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.TakePicture(),
             success -> {
+                isPickerOpening = false;
                 if (success && cameraPhotoUri != null) {
-                    loadImage(cameraPhotoUri);
+                    if (editAttachTarget != null) {
+                        Message target = editAttachTarget;
+                        editAttachTarget = null;
+                        attachImageToMessage(target, cameraPhotoUri);
+                    } else {
+                        loadImage(cameraPhotoUri);
+                    }
                 }
             }
         );
@@ -830,7 +889,16 @@ public class ChatActivity extends AppCompatActivity implements
         filePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
+                isPickerOpening = false;
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    if (editAttachTarget != null) {
+                        Message target = editAttachTarget;
+                        editAttachTarget = null;
+                        for (Uri uri : app.multiai.mobile.utils.PhotoPicker.results(result.getData())) {
+                            attachFileToMessage(target, uri);
+                        }
+                        return;
+                    }
                     for (Uri uri : app.multiai.mobile.utils.PhotoPicker.results(result.getData())) loadFileAsText(uri);
                 }
             }
@@ -855,6 +923,7 @@ public class ChatActivity extends AppCompatActivity implements
 
     private void initViews() {
         recyclerMessages = findViewById(R.id.recyclerMessages);
+        app.multiai.mobile.ui.kit.ChatScrollIndicator.attach(recyclerMessages);
         editMessage = findViewById(R.id.editMessage);
         buttonSend = findViewById(R.id.buttonSend);
         buttonMenu = findViewById(R.id.buttonMenu);
@@ -869,6 +938,8 @@ public class ChatActivity extends AppCompatActivity implements
             brandingPill.setMaxWidth(dpToPx(screenWidthDp < 400 ? 108 : 160));
             brandingPill.setSingleLine(true);
             brandingPill.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            connectionStatus = new app.multiai.mobile.ui.kit.MultiAiConnectionStatus(
+                    brandingPill, this::modelPillText);
         }
         setupWorkTopBarSegmentedPill();
         inputMotionLayout = findViewById(R.id.inputMotionLayout);
@@ -888,7 +959,7 @@ public class ChatActivity extends AppCompatActivity implements
         textEmptyTyping = findViewById(R.id.textEmptyTyping);
         drawerLayout = findViewById(R.id.drawerLayout);
         
-        // Enable swipe-to-open drawer
+        // Enable swipe-to-open drawer with a wider edge zone
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         try {
             // Widen edge drag zone for easier swipe-to-open
@@ -898,8 +969,22 @@ public class ChatActivity extends AppCompatActivity implements
             java.lang.reflect.Field edgeSizeField = dragger.getClass().getDeclaredField("mEdgeSize");
             edgeSizeField.setAccessible(true);
             int edgeSize = edgeSizeField.getInt(dragger);
-            edgeSizeField.setInt(dragger, edgeSize * 3);
+            edgeSizeField.setInt(dragger, edgeSize * 5);
         } catch (Exception e) {
+            // Reflection failed — try alternative field names used in newer AndroidX versions
+            try {
+                java.lang.reflect.Field draggerField2 = drawerLayout.getClass().getDeclaredField("mLeftDragger");
+                draggerField2.setAccessible(true);
+                Object dragger2 = draggerField2.get(drawerLayout);
+                for (java.lang.reflect.Field f : dragger2.getClass().getDeclaredFields()) {
+                    if (f.getName().toLowerCase().contains("edge")) {
+                        f.setAccessible(true);
+                        if (f.getType() == int.class) {
+                            f.setInt(dragger2, f.getInt(dragger2) * 5);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
         }
         
         // 🔥 ОТКЛЮЧАЕМ АВТОКОМПЛИТ И ПРЕДЛОЖЕНИЯ
@@ -941,8 +1026,6 @@ public class ChatActivity extends AppCompatActivity implements
             transcribingGroup.setVisibility(View.GONE);
             transcribingGroup.setAlpha(0f);
         }
-        attachMenu = findViewById(R.id.attachMenu);
-
         // Apply the user-selected accent to the send / stop button backgrounds
         // and their icons (XML @color/accent is static and cannot change at runtime).
         AccentColor.tintButtons(this, buttonSend, buttonStop);
@@ -1154,9 +1237,44 @@ public class ChatActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     * Свайп по чату: слева→вправо открывает бургер-меню, справа→налево
+     * закрывает его. Срабатывает только на выраженном горизонтальном флинге —
+     * вертикальный скролл и горизонтальная прокрутка плиток вложений не мешают.
+     */
+    private void setupDrawerSwipe(RecyclerView recycler) {
+        android.view.GestureDetector detector = new android.view.GestureDetector(this,
+                new android.view.GestureDetector.SimpleOnGestureListener() {
+                    @Override public boolean onFling(android.view.MotionEvent e1,
+                                                     android.view.MotionEvent e2,
+                                                     float vx, float vy) {
+                        if (e1 == null || e2 == null) return false;
+                        float dx = e2.getX() - e1.getX();
+                        float dy = e2.getY() - e1.getY();
+                        if (Math.abs(dx) < dpToPx(90) || Math.abs(dx) < Math.abs(dy) * 1.4f) {
+                            return false;
+                        }
+                        if (dx > 0) {
+                            drawerLayout.openDrawer(androidx.core.view.GravityCompat.START);
+                        } else {
+                            drawerLayout.closeDrawer(androidx.core.view.GravityCompat.START);
+                        }
+                        return true;
+                    }
+                });
+        recycler.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
+            @Override public boolean onInterceptTouchEvent(RecyclerView rv,
+                                                           android.view.MotionEvent e) {
+                return detector.onTouchEvent(e);
+            }
+        });
+    }
+
     private void setupAdapters() {
         // Messages adapter
         messagesAdapter = new MessagesAdapter();
+        messagesAdapter.setUserNickname(new AppSettings(this).getNickname());
+        if (selectedModelName != null) messagesAdapter.setCurrentModelName(selectedModelName);
         messagesAdapter.setOnErrorRetryListener(errorMessage -> runOnUiThread(() -> {
             if (isGenerating) {
                 return;
@@ -1184,14 +1302,134 @@ public class ChatActivity extends AppCompatActivity implements
                         "retry-attachment-restore").start();
             }
         }));
+        messagesAdapter.setUserMessageActionListener(new MessagesAdapter.OnUserMessageActionListener() {
+            @Override
+            public void onUserMessageRetry(Message message, int position) {
+                runOnUiThread(() -> retryUserMessageForAction(message));
+            }
+            @Override
+            public void onUserMessageEdit(Message message, int position) {
+                // Enable inline editing — message turns into EditText in the bubble
+                runOnUiThread(() -> {
+                    message.beginEditAttachmentSnapshot();
+                    message.setEditing(true);
+                    messagesAdapter.notifyItemChanged(position);
+                });
+            }
+            @Override
+            public void onUserMessageEdited(Message message, int position, String newContent) {
+                // Редактирование как в ChatGPT: старое сообщение и его ответ
+                // удаляются, на их месте появляется новое сообщение с правкой
+                // и сразу уходит модели. Дублей нет: старое удаляется ДО отправки.
+                runOnUiThread(() -> {
+                    java.util.List<Message> msgs = messagesAdapter.getMessages();
+                    int userIndex = msgs.indexOf(message);
+                    app.multiai.mobile.utils.AiDebugLog.log("Edit save: adapterIndex=" + userIndex
+                            + ", newLen=" + newContent.length());
+                    if (userIndex < 0) userIndex = position;
+                    if (userIndex < 0) return;
+                    // 1) Старый ответ ИИ после сообщения
+                    while (msgs.size() > userIndex + 1) {
+                        removeMessageFromChatAndUi(msgs.get(msgs.size() - 1));
+                    }
+                    // 2) Хвост из currentChat
+                    java.util.List<Message> chatMessages = currentChat.getMessages();
+                    int chatIndex = chatMessages.indexOf(message);
+                    if (chatIndex >= 0) {
+                        while (chatMessages.size() > chatIndex + 1) {
+                            chatMessages.remove(chatMessages.size() - 1);
+                        }
+                    }
+                    // 3) Вложения из режима правки переезжают в состояние ввода.
+                    //    ВАЖНО: updateChat выгружает тяжёлые вложения на диск
+                    //    (imageBase64 → imagePath) — если photo уже «уехала» в
+                    //    файл, читаем обратно, иначе модель не увидит фото.
+                    String img = message.getImageBase64();
+                    if ((img == null || img.isEmpty()) && message.getImagePath() != null) {
+                        try {
+                            byte[] bytes = readLocalAttachment(
+                                    message.getImagePath(), 7 * 1024 * 1024);
+                            if (bytes != null) {
+                                img = Base64.encodeToString(bytes, Base64.NO_WRAP);
+                            }
+                        } catch (Exception e) {
+                            app.multiai.mobile.utils.AiDebugLog.log(
+                                    "Edit transfer: image disk read FAILED " + e);
+                        }
+                    }
+                    if (img != null && !img.isEmpty()) {
+                        selectedImageBase64 = img;
+                        message.setImageBase64(null);
+                    }
+                    if (message.hasAttachedFile()) {
+                        attachedFileName = message.getAttachedFileName();
+                        attachedFileContent = message.getAttachedFileContent();
+                        if ((attachedFileContent == null || attachedFileContent.isEmpty())
+                                && message.getAttachedFilePath() != null) {
+                            try {
+                                byte[] bytes = readLocalAttachment(
+                                        message.getAttachedFilePath(), 10 * 1024 * 1024);
+                                if (bytes != null) {
+                                    attachedFileContent =
+                                            new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+                                }
+                            } catch (Exception e) {
+                                app.multiai.mobile.utils.AiDebugLog.log(
+                                        "Edit transfer: file disk read FAILED " + e);
+                            }
+                        }
+                        message.setAttachedFileName(null);
+                        message.setAttachedFileContent(null);
+                    }
+                    app.multiai.mobile.utils.AiDebugLog.log("Edit transfer: selectedImage="
+                            + (selectedImageBase64 != null ? selectedImageBase64.length() : -1));
+                    // 4) Само сообщение удаляем — sendMessage создаст свежее
+                    //    с новым текстом на той же позиции (оно теперь последнее)
+                    removeMessageFromChatAndUi(message);
+                    // Фолбэк: если identity-removal не сработал — по позиции
+                    int leftover = messagesAdapter.getMessages().indexOf(message);
+                    if (leftover >= 0) {
+                        messagesAdapter.getMessages().remove(leftover);
+                        messagesAdapter.notifyItemRemoved(leftover);
+                    }
+                    chatManager.updateChat(currentChat);
+                    editMessage.setText(newContent);
+                    editMessage.setSelection(newContent.length());
+                    sendMessage();
+                });
+            }
+            @Override
+            public void onUserMessageAttach(Message message, int position, String kind) {
+                // «+» в режиме правки: выбранное вложение попадает в само сообщение
+                app.multiai.mobile.utils.AiDebugLog.log("Edit attach: kind=" + kind
+                        + ", msgId=" + System.identityHashCode(message));
+                runOnUiThread(() -> {
+                    editAttachTarget = message;
+                    if ("camera".equals(kind)) {
+                        openCamera();
+                    } else if ("file".equals(kind)) {
+                        attachFile();
+                    } else {
+                        openGallery();
+                    }
+                });
+            }
+        });
         // 🔥 stackFromEnd: сообщения растут снизу вверх, нет пустого отступа сверху
         LinearLayoutManager messagesLm = new LinearLayoutManager(this);
         messagesLm.setStackFromEnd(true);
         recyclerMessages.setLayoutManager(messagesLm);
         recyclerMessages.setAdapter(messagesAdapter);
         recyclerMessages.setItemViewCacheSize(16);
-        recyclerMessages.setItemAnimator(null);
+        androidx.recyclerview.widget.DefaultItemAnimator messageAnimator =
+                new androidx.recyclerview.widget.DefaultItemAnimator();
+        messageAnimator.setSupportsChangeAnimations(false);
+        messageAnimator.setAddDuration(app.multiai.mobile.ui.kit.MotionKit.duration(220L));
+        messageAnimator.setRemoveDuration(app.multiai.mobile.ui.kit.MotionKit.duration(160L));
+        messageAnimator.setMoveDuration(0L);
+        recyclerMessages.setItemAnimator(messageAnimator);
         messagesAdapter.setRecyclerView(recyclerMessages);
+        setupDrawerSwipe(recyclerMessages);
         messagesAdapter.setMessageActionListener(new MessagesAdapter.MessageActionListener() {
             @Override
             public void onCopy(Message message) {
@@ -1256,8 +1494,8 @@ public class ChatActivity extends AppCompatActivity implements
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
                     userScrollingMessages = true;
                 } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    recyclerView.post(() -> updateScrollDownFab(recyclerView, 0));
                     userScrollingMessages = false;
+                    recyclerView.post(() -> updateScrollDownFab(recyclerView, 0));
                 }
             }
 
@@ -1590,38 +1828,42 @@ public class ChatActivity extends AppCompatActivity implements
 
     private void toggleAttachMenu() {
         if (attachMenuOpen) {
-            hideAttachMenu();
+            if (attachPopup != null) attachPopup.dismiss();
             return;
         }
         attachMenuOpen = true;
-        buttonAttachPhoto.animate().rotation(45f).setDuration(220)
-                .setInterpolator(new AccelerateDecelerateInterpolator()).start();
         showModernAttachSheet();
     }
 
     private void showModernAttachSheet() {
-        java.util.List<ModernSheet.MenuItem> items = java.util.Arrays.asList(
-            new ModernSheet.MenuItem(getString(R.string.chat_camera), R.drawable.ic_camera, false, null),
-            new ModernSheet.MenuItem(getString(R.string.chat_photo), R.drawable.ic_photo, false, null),
-            new ModernSheet.MenuItem(getString(R.string.chat_files), R.drawable.ic_file_attach, false, null)
-        );
-        android.app.Dialog sheet = ModernSheet.menu(this, getString(R.string.chat_attach_title), items, (idx, item) -> {
-            if (idx == 0) openCamera();
-            else if (idx == 1) attachPhoto();
-            else attachFile();
-        });
-        sheet.setOnDismissListener(d -> hideAttachMenu());
+        // Меню «+» по референсу: карточка с круглыми иконками над полем ввода.
+        // Окно не фокусное — клавиатура не закрывается.
+        View inputRoot = findViewById(R.id.inputContainer);
+        View anchor = inputRoot != null ? inputRoot : buttonAttachPhoto;
+        attachPopup = app.multiai.mobile.ui.kit.AttachMenuPopup.show(anchor,
+                new app.multiai.mobile.ui.kit.AttachMenuPopup.Callback() {
+                    @Override public void onCamera() { openCamera(); }
+                    @Override public void onPhoto() { attachPhoto(); }
+                    @Override public void onFiles() { attachFile(); }
+                },
+                () -> {
+                    attachMenuOpen = false;
+                    attachPopup = null;
+                    buttonAttachPhoto.animate().rotation(0f).setDuration(180)
+                            .setInterpolator(new AccelerateDecelerateInterpolator()).start();
+                });
+        buttonAttachPhoto.animate().rotation(45f).setDuration(180)
+                .setInterpolator(new AccelerateDecelerateInterpolator()).start();
     }
 
     private void hideAttachMenu() {
-        if (attachMenu == null) return;
         attachMenuOpen = false;
-        attachMenu.animate().alpha(0f).translationY(8f).scaleY(0.96f)
-            .setDuration(140)
-            .setInterpolator(new android.view.animation.AccelerateInterpolator(1.2f))
-            .withEndAction(() -> attachMenu.setVisibility(View.GONE)).start();
+        if (attachPopup != null) {
+            attachPopup.dismiss();
+            attachPopup = null;
+        }
         buttonAttachPhoto.animate().rotation(0f).setDuration(180)
-            .setInterpolator(new AccelerateDecelerateInterpolator()).start();
+                .setInterpolator(new AccelerateDecelerateInterpolator()).start();
     }
 
     private void openCamera() {
@@ -1651,6 +1893,7 @@ public class ChatActivity extends AppCompatActivity implements
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         String[] mimeTypes = {"text/*", "application/pdf", "application/json",
                 "application/xml", "application/javascript", "image/*"};
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
@@ -1693,8 +1936,11 @@ public class ChatActivity extends AppCompatActivity implements
                 final String fContent = content;
                 final long fSize = content.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
                 runOnUiThread(() -> {
-                    attachedFileName = fName;
-                    attachedFileContent = fContent;
+                    java.util.List<app.multiai.mobile.utils.FileAttachments.Entry> files =
+                            app.multiai.mobile.utils.FileAttachments.unpack(attachedFileName, attachedFileContent);
+                    files.add(new app.multiai.mobile.utils.FileAttachments.Entry(fName, fContent));
+                    attachedFileName = app.multiai.mobile.utils.FileAttachments.names(files);
+                    attachedFileContent = app.multiai.mobile.utils.FileAttachments.pack(files);
                     // ChatGPT-стиль: файл = карточка иконка+имя (без размера)
                     if (imageFileName != null) imageFileName.setText(fName);
                     showAttachmentInline(false);
@@ -1820,6 +2066,7 @@ public class ChatActivity extends AppCompatActivity implements
         releaseQuestionSheets();
         clearFollowUpCheckpoint();
         isGenerating = false;
+        app.multiai.mobile.utils.GenerationService.update(ChatActivity.this, "work", false);
         inToolFollowUp = false;
         try {
             if (multiAiClient != null) multiAiClient.cancel();
@@ -2001,7 +2248,7 @@ public class ChatActivity extends AppCompatActivity implements
         sb.append("CURRENT PROJECT: ").append(projectContext).append("\n");
         sb.append("The project tree is not preloaded. Before choosing a file, call list_dir or find_files; never guess a filename or path. If a tool result says truncated=true, narrow its path or query before concluding that a file does not exist.\n");
         if (planMode) {
-            sb.append("PLAN MODE IS ACTIVE (TURN-SCOPED, DIRECT FILE WRITES ARE DISABLED): you may use ONLY read_file, list_dir, search_grep, find_files, execute_command and present_plan. Do not call write_file, edit_file, invoke_subagent, todo, question, web tools, memory tools or any other action. execute_command keeps the normal Work Mode approval flow; use it for project inspection, validation and IDE commands. Thoroughly inspect the relevant project files, then call present_plan with a detailed Markdown plan. The plan must include: goal and findings; exact project-relative file paths; numbered implementation steps; validation/build checks; risks or open assumptions. Do not present the plan as normal assistant text. present_plan opens the user review and pauses this turn until the user exits Plan Mode. After its successful tool result, resume normal Work Mode, create/update todo, then execute only what the user approved.\n\n");
+            sb.append("PLAN MODE IS ACTIVE (TURN-SCOPED, DIRECT FILE WRITES ARE DISABLED): you may use ONLY read_file, list_dir, search_grep, find_files, execute_command, question, invoke_subagent and present_plan. Do not call write_file, edit_file, todo, web tools, memory tools or any other mutating action. execute_command keeps the normal Work Mode approval flow; use it for project inspection, validation and IDE commands. question lets you ask the user clarifying questions during planning. invoke_subagent is allowed for read-only exploration/research delegation — never use subagents to mutate the project while planning. Thoroughly inspect the relevant project files, then call present_plan with a detailed Markdown plan. The plan must include: goal and findings; exact project-relative file paths; numbered implementation steps; validation/build checks; risks or open assumptions. Do not present the plan as normal assistant text. present_plan opens the user review and pauses this turn until the user exits Plan Mode. After its successful tool result, resume normal Work Mode, create/update todo, then execute only what the user approved.\n\n");
         } else {
             sb.append("You can inspect and modify the selected project with read_file, write_file, edit_file, delete_path, move_path, list_dir, search_grep, find_files and execute_command.\n");
             sb.append("For a complex, ambiguous, or explicitly requested implementation plan, call enter_plan_mode BEFORE deep investigation. It temporarily blocks direct write_file/edit_file tools while keeping execute_command under the normal Work Mode approval flow, then lets you inspect the project. In Plan Mode, finish with present_plan; never claim that a plan was applied until the user exits that review.\n");
@@ -2178,11 +2425,22 @@ public class ChatActivity extends AppCompatActivity implements
         allChats = chatManager.loadActiveChats();
         chatsAdapter.setChats(allChats);
 
-        // При старте приложения всегда открываем новый пустой чат,
-        // а не тот, в котором пользователь был в прошлый раз.
-        currentChat = null;
-        chatManager.saveActiveChatId(null);
-        chatsAdapter.setActiveChatId(null);
+        // Restore last active chat instead of always opening a new one
+        String lastChatId = chatManager.loadActiveChatId();
+        if (lastChatId != null) {
+            for (Chat chat : allChats) {
+                if (chat.getId().equals(lastChatId)) {
+                    currentChat = chat;
+                    chatsAdapter.setActiveChatId(lastChatId);
+                    break;
+                }
+            }
+        }
+        if (currentChat == null && !allChats.isEmpty()) {
+            currentChat = allChats.get(0);
+            chatManager.saveActiveChatId(currentChat.getId());
+            chatsAdapter.setActiveChatId(currentChat.getId());
+        }
         loadMessages();
     }
     
@@ -2645,11 +2903,18 @@ public class ChatActivity extends AppCompatActivity implements
     }
 
     /** Бренд-текст «MultiAI» заменён на имя выбранной модели с эллипсисом. */
+    private String modelPillText() {
+        String display = selectedModelName != null ? selectedModelName : "MultiAI";
+        return app.multiai.mobile.models.ModelInfo.cleanDisplayName(display);
+    }
+
     private void updateBrandingPill() {
         if (brandingPill == null) return;
-        String display = selectedModelName != null ? selectedModelName : "MultiAI";
-        display = app.multiai.mobile.models.ModelInfo.cleanDisplayName(display);
-        brandingPill.setText(display);
+        if (messagesAdapter != null && selectedModelName != null) {
+            messagesAdapter.setCurrentModelName(selectedModelName);
+        }
+        if (connectionStatus != null) connectionStatus.refreshConnectedText();
+        else brandingPill.setText(modelPillText());
     }
 
     private void loadMessages() {
@@ -2977,6 +3242,7 @@ public class ChatActivity extends AppCompatActivity implements
         Message generating = typingMessage != null ? typingMessage : new Message("", Message.TYPE_AI_TYPING);
         if (typingMessage == null) messagesAdapter.addMessage(generating);
         isGenerating = true;
+        app.multiai.mobile.utils.GenerationService.update(this, "work", true);
         buttonSend.setEnabled(false);
         updateSendMicVisibility();
 
@@ -2989,6 +3255,7 @@ public class ChatActivity extends AppCompatActivity implements
         multiAiClient.generateImage(selectedModelId, aiPrompt, inputImage, quality, size, result -> {
             if (epoch != turnEpoch || isFinishing()) return; // superseded turn
             isGenerating = false;
+        app.multiai.mobile.utils.GenerationService.update(ChatActivity.this, "work", false);
             buttonSend.setEnabled(true);
             updateSendMicVisibility();
             if (result.ok && result.imageBase64 != null && !result.imageBase64.isEmpty()) {
@@ -3008,8 +3275,8 @@ public class ChatActivity extends AppCompatActivity implements
                 // Failure → error text in place of the typing card.
                 int idx = messagesAdapter.indexOfMessage(generating);
                 String err = result.error != null ? result.error : "image_failed";
-                Message fail = new Message("Не удалось сгенерировать изображение (" + err + ")", Message.TYPE_AI);
-                fail.setErrorTitle("Генерация изображения");
+                Message fail = new Message(getString(R.string.chat_image_gen_failed, err), Message.TYPE_AI);
+                fail.setErrorTitle(getString(R.string.chat_image_gen_title));
                 fail.setErrorCode(err);
                 if (idx >= 0) messagesAdapter.replaceMessageAt(idx, fail);
                 else messagesAdapter.addMessage(fail);
@@ -3045,7 +3312,10 @@ public class ChatActivity extends AppCompatActivity implements
     }
 
     private void sendMessage() {
-        if (loadingImages > 0) return;
+        if (loadingImages > 0) {
+            ModernToast.show(this, getString(R.string.chat_attachment_loading));
+            return;
+        }
         String text = editMessage.getText().toString().trim();
         if (text.isEmpty() && selectedImageBase64 == null && attachedFileContent == null) return;
         final boolean retrying = retrySourceMessage != null && retrySourceUser != null;
@@ -3072,7 +3342,7 @@ public class ChatActivity extends AppCompatActivity implements
         // Build AI text with file content injected (AI sees file, user sees clean text)
         final String aiText;
         if (attachedFileContent != null) {
-            String fileBlock = "\n\n```file: " + attachedFileName + "\n" + attachedFileContent + "\n```";
+            String fileBlock = app.multiai.mobile.utils.FileAttachments.prompt(attachedFileName, attachedFileContent);
             aiText = (text.isEmpty() ? getString(R.string.chat_attached_file_prefix, attachedFileName) : text) + fileBlock;
         } else {
             aiText = text;
@@ -3196,6 +3466,8 @@ public class ChatActivity extends AppCompatActivity implements
 
         // Capture image before clearing (async send needs it)
         final String capturedImageBase64 = selectedImageBase64;
+        app.multiai.mobile.utils.AiDebugLog.log("WORK SEND: textLen=" + text.length()
+                + ", img=" + (capturedImageBase64 != null ? capturedImageBase64.length() : -1));
         
         // Очищаем поле ввода и изображение
         editMessage.setText("");
@@ -3218,6 +3490,7 @@ public class ChatActivity extends AppCompatActivity implements
 
         // Устанавливаем состояние генерации
         isGenerating = true;
+        app.multiai.mobile.utils.GenerationService.update(this, "work", true);
         buttonSend.setEnabled(false);
         updateSendMicVisibility();
         
@@ -3263,6 +3536,7 @@ public class ChatActivity extends AppCompatActivity implements
                 @Override
                 public void onThinking(String thinking) {
                     if (!isTurnActive(epoch)) return;
+                    app.multiai.mobile.utils.AiDebugLog.logStreamChunk("thinking", thinking);
                     // 🔥 Сохраняем в статическое хранилище
                     if (pendingThinking == null) {
                         pendingThinking = thinking;
@@ -3320,6 +3594,10 @@ public class ChatActivity extends AppCompatActivity implements
                         if (!isTurnActive(epoch)) return;
                         app.multiai.mobile.utils.FileLog.d(
                                 "MultiAiTools", "tool_call_received");
+                        app.multiai.mobile.utils.AiDebugLog.logToolCall(
+                                toolCall.getName(),
+                                toolCall.getParams() != null ? toolCall.getParams().toString() : "{}",
+                                "loading");
                         // Создаём сообщение если нужно
                         if (currentMessage == null) {
                             Message newMessage = new Message("", Message.TYPE_AI);
@@ -3363,6 +3641,10 @@ public class ChatActivity extends AppCompatActivity implements
                     if (!isTurnActive(epoch)) return;
                     runOnUiThread(() -> {
                         if (!isTurnActive(epoch)) return;
+                        app.multiai.mobile.utils.AiDebugLog.logToolResult(
+                                toolCall.getName(),
+                                toolCall.getResult() != null ? toolCall.getResult().toString() : "{}",
+                                "success".equals(toolCall.getStatus()));
                         ToolCall matchedTool = null;
                         if (currentMessage != null) {
                             // Обновляем существующий tool call
@@ -3394,6 +3676,7 @@ public class ChatActivity extends AppCompatActivity implements
                 @Override
                 public void onContent(String content) {
                     if (!isTurnActive(epoch)) return;
+                    app.multiai.mobile.utils.AiDebugLog.logStreamChunk("content", content);
                     finishThinkingPhase();
                     // 🔥 Сохраняем в статическое хранилище
                     if (pendingContent == null) {
@@ -3518,6 +3801,7 @@ public class ChatActivity extends AppCompatActivity implements
             for (String[] m : availableModels) {
                 if (m[0].equals(selectedModelId) && m.length > 3 && "false".equals(m[3])) {
                     isGenerating = false;
+        app.multiai.mobile.utils.GenerationService.update(ChatActivity.this, "work", false);
                     buttonSend.setEnabled(true);
                     updateSendMicVisibility();
                     messagesAdapter.removeTrailingTypingMessages();
@@ -3531,6 +3815,7 @@ public class ChatActivity extends AppCompatActivity implements
         // Send through MultiAI
         if (selectedModelId == null) {
             isGenerating = false;
+        app.multiai.mobile.utils.GenerationService.update(ChatActivity.this, "work", false);
             buttonSend.setEnabled(true);
             updateSendMicVisibility();
             messagesAdapter.removeTrailingTypingMessages();
@@ -3941,7 +4226,7 @@ public class ChatActivity extends AppCompatActivity implements
     private void sendToolResultBatch(JSONArray toolResultsBatch, long epoch, long sourceRoundToken) {
         if (!isToolRoundActive(epoch, sourceRoundToken)) return;
         if (toolRoundCount >= 64) {
-            finishTurnWithError(epoch, "Достигнут лимит действий за один запрос. Выполненные изменения сохранены.", true);
+            finishTurnWithError(epoch, getString(R.string.chat_tool_round_limit), true);
             return;
         }
         try {
@@ -3966,7 +4251,7 @@ public class ChatActivity extends AppCompatActivity implements
                     responseRoundToken);
         } catch (Exception e) {
             synchronized (toolResultLock) { toolResultBatchInFlight = false; }
-            finishTurnWithError(epoch, "Не удалось подготовить результаты инструментов: " + e.getMessage(), true);
+            finishTurnWithError(epoch, getString(R.string.chat_tool_results_prepare_failed, e.getMessage()), true);
         }
     }
 
@@ -4263,6 +4548,7 @@ public class ChatActivity extends AppCompatActivity implements
         if (!isTurnActive(epoch)) return;
         inToolFollowUp = false;
         isGenerating = false;
+        app.multiai.mobile.utils.GenerationService.update(ChatActivity.this, "work", false);
         stopThinkingTimer();
         pendingSuccessfulFinishEpoch = epoch;
         if (workflowTargetMessage != null
@@ -4389,6 +4675,7 @@ public class ChatActivity extends AppCompatActivity implements
         if (!isTurnActive(epoch)) return;
         inToolFollowUp = false;
         isGenerating = false;
+        app.multiai.mobile.utils.GenerationService.update(ChatActivity.this, "work", false);
         stopThinkingTimer();
         stopThinkingAnimation();
         stopContentAnimation();
@@ -4456,6 +4743,51 @@ public class ChatActivity extends AppCompatActivity implements
         // keeps it alive for retryable follow-ups, so it must NOT be cleared here.
     }
 
+    /** Retry a user message from the inline action buttons (not error-specific). */
+    private void retryUserMessageForAction(Message userMessage) {
+        if (isGenerating || userMessage == null) return;
+        java.util.List<Message> msgs = messagesAdapter.getMessages();
+        if (msgs == null) return;
+        int userIndex = msgs.indexOf(userMessage);
+        if (userIndex < 0) return;
+        // Delete everything after this user message
+        while (msgs.size() > userIndex + 1) {
+            Message tail = msgs.remove(msgs.size() - 1);
+            messagesAdapter.removeMessage(tail);
+        }
+        clearRetryState();
+        retrySourceUser = userMessage;
+        // Restore and send in a thread (attachments might be on disk)
+        new Thread(() -> {
+            String image = userMessage.getImageBase64();
+            String fileContent = userMessage.getAttachedFileContent();
+            try {
+                if ((image == null || image.isEmpty()) && userMessage.getImagePath() != null) {
+                    byte[] bytes = readLocalAttachment(userMessage.getImagePath(), 7 * 1024 * 1024);
+                    image = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+                }
+                if ((fileContent == null || fileContent.isEmpty()) && userMessage.getAttachedFilePath() != null) {
+                    byte[] bytes = readLocalAttachment(userMessage.getAttachedFilePath(), 10 * 1024 * 1024);
+                    fileContent = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+                }
+            } catch (Exception e) {
+                // ignored
+            }
+            final String finalImage = image;
+            final String finalFile = fileContent;
+            runOnUiThread(() -> {
+                selectedImageBase64 = finalImage;
+                attachedFileContent = finalFile;
+                if (selectedImageBase64 != null && !selectedImageBase64.isEmpty()) {
+                    showAttachmentInline(true);
+                } else if (attachedFileContent != null || attachedFileName != null) {
+                    showAttachmentInline(false);
+                }
+                sendMessage();
+            });
+        }, "retry-user-action").start();
+    }
+
     /**
      * Checkpoint-aware Retry: re-issue ONLY the failed follow-up request using
      * the exact payloads captured before it. Side-effect tools are NOT
@@ -4506,6 +4838,7 @@ public class ChatActivity extends AppCompatActivity implements
 
         // UI generating state.
         isGenerating = true;
+        app.multiai.mobile.utils.GenerationService.update(this, "work", true);
         buttonSend.setEnabled(false);
         updateSendMicVisibility();
         hideEmptyState();
@@ -4913,15 +5246,15 @@ public class ChatActivity extends AppCompatActivity implements
         }
     }
 
-    /** Format duration as "Xс", "Xм Yс", "Xч Yм". */
+    /** Format duration via localized strings. */
     private String formatDuration(long ms) {
         long totalSeconds = Math.max(1, ms / 1000);
         long hours = totalSeconds / 3600;
         long minutes = (totalSeconds % 3600) / 60;
         long seconds = totalSeconds % 60;
-        if (hours > 0) return hours + " м " + minutes + " с";
-        if (minutes > 0) return minutes + " м " + seconds + " с";
-        return seconds + " с";
+        if (hours > 0) return getString(R.string.dur_hm, hours, minutes);
+        if (minutes > 0) return getString(R.string.dur_ms, minutes, seconds);
+        return getString(R.string.dur_s, seconds);
     }
 
     private void scrollMessagesToBottom() {
@@ -4942,8 +5275,11 @@ public class ChatActivity extends AppCompatActivity implements
         });
     }
 
-    /** Ограничивает автоскролл во время посимвольного стрима до 10 FPS. */
+    /** Ограничивает автоскролл во время посимвольного стрима до 10 FPS.
+     *  Пока пользователь держит список пальцем, стрим не скроллит —
+     *  он читает, а не ждёт, когда вьюха дотащит его вниз. */
     private void scrollMessagesToBottomDuringStream() {
+        if (userScrollingMessages) return;
         long now = android.os.SystemClock.uptimeMillis();
         if (now - lastStreamingScrollAtMs < 100L) return;
         lastStreamingScrollAtMs = now;
@@ -4978,7 +5314,9 @@ public class ChatActivity extends AppCompatActivity implements
         if (visualBottom) {
             followStreamToBottom = true;
             fabScrollDown.setVisibility(View.GONE);
-        } else if (userScrollingMessages && dy < 0) {
+        } else if (userScrollingMessages) {
+            // Любой ручной скролл отключает автофоллов (не только вверх):
+            // стрим не должен перетягивать вью вниз, пока пользователь читает.
             followStreamToBottom = false;
             fabScrollDown.setVisibility(View.VISIBLE);
         }
@@ -5194,6 +5532,95 @@ public class ChatActivity extends AppCompatActivity implements
      */
     private int loadingImages;
 
+    /** Сообщение в режиме правки, к которому прикрепляем фото («+»). */
+    private Message editAttachTarget;
+
+    /** Прикрепляет фото к редактируемому сообщению (не к полю ввода). */
+    private void attachImageToMessage(Message message, Uri imageUri) {
+        app.multiai.mobile.utils.AiDebugLog.log("Edit attach image: START uri=" + imageUri);
+        loadingImages++;
+        try {
+            imageLoadingOverlay.setVisibility(View.VISIBLE);
+            new Thread(() -> {
+                try {
+                    Bitmap bitmap = app.multiai.mobile.utils.AttachmentImageLoader.decode(
+                            getContentResolver(), imageUri);
+                    Bitmap resizedBitmap = resizeImage(bitmap, 1024, 1024);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+                    String base64 = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                    runOnUiThread(() -> {
+                        message.replaceImages(app.multiai.mobile.utils.ImageAttachments.append(
+                                message.getImageBase64(), base64));
+                        messagesAdapter.refreshMessage(message);
+                        if (--loadingImages <= 0 && imageLoadingOverlay != null) {
+                            imageLoadingOverlay.setVisibility(View.GONE);
+                        }
+                        app.multiai.mobile.utils.AiDebugLog.log("Edit attach image: OK len="
+                                + base64.length());
+                        ModernToast.show(this, getString(R.string.chat_photo_attached));
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> {
+                        if (--loadingImages <= 0 && imageLoadingOverlay != null) {
+                            imageLoadingOverlay.setVisibility(View.GONE);
+                        }
+                        app.multiai.mobile.utils.AiDebugLog.log(
+                                "Edit attach image: FAILED " + e);
+                        ModernToast.show(this, getString(R.string.chat_error_loading_image));
+                    });
+                }
+            }, "edit-attach-img").start();
+        } catch (Exception e) {
+            loadingImages--;
+        }
+    }
+
+    /** Читает выбранный файл в редактируемое сообщение (текстовое вложение). */
+    private void attachFileToMessage(Message message, Uri fileUri) {
+        new Thread(() -> {
+            try {
+                String fileName = getFileName(fileUri);
+                String mimeType = getContentResolver().getType(fileUri);
+                if (mimeType != null && mimeType.startsWith("image/")) {
+                    runOnUiThread(() -> attachImageToMessage(message, fileUri));
+                    return;
+                }
+                java.io.InputStream is = getContentResolver().openInputStream(fileUri);
+                if (is == null) throw new Exception("Cannot open file");
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(is, java.nio.charset.StandardCharsets.UTF_8));
+                StringBuilder sb = new StringBuilder();
+                char[] buf = new char[4096];
+                int read;
+                int totalChars = 0;
+                int maxChars = 50000;
+                while ((read = reader.read(buf)) != -1 && totalChars < maxChars) {
+                    sb.append(buf, 0, read);
+                    totalChars += read;
+                }
+                reader.close();
+                is.close();
+                String content = sb.toString();
+                if (totalChars >= maxChars) content += getString(R.string.chat_file_truncated);
+                final String fName = fileName;
+                final String fContent = content;
+                runOnUiThread(() -> {
+                    java.util.List<app.multiai.mobile.utils.FileAttachments.Entry> files =
+                            app.multiai.mobile.utils.FileAttachments.unpack(message.getAttachedFileName(), message.getAttachedFileContent());
+                    files.add(new app.multiai.mobile.utils.FileAttachments.Entry(fName, fContent));
+                    message.replaceFiles(files);
+                    messagesAdapter.refreshMessage(message);
+                    app.multiai.mobile.utils.AiDebugLog.log(
+                            "Edit attach file: " + fName + ", chars=" + fContent.length());
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> ModernToast.show(this,
+                        getString(R.string.chat_error_loading_image)));
+            }
+        }, "edit-attach-file").start();
+    }
+
     private void loadImage(Uri imageUri) {
         loadingImages++;
         try {
@@ -5222,7 +5649,7 @@ public class ChatActivity extends AppCompatActivity implements
                         if (app.multiai.mobile.utils.ImageAttachments.unpack(selectedImageBase64).size() >= 10) {
                             imageLoadingOverlay.setVisibility(View.GONE);
                             loadingImages--;
-                            ModernToast.show(this, "Максимум 10 фото");
+                            ModernToast.show(this, getString(R.string.chat_max_photos));
                             return;
                         }
                         selectedImageBase64 = app.multiai.mobile.utils.ImageAttachments.append(selectedImageBase64, base64);
@@ -5308,17 +5735,26 @@ public class ChatActivity extends AppCompatActivity implements
         attachedFileName = null;
         attachedFileContent = null;
         pendingBranchContent = null;
-        imagePreviewCard.setVisibility(View.GONE);
+        // Крестик обязан прятаться вместе с превью, иначе остаётся висеть
+        // поверх чата и перехватывает чужие тапы
+        if (btnRemoveAttachment != null) {
+            btnRemoveAttachment.setVisibility(View.GONE);
+            btnRemoveAttachment.setX(0f);
+            btnRemoveAttachment.setY(0f);
+        }
+        animateAttachmentCard(imagePreviewCard, false);
         if (imagePreview != null) {
             imagePreview.clearColorFilter();
             imagePreview.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
         }
+        updateSendMicVisibility();
     }
     
     @Override
     protected void onDestroy() {
         // Persist a visible partial before invalidating callbacks. Otherwise a
         // recreate could leave an answer permanently marked as streaming.
+        if (connectionStatus != null) connectionStatus.destroy();
         if (isGenerating) {
             stopGeneration();
         } else {
@@ -5350,6 +5786,11 @@ public class ChatActivity extends AppCompatActivity implements
         if (whisperSilenceHandler != null && whisperSilenceRunnable != null) {
             whisperSilenceHandler.removeCallbacks(whisperSilenceRunnable);
         }
+        // Несохранённая голосовая запись пережить Activity не может — чистим.
+        if (pendingVoiceFileWork != null) {
+            pendingVoiceFileWork.delete();
+            pendingVoiceFileWork = null;
+        }
         // TTS MediaPlayer cleanup — avoid leaking the native player across Activity death.
         if (ttsPlayer != null) {
             try { ttsPlayer.stop(); ttsPlayer.release(); } catch (Exception ignored) {}
@@ -5360,6 +5801,7 @@ public class ChatActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
+        if (connectionStatus != null) connectionStatus.start();
         // Блокирующий диалог после истечения грейса всплывает снова — окно
         // фактически «не закрыть»: закрыли → оно вернётся при следующем onResume.
         app.multiai.mobile.utils.UpdateManager.reshowBlockingIfNeeded(this);
@@ -5402,6 +5844,7 @@ public class ChatActivity extends AppCompatActivity implements
 
     @Override
     protected void onPause() {
+        if (connectionStatus != null) connectionStatus.stop();
         isInForeground = false;
         flushStreamingAiPersist();
         stopPolling();
@@ -5613,14 +6056,7 @@ public class ChatActivity extends AppCompatActivity implements
                 
                 // 🔥 Thinking anim: чуть быстрее content, т.к. мы читаем по диагонали
                 int thinkLag = fullText.length() - displayedThinking.length();
-                int thinkStep;
-                if (thinkLag > 3000) thinkStep = Math.max(80, thinkLag / 30);
-                else if (thinkLag > 1000) thinkStep = 50;
-                else if (thinkLag > 400) thinkStep = 22;
-                else if (thinkLag > 150) thinkStep = 10;
-                else if (thinkLag > 50) thinkStep = 5;
-                else if (thinkLag > 15) thinkStep = 2;
-                else thinkStep = 1;
+                int thinkStep = Math.max(4, (thinkLag + 2) / 3);
 
                 int nextLen = Math.min(fullText.length(), displayedThinking.length() + thinkStep);
                 displayedThinking = fullText.substring(0, nextLen);
@@ -5628,7 +6064,7 @@ public class ChatActivity extends AppCompatActivity implements
                 messagesAdapter.updateMessageThinkingDirect(target, displayedThinking);
                 
                 // Следующий символ через CHAR_DELAY_MS
-                animationHandler.postDelayed(this, CHAR_DELAY_MS);
+                animationHandler.postDelayed(this, Math.max(50, CHAR_DELAY_MS));
             }
         };
         
@@ -5712,14 +6148,7 @@ public class ChatActivity extends AppCompatActivity implements
                 // - ускоряется при большом лаге, чтобы не отставать
                 // - никогда не дампит весь текст моментально
                 int lag = fullCodePoints - displayedCodePoints;
-                int step;
-                if (lag > 3000) step = Math.max(60, lag / 40);     // огромное отставание — большими шагами
-                else if (lag > 1000) step = 40;
-                else if (lag > 400) step = 18;
-                else if (lag > 150) step = 8;
-                else if (lag > 50) step = 4;
-                else if (lag > 15) step = 2;
-                else step = 1;                                     // базовая скорость — 1 символ за кадр
+                int step = !isGenerating ? lag : Math.max(4, (lag + 2) / 3);
 
                 int nextCodePoint = Math.min(fullCodePoints, displayedCodePoints + step);
                 int nextIndex = fullText.offsetByCodePoints(0, nextCodePoint);
@@ -5744,7 +6173,7 @@ public class ChatActivity extends AppCompatActivity implements
                 if (CONTENT_CHAR_DELAY_MS <= 0) {
                     animationHandler.post(this);
                 } else {
-                    animationHandler.postDelayed(this, CONTENT_CHAR_DELAY_MS);
+                    animationHandler.postDelayed(this, Math.max(50, CONTENT_CHAR_DELAY_MS));
                 }
             }
         };
@@ -6432,37 +6861,27 @@ public class ChatActivity extends AppCompatActivity implements
     }
 
     private void showAiMoreMenu(Message message, View anchor) {
-        java.util.List<ModernSheet.MenuItem> items = java.util.Arrays.asList(
-            new ModernSheet.MenuItem(getString(R.string.chat_copy), R.drawable.ic_copy, false, null),
-            new ModernSheet.MenuItem(getString(R.string.chat_retry), R.drawable.ic_retry_arrow, false, null),
-            new ModernSheet.MenuItem(getString(R.string.chat_branch_new_chat), R.drawable.ic_share_variant_outline, false, null),
-            new ModernSheet.MenuItem(getString(R.string.chat_search_web), R.drawable.ic_s_globe, false, null)
-        );
-        // Выпадающий список у самой кнопки «…», а не bottom sheet.
+        // Форматируем timestamp сообщения
+        java.text.SimpleDateFormat timeFmt = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+        String time = timeFmt.format(new java.util.Date(message.getTimestamp()));
+        java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("d MMMM", java.util.Locale.getDefault());
+        String dateStr = dateFmt.format(new java.util.Date(message.getTimestamp()));
+        String timestampLabel = dateStr + ", " + time;
+
+        java.util.List<ModernSheet.MenuItem> items = new java.util.ArrayList<>();
+        // Непереходимый заголовок-метка с датой/временем
+        items.add(new ModernSheet.MenuItem(timestampLabel, 0, false, true, null));
+        items.add(new ModernSheet.MenuItem(getString(R.string.chat_retry), R.drawable.ic_retry_arrow, false, null));
+        items.add(new ModernSheet.MenuItem(getString(R.string.chat_branch_new_chat), R.drawable.ic_share_variant_outline, false, null));
+
         app.multiai.mobile.ui.kit.ModernMenu.show(anchor, null, items, (idx, item) -> {
-            switch (idx) {
-                case 0: { // Copy
-                    android.content.ClipboardManager cm = (android.content.ClipboardManager)
-                            getSystemService(CLIPBOARD_SERVICE);
-                    if (cm != null) {
-                        cm.setPrimaryClip(android.content.ClipData.newPlainText(
-                                "ai_message", message.getContentSafe()));
-                        ModernToast.show(this, getString(R.string.chat_copied));
-                    }
-                    break;
+            if (idx == 0) return; // timestamp header — non-clickable
+            if (idx == 1) { // Retry
+                if (!retryAiMessage(message)) {
+                    ModernToast.show(ChatActivity.this, getString(R.string.chat_retry_not_available));
                 }
-                case 1: // Retry
-                    retryAiMessage(message);
-                    break;
-                case 2: // Branch to new chat
-                    branchToNewChat(message);
-                    break;
-                case 3: // Search web
-                    String query = message.getContent() != null ? message.getContent().substring(0, Math.min(100, message.getContent().length())) : "";
-                    query = query.replaceAll("(?s)<think>.*?</think>", "").replaceAll("[*_~#>`]", "").trim();
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=" + Uri.encode(query)));
-                    startActivity(browserIntent);
-                    break;
+            } else if (idx == 2) { // Branch to new chat
+                branchToNewChat(message);
             }
         });
     }
@@ -6853,6 +7272,7 @@ public class ChatActivity extends AppCompatActivity implements
                         try { items = new JSONArray(args.optString("items", "[]")); }
                         catch (Exception ignored) { items = new JSONArray(); }
                     }
+                    // 1) Нормализация: алиасы статусов, пустые заголовки
                     JSONArray normalized = new JSONArray();
                     for (int i = 0; i < Math.min(items.length(), 50); i++) {
                         JSONObject item = items.optJSONObject(i);
@@ -6860,13 +7280,73 @@ public class ChatActivity extends AppCompatActivity implements
                         JSONObject copy = new JSONObject();
                         copy.put("id", item.optString("id", String.valueOf(i + 1)));
                         copy.put("title", item.optString("title", "Task " + (i + 1)));
-                        String status = item.optString("status", "pending");
-                        if (!"completed".equals(status) && !"in_progress".equals(status)) status = "pending";
-                        copy.put("status", status);
+                        copy.put("status", normalizeTodoStatus(item.optString("status", "pending")));
                         normalized.put(copy);
                     }
-                    return new JSONObject().put("success", true).put("items", normalized)
-                            .put("active_index", args.optInt("active_index", -1)).toString();
+                    // 2) Merge с прошлым списком по id: завершённая задача не
+                    //    «размораживается», если модель лениво переслала её как pending
+                    if (lastTodoItems != null) {
+                        JSONArray merged = new JSONArray();
+                        for (int i = 0; i < normalized.length(); i++) {
+                            JSONObject item = normalized.optJSONObject(i);
+                            if (item == null) continue;
+                            JSONObject prev = findTodoItemById(lastTodoItems, item.optString("id"));
+                            if (prev != null && "completed".equals(prev.optString("status"))
+                                    && "pending".equals(item.optString("status"))) {
+                                item.put("status", "completed");
+                            }
+                            merged.put(item);
+                        }
+                        normalized = merged;
+                    }
+                    // 3) Ровно один in_progress: лишние откатываются в pending,
+                    //    а если активной нет — берём первую pending-задачу
+                    int activeIdx = -1;
+                    for (int i = 0; i < normalized.length(); i++) {
+                        JSONObject item = normalized.optJSONObject(i);
+                        if (item != null && "in_progress".equals(item.optString("status"))) {
+                            if (activeIdx < 0) activeIdx = i;
+                            else item.put("status", "pending");
+                        }
+                    }
+                    if (activeIdx < 0) {
+                        for (int i = 0; i < normalized.length(); i++) {
+                            JSONObject item = normalized.optJSONObject(i);
+                            if (item != null && "pending".equals(item.optString("status"))) {
+                                item.put("status", "in_progress");
+                                activeIdx = i;
+                                break;
+                            }
+                        }
+                    }
+                    int requestedActive = args.optInt("active_index", -1);
+                    if (requestedActive >= 0 && requestedActive < normalized.length()
+                            && normalized.optJSONObject(requestedActive) != null) {
+                        if (activeIdx >= 0) {
+                            JSONObject prevActive = normalized.optJSONObject(activeIdx);
+                            if (prevActive != null && "in_progress".equals(prevActive.optString("status"))) {
+                                prevActive.put("status", "pending");
+                            }
+                        }
+                        activeIdx = requestedActive;
+                    }
+                    lastTodoItems = normalized;
+                    int completed = 0;
+                    for (int i = 0; i < normalized.length(); i++) {
+                        JSONObject item = normalized.optJSONObject(i);
+                        if (item != null && "completed".equals(item.optString("status"))) completed++;
+                    }
+                    JSONObject result = new JSONObject().put("success", true)
+                            .put("items", normalized)
+                            .put("active_index", activeIdx)
+                            .put("completed", completed)
+                            .put("total", normalized.length());
+                    if (activeIdx >= 0 && completed < normalized.length()) {
+                        result.put("message", "Keep going: mark each finished item completed and set the next one in_progress.");
+                    } else if (normalized.length() > 0 && completed == normalized.length()) {
+                        result.put("message", "All items completed.");
+                    }
+                    return result.toString();
                 }
                 case "question":
                     return awaitQuestion(sourceCall, args);
@@ -6965,9 +7445,9 @@ public class ChatActivity extends AppCompatActivity implements
                         }).start();
                         JSONObject res = new JSONObject();
                         res.put("success", true);
-                        res.put("name", memName);
-                        res.put("content", memContent);
-                        res.put("message", "Memory saved: " + memName);
+                        // Наружу отдаём только факт обновления: без имени и содержимого,
+                        // чтобы юзер не видел, что конкретно модель записала в память.
+                        res.put("message", "Память обновлена");
                         return res.toString();
                     } catch (Exception e) {
                         JSONObject error = new JSONObject();
@@ -7331,12 +7811,12 @@ public class ChatActivity extends AppCompatActivity implements
         if ("delete_path".equals(toolName)) {
             String path = args.optString("path", "").trim();
             return args.optBoolean("recursive", false)
-                    ? "Рекурсивно удалить папку: " + path : "Удалить: " + path;
+                    ? getString(R.string.tool_delete_recursive, path) : getString(R.string.tool_delete, path);
         }
         if ("move_path".equals(toolName)) {
             String from = args.optString("source_path", args.optString("from_path", "")).trim();
             String to = args.optString("destination_path", args.optString("to_path", "")).trim();
-            return "Переместить: " + from + " → " + to;
+            return getString(R.string.tool_move, from, to);
         }
         return args.optString("path", "").trim();
     }
@@ -7541,6 +8021,8 @@ public class ChatActivity extends AppCompatActivity implements
     private enum VoiceInputState { IDLE, RECORDING, TRANSCRIBING }
     private VoiceInputState currentVoiceState = VoiceInputState.IDLE;
     private boolean voiceSentByUserWork = false;
+    // Несохранённая запись: после ошибки распознавания файл живёт до повтора.
+    private java.io.File pendingVoiceFileWork;
 
     private void startVoiceInput() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
@@ -7553,6 +8035,11 @@ public class ChatActivity extends AppCompatActivity implements
         isListening = true;
         peakRmsDb = 0f;
         voiceSentByUserWork = false;
+        // Новая запись — старая несохранённая больше не нужна.
+        if (pendingVoiceFileWork != null) {
+            pendingVoiceFileWork.delete();
+            pendingVoiceFileWork = null;
+        }
         startMicAnimation();
         transitionVoiceState(VoiceInputState.RECORDING);
 
@@ -7581,12 +8068,13 @@ public class ChatActivity extends AppCompatActivity implements
             mediaRecorder.setOutputFile(audioFile.getAbsolutePath());
             mediaRecorder.prepare();
             mediaRecorder.start();
-            // Auto-stop after 60 seconds max
+            // Автообрыв через 10 минут максимум: длинные голосовые не должны
+            // обрезаться посреди мысли (раньше лимит был 60 секунд).
             animationHandler.postDelayed(() -> {
                 if (isListening && mediaRecorder != null) stopVoiceInput();
-            }, 60000);
+            }, 10L * 60 * 1000);
             // Silence detection + peak amplitude tracking. Auto-stop only after
-            // 5 full seconds of continuous silence; any audible sample resets the
+            // 15 full seconds of continuous silence; any audible sample resets the
             // timer so short pauses don't cut the user off.
             whisperPeakAmplitude = 0;
             whisperSilenceStartedAt = 0L;
@@ -7606,7 +8094,7 @@ public class ChatActivity extends AppCompatActivity implements
                         long now = android.os.SystemClock.elapsedRealtime();
                         if (amp < 500) {
                             if (whisperSilenceStartedAt == 0L) whisperSilenceStartedAt = now;
-                            if (now - whisperSilenceStartedAt >= 5000L) {
+                            if (now - whisperSilenceStartedAt >= 15000L) {
                                 stopVoiceInput();
                                 return;
                             }
@@ -7645,10 +8133,13 @@ public class ChatActivity extends AppCompatActivity implements
         }
         if (audioFile != null && audioFile.exists() && audioFile.length() > 0) {
             editMessage.setHint(getString(R.string.chat_recognizing));
+            final java.io.File recordingFile = audioFile;
             new Thread(() -> {
+                String lastError = null;
+                boolean keepFile = false;
                 try {
-                    java.io.FileInputStream fis = new java.io.FileInputStream(audioFile);
-                    byte[] bytes = new byte[(int) audioFile.length()];
+                    java.io.FileInputStream fis = new java.io.FileInputStream(recordingFile);
+                    byte[] bytes = new byte[(int) recordingFile.length()];
                     fis.read(bytes);
                     fis.close();
                     String base64Audio = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
@@ -7656,17 +8147,27 @@ public class ChatActivity extends AppCompatActivity implements
                     JSONObject body = new JSONObject();
                     body.put("audio", base64Audio);
 
+                    // Таймауты растут с размером записи: длинное голосовое
+                    // не должно падать по таймауту.
+                    long sizeMb = Math.max(1, recordingFile.length() / (1024 * 1024));
                     okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
                             .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
-                            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                            .readTimeout(Math.min(10, sizeMb) * 30, java.util.concurrent.TimeUnit.SECONDS)
+                            .writeTimeout(Math.min(10, sizeMb) * 30, java.util.concurrent.TimeUnit.SECONDS)
                             .build();
-                    okhttp3.Request req = new okhttp3.Request.Builder()
+                    okhttp3.Request.Builder reqBuilder = new okhttp3.Request.Builder()
                             .url("https://multiai-api.vercel.app/api/whisper")
                             .post(okhttp3.RequestBody.create(body.toString(),
-                                    okhttp3.MediaType.get("application/json; charset=utf-8")))
-                            .build();
-                    okhttp3.Response resp = client.newCall(req).execute();
+                                    okhttp3.MediaType.get("application/json; charset=utf-8")));
+                    String bearer = app.multiai.mobile.network.BackendApi.bearerToken();
+                    if (bearer != null) reqBuilder.header("Authorization", bearer);
+                    okhttp3.Response resp = client.newCall(reqBuilder.build()).execute();
                     String respBody = resp.body() != null ? resp.body().string() : "";
+                    if (!resp.isSuccessful()) {
+                        lastError = "HTTP " + resp.code();
+                        keepFile = true;
+                        return;
+                    }
                     JSONObject result = new JSONObject(respBody);
                     String text = result.optString("text", "").trim();
 
@@ -7674,13 +8175,14 @@ public class ChatActivity extends AppCompatActivity implements
                         editMessage.setHint(getString(R.string.chat_message_hint));
                         final boolean recognized = !text.isEmpty();
                         if (recognized) {
+                            recordingFile.delete();
                             String processed = postProcessVoice(text);
                             String current = editMessage.getText().toString();
                             if (!current.isEmpty() && !current.endsWith(" ")) current += " ";
                             editMessage.setText(current + processed);
                             editMessage.setSelection(editMessage.getText().length());
                         } else {
-                            ModernToast.show(this, getString(R.string.chat_speech_not_recognized));
+                            keepVoiceForRetryWork(getString(R.string.chat_speech_not_recognized), recordingFile);
                         }
                         transitionVoiceState(VoiceInputState.IDLE);
                         if (recognized && voiceSentByUserWork) {
@@ -7689,16 +8191,127 @@ public class ChatActivity extends AppCompatActivity implements
                         }
                     });
                 } catch (Exception e) {
+                    lastError = e.getMessage();
+                    keepFile = true;
+                }
+                if (keepFile) {
+                    final String err = lastError;
                     runOnUiThread(() -> {
                         editMessage.setHint(getString(R.string.chat_message_hint));
-                        ModernToast.show(this, getString(R.string.chat_error_recognition, e.getMessage()));
+                        keepVoiceForRetryWork(err != null
+                                ? getString(R.string.chat_error_recognition, err)
+                                : getString(R.string.chat_speech_not_recognized), recordingFile);
                         transitionVoiceState(VoiceInputState.IDLE);
                     });
-                } finally {
-                    if (audioFile != null) audioFile.delete();
                 }
             }).start();
         }
+    }
+
+    /**
+     * Work Mode: ошибка распознавания не удаляет запись — файл ждёт повторной
+     * попытки, чтобы пользователю не пришлось записывать всё заново.
+     */
+    private void keepVoiceForRetryWork(String errorMessage, java.io.File recordingFile) {
+        if (recordingFile != null && recordingFile.exists() && recordingFile.length() > 0) {
+            if (pendingVoiceFileWork != null && !pendingVoiceFileWork.equals(recordingFile)) {
+                pendingVoiceFileWork.delete();
+            }
+            pendingVoiceFileWork = recordingFile;
+            if (audioFile == recordingFile) audioFile = null;
+            android.view.View root = findViewById(android.R.id.content);
+            if (root != null) {
+                com.google.android.material.snackbar.Snackbar.make(root, errorMessage,
+                                com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                        .setAction(getString(R.string.chat_voice_retry),
+                                v -> retryPendingVoiceTranscriptionWork())
+                        .show();
+            } else {
+                ModernToast.show(this, errorMessage);
+            }
+        } else {
+            ModernToast.show(this, errorMessage);
+        }
+    }
+
+    private void retryPendingVoiceTranscriptionWork() {
+        if (pendingVoiceFileWork == null || !pendingVoiceFileWork.exists()
+                || pendingVoiceFileWork.length() == 0) {
+            pendingVoiceFileWork = null;
+            return;
+        }
+        if (currentVoiceState != VoiceInputState.IDLE || useWhisper == false) return;
+        editMessage.setHint(getString(R.string.chat_recognizing));
+        transitionVoiceState(VoiceInputState.TRANSCRIBING);
+        final java.io.File recordingFile = pendingVoiceFileWork;
+        pendingVoiceFileWork = null;
+        transcribeExistingFileWork(recordingFile);
+    }
+
+    private void transcribeExistingFileWork(java.io.File recordingFile) {
+        editMessage.setHint(getString(R.string.chat_recognizing));
+        new Thread(() -> {
+            String lastError = null;
+            boolean keepFile = false;
+            try {
+                java.io.FileInputStream fis = new java.io.FileInputStream(recordingFile);
+                byte[] bytes = new byte[(int) recordingFile.length()];
+                fis.read(bytes);
+                fis.close();
+                String base64Audio = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+                JSONObject body = new JSONObject();
+                body.put("audio", base64Audio);
+                long sizeMb = Math.max(1, recordingFile.length() / (1024 * 1024));
+                okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+                        .readTimeout(Math.min(10, sizeMb) * 30, java.util.concurrent.TimeUnit.SECONDS)
+                        .writeTimeout(Math.min(10, sizeMb) * 30, java.util.concurrent.TimeUnit.SECONDS)
+                        .build();
+                okhttp3.Request.Builder reqBuilder = new okhttp3.Request.Builder()
+                        .url("https://multiai-api.vercel.app/api/whisper")
+                        .post(okhttp3.RequestBody.create(body.toString(),
+                                okhttp3.MediaType.get("application/json; charset=utf-8")));
+                String bearer = app.multiai.mobile.network.BackendApi.bearerToken();
+                if (bearer != null) reqBuilder.header("Authorization", bearer);
+                okhttp3.Response resp = client.newCall(reqBuilder.build()).execute();
+                String respBody = resp.body() != null ? resp.body().string() : "";
+                if (!resp.isSuccessful()) {
+                    lastError = "HTTP " + resp.code();
+                    keepFile = true;
+                    return;
+                }
+                JSONObject result = new JSONObject(respBody);
+                String text = result.optString("text", "").trim();
+                runOnUiThread(() -> {
+                    editMessage.setHint(getString(R.string.chat_message_hint));
+                    final boolean recognized = !text.isEmpty();
+                    if (recognized) {
+                        recordingFile.delete();
+                        String processed = postProcessVoice(text);
+                        String current = editMessage.getText().toString();
+                        if (!current.isEmpty() && !current.endsWith(" ")) current += " ";
+                        editMessage.setText(current + processed);
+                        editMessage.setSelection(editMessage.getText().length());
+                    } else {
+                        keepVoiceForRetryWork(getString(R.string.chat_speech_not_recognized), recordingFile);
+                    }
+                    transitionVoiceState(VoiceInputState.IDLE);
+                });
+            } catch (Exception e) {
+                lastError = e.getMessage();
+                keepFile = true;
+            }
+            if (keepFile) {
+                final String err = lastError;
+                runOnUiThread(() -> {
+                    editMessage.setHint(getString(R.string.chat_message_hint));
+                    keepVoiceForRetryWork(err != null
+                            ? getString(R.string.chat_error_recognition, err)
+                            : getString(R.string.chat_speech_not_recognized), recordingFile);
+                    transitionVoiceState(VoiceInputState.IDLE);
+                });
+            }
+        }).start();
     }
 
     private void startSpeechRecognizer() {

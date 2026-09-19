@@ -1,0 +1,4 @@
+<resources>
+    <string name="generation_channel">Generating a response</string>
+    <string name="generation_background">MultiAI is working in the background</string>
+</resources>

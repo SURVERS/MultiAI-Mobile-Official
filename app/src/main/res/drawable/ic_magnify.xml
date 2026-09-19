@@ -1,21 +1,4 @@
-<!-- Lucide: search (exact from github.com/lucide-icons/lucide) -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:pathData="M21,21l-4.34,-4.34"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="@android:color/transparent"/>
-    <path
-        android:pathData="M11,3a8,8 0,1 0,0 16a8,8 0,1 0,0 -16z"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="@android:color/transparent"/>
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M10.495,3.595C14.306,3.595 17.396,6.684 17.396,10.495C17.396,12.084 16.856,13.545 15.954,14.712L19.609,18.368C19.961,18.72 19.961,19.289 19.609,19.641C19.258,19.992 18.688,19.992 18.337,19.641L14.677,15.981C13.516,16.867 12.068,17.396 10.495,17.396C6.684,17.396 3.595,14.306 3.595,10.495C3.595,6.684 6.684,3.595 10.495,3.595ZM10.495,5.396C7.678,5.396 5.396,7.678 5.396,10.495C5.396,13.312 7.678,15.595 10.495,15.595C13.312,15.595 15.595,13.312 15.595,10.495C15.595,7.678 13.312,5.396 10.495,5.396Z" android:fillType="nonZero"/>
 </vector>

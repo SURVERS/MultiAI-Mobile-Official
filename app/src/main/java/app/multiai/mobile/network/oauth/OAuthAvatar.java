@@ -17,6 +17,7 @@ public final class OAuthAvatar {
     /**
      * Backend-контракт допускает {@code picture} в userinfo и {@code avatar_url}
      * в account snapshot. Старые/переходные aliases читаются только как fallback.
+     * Вложенный объект {@code avatar} тоже проверяется (например {@code avatar.url}).
      */
     @Nullable
     public static String fromProfileJson(@Nullable JSONObject profile) {
@@ -36,6 +37,11 @@ public final class OAuthAvatar {
                 if (normalized != null) return normalized;
             }
         }
+
+        // Fallback: snapshot может хранить avatar_url вне объекта user (редкий legacy-формат)
+        String direct = normalizeRemote(text(profile, "avatar_url"));
+        if (direct != null) return direct;
+
         return null;
     }
 

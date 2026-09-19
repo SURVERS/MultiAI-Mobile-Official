@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:drawable="@drawable/chat_mode_ic_user"
-    android:insetLeft="10dp"
-    android:insetTop="10dp"
-    android:insetRight="10dp"
-    android:insetBottom="10dp" />
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M12 4a3 3 0 1 0 0 6 3 3 0 0 0 0 -6ZM7 7a5 5 0 1 1 10 0A5 5 0 0 1 7 7Zm5 8c-3.656 0 -6.5 2.75 -6.5 6a1 1 0 1 1 -2 0c0 -4.482 3.872 -8 8.5 -8s8.5 3.518 8.5 8a1 1 0 1 1 -2 0c0 -3.25 -2.844 -6 -6.5 -6Z" android:fillType="nonZero"/>
+</vector>

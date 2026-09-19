@@ -159,6 +159,13 @@ public class ChatModeSidebar {
             badge.setOnClickListener(v ->
                     ModeSwitcher.showDropdown(act, badge, ModeSwitcher.MODE_CHAT));
         }
+
+        // Версия приложения вместо хардкода «1.3» в футере бургер-меню.
+        android.widget.TextView versionLabel = overlay.findViewById(R.id.drawerVersionLabel);
+        if (versionLabel != null) {
+            versionLabel.setText(act.getString(R.string.drawer_version,
+                    app.multiai.mobile.BuildConfig.VERSION_NAME));
+        }
     }
 
     // ─────────────────── AVATAR ───────────────────
@@ -269,7 +276,7 @@ public class ChatModeSidebar {
                 swipeStartY = event.getY();
                 // Открываем только с левой кромки (в профиле свайп по центру
                 // переключает вкладки), но закрывать можно свайпом откуда угодно.
-                swipeTracking = swipeStartX <= dp(28) || open;
+                swipeTracking = swipeStartX <= dp(40) || open;
                 swipeDragging = false;
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -287,8 +294,8 @@ public class ChatModeSidebar {
             case MotionEvent.ACTION_UP:
                 if (swipeDragging) {
                     float finalDx = event.getX() - swipeStartX;
-                    if (finalDx > dp(60) && !open) open();
-                    else if (finalDx < -dp(60) && open) close();
+                    if (finalDx > dp(40) && !open) open();
+                    else if (finalDx < -dp(40) && open) close();
                     swipeTracking = false;
                     swipeDragging = false;
                     return true;

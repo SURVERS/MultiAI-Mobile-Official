@@ -1,0 +1,4 @@
+<resources>
+    <string name="generation_channel">Генерация ответа</string>
+    <string name="generation_background">MultiAI продолжает работу в фоне</string>
+</resources>

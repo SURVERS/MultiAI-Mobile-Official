@@ -149,7 +149,9 @@ public final class ChatGptSwitchView extends CompoundButton {
 
     private void updateStateDescription() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            setStateDescription(isChecked() ? "Включено" : "Выключено");
+            setStateDescription(getContext().getString(isChecked()
+                    ? app.multiai.mobile.R.string.a11y_state_on
+                    : app.multiai.mobile.R.string.a11y_state_off));
         }
     }
 

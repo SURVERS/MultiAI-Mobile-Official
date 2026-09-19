@@ -1,5 +1,7 @@
 package app.multiai.mobile.adapters;
 
+import android.content.Context;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +32,179 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
     private MessageActionListener actionListener;
     private OnErrorRetryListener errorRetryListener;
     private RecyclerView recyclerMessages;
+
+    /** Никнейм юзера и имя текущей модели для форматирования при копировании. */
+    private String userNickname = "";
+    private String currentModelName = "";
+
+    public void setUserNickname(String nickname) {
+        this.userNickname = nickname != null ? nickname.trim() : "";
+    }
+
+    public void setCurrentModelName(String name) {
+        this.currentModelName = name != null ? name.trim() : "";
+    }
+
+    /** Текст сообщения пользователя для копирования — без префикса «User:»/никнейма. */
+    public String formatUserForCopy(Message message) {
+        String content = message.getContent();
+        return content != null ? content : "";
+    }
+
+    /** Форматирование ответа AI для копирования: «*Thinking*\n…\nAI (модель): ответ». */
+    public String formatAiForCopy(Message message) {
+        StringBuilder sb = new StringBuilder();
+        String thinking = message.getThinkingContent();
+        if (thinking != null && !thinking.trim().isEmpty()) {
+            sb.append("*Thinking*\n").append(thinking.trim()).append("\n\n");
+        }
+        String model = currentModelName != null && !currentModelName.isEmpty() ? currentModelName : "AI";
+        sb.append("AI (").append(model).append("): ");
+        String content = message.getContent();
+        if (content != null) {
+            if (thinking != null && !thinking.trim().isEmpty()) {
+                String trimmedThinking = thinking.trim();
+                String trimmedContent = content.trim();
+                if (trimmedContent.startsWith(trimmedThinking)) {
+                    content = content.substring(content.indexOf(trimmedThinking) + trimmedThinking.length()).trim();
+                }
+            }
+            sb.append(content);
+        }
+        return sb.toString();
+    }
+
+    /** Форматирование даты/времени для заголовка popup-sheet. */
+    static String formatMessageDate(Context ctx, long timestamp) {
+        if (timestamp <= 0) return "";
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        java.util.Calendar msg = java.util.Calendar.getInstance();
+        msg.setTimeInMillis(timestamp);
+        boolean sameDay = now.get(java.util.Calendar.YEAR) == msg.get(java.util.Calendar.YEAR)
+                && now.get(java.util.Calendar.DAY_OF_YEAR) == msg.get(java.util.Calendar.DAY_OF_YEAR);
+        java.util.Calendar yesterday = java.util.Calendar.getInstance();
+        yesterday.add(java.util.Calendar.DAY_OF_YEAR, -1);
+        boolean isYesterday = now.get(java.util.Calendar.YEAR) == yesterday.get(java.util.Calendar.YEAR)
+                && yesterday.get(java.util.Calendar.DAY_OF_YEAR) == msg.get(java.util.Calendar.DAY_OF_YEAR);
+        java.text.SimpleDateFormat timeFmt = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+        String time = timeFmt.format(msg.getTime());
+        if (sameDay) return time;
+        if (isYesterday) return ctx.getString(R.string.chat_yesterday) + ", " + time;
+        java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault());
+        return dateFmt.format(msg.getTime()) + ", " + time;
+    }
+
+    /** Показать popup-sheet рядом с сообщением: Скопировать/Выделить текст (без даты и share). */
+    private void showMessagePopup(View anchor, Message message) {
+        Context ctx = anchor.getContext();
+        boolean isUser = message.getType() == Message.TYPE_USER;
+
+        java.util.List<app.multiai.mobile.ui.kit.ModernSheet.MenuItem> items = new java.util.ArrayList<>();
+        items.add(new app.multiai.mobile.ui.kit.ModernSheet.MenuItem(
+                ctx.getString(R.string.kit_msg_action_copy), R.drawable.ic_action_copy, false, null));
+        items.add(new app.multiai.mobile.ui.kit.ModernSheet.MenuItem(
+                ctx.getString(R.string.kit_msg_action_select_text), R.drawable.file_document, false, null));
+        if (isUser) {
+            items.add(new app.multiai.mobile.ui.kit.ModernSheet.MenuItem(
+                    ctx.getString(R.string.chat_edit), R.drawable.ic_edit_pencil, false, null));
+        }
+
+        app.multiai.mobile.ui.kit.ModernMenu.show(anchor, null, items, (idx, item) -> {
+            if (idx == 0) {
+                android.content.ClipboardManager cm = (android.content.ClipboardManager)
+                        ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                if (cm != null) {
+                    String text = isUser ? formatUserForCopy(message) : formatAiForCopy(message);
+                    cm.setPrimaryClip(android.content.ClipData.newPlainText("message", text));
+                    if (ctx instanceof android.app.Activity) {
+                        app.multiai.mobile.ui.kit.ModernToast.show((android.app.Activity) ctx,
+                                ctx.getString(R.string.kit_msg_copied));
+                    }
+                }
+            } else if (idx == 1) {
+                // Выделить текст — bottom sheet с полным текстом для выделения
+                showSelectTextSheet(anchor, message);
+            } else if (idx == 2 && isUser) {
+                // Изменить — enable inline editing mode
+                message.setEditing(true);
+                int pos = messages.indexOf(message);
+                if (pos >= 0) notifyItemChanged(pos);
+            }
+        });
+    }
+
+    /** Показать bottom sheet с полным текстом сообщения для выделения и копирования. */
+    private void showSelectTextSheet(View anchor, Message message) {
+        Context ctx = anchor.getContext();
+        if (!(ctx instanceof android.app.Activity)) return;
+        android.app.Activity activity = (android.app.Activity) ctx;
+
+        String fullText = message.getType() == Message.TYPE_USER
+                ? formatUserForCopy(message) : formatAiForCopy(message);
+        if (fullText == null || fullText.isEmpty()) return;
+
+        // Create bottom sheet dialog
+        com.google.android.material.bottomsheet.BottomSheetDialog sheet =
+                new com.google.android.material.bottomsheet.BottomSheetDialog(activity);
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(activity);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int pad = (int) (16 * activity.getResources().getDisplayMetrics().density);
+        layout.setPadding(pad, pad, pad, pad);
+
+        // Title
+        android.widget.TextView title = new android.widget.TextView(activity);
+        title.setText(R.string.kit_msg_action_select_text);
+        title.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.text_primary));
+        title.setTextSize(16);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        layout.addView(title);
+
+        // Selectable text
+        android.widget.TextView textView = new android.widget.TextView(activity);
+        textView.setText(fullText);
+        textView.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.text_primary));
+        textView.setTextSize(15);
+        textView.setTextIsSelectable(true);
+        textView.setHighlightColor(androidx.core.graphics.ColorUtils.setAlphaComponent(
+                androidx.core.content.ContextCompat.getColor(activity, R.color.accent), 66));
+        textView.setLineSpacing(0, 1.2f);
+        android.widget.ScrollView scroll = new android.widget.ScrollView(activity);
+        scroll.addView(textView, new android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+        scroll.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                (int) (activity.getResources().getDisplayMetrics().heightPixels * 0.45)));
+        layout.addView(scroll);
+
+        sheet.setContentView(layout);
+        // Expand to half screen
+        com.google.android.material.bottomsheet.BottomSheetBehavior<View> behavior =
+                com.google.android.material.bottomsheet.BottomSheetBehavior.from(
+                        (View) layout.getParent());
+        if (behavior != null) {
+            behavior.setPeekHeight((int) (activity.getResources().getDisplayMetrics().heightPixels * 0.5));
+            behavior.setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
+        }
+        sheet.show();
+    }
+
+    private android.widget.TextView findSelectableTextView(android.view.ViewGroup root) {
+        for (int i = 0; i < root.getChildCount(); i++) {
+            android.view.View child = root.getChildAt(i);
+            if (child instanceof android.widget.TextView) {
+                android.widget.TextView tv = (android.widget.TextView) child;
+                if (tv.getText() != null && tv.getText().length() > 0 && tv.getVisibility() == android.view.View.VISIBLE) {
+                    return tv;
+                }
+            }
+            if (child instanceof android.view.ViewGroup) {
+                android.widget.TextView nested = findSelectableTextView((android.view.ViewGroup) child);
+                if (nested != null) return nested;
+            }
+        }
+        return null;
+    }
 
     // Thumbnail cache: messageId → bitmap. Avoids re-decoding full base64 on every bind.
     private static final int THUMB_MAX_DIM = 512; // px
@@ -85,6 +260,22 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
         void onTts(Message message);
         void onShare(Message message);
         void onMore(Message message, View anchor);
+    }
+
+    /** Callback для кнопок «Повторить/Изменить» под сообщением пользователя. */
+    public interface OnUserMessageActionListener {
+        void onUserMessageRetry(Message message, int position);
+        void onUserMessageEdit(Message message, int position);
+        /** Called when user finishes inline editing and saves the message. */
+        void onUserMessageEdited(Message message, int position, String newContent);
+        /** «+» в режиме правки: прикрепить камерой/фото/файлом к редактируемому сообщению. */
+        void onUserMessageAttach(Message message, int position, String kind);
+    }
+
+    private OnUserMessageActionListener userMessageActionListener;
+
+    public void setUserMessageActionListener(OnUserMessageActionListener listener) {
+        this.userMessageActionListener = listener;
     }
 
     public void setMessageActionListener(MessageActionListener listener) {
@@ -190,6 +381,13 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
         } else if (holder instanceof ErrorViewHolder) {
             ((ErrorViewHolder) holder).bind(message, errorRetryListener);
         }
+        // Long-press popup for both user and AI messages
+        boolean canPopup = (message.getType() == Message.TYPE_USER || message.getType() == Message.TYPE_AI)
+                && !message.isStreaming();
+        holder.itemView.setOnLongClickListener(canPopup ? v -> {
+            showMessagePopup(v, message);
+            return true;
+        } : null);
     }
 
     // 🔥 Стриминг: обновляем ТОЛЬКО текст без повторного bind (никакого lag)
@@ -215,6 +413,7 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
         if (holder instanceof TextViewHolder) {
             TextViewHolder textHolder = (TextViewHolder) holder;
+            textHolder.contentReveal.reset();
             app.multiai.mobile.utils.Telemoji.clearTracking(textHolder.textMessage);
             if (textHolder.textThinking != null) {
                 app.multiai.mobile.utils.Telemoji.clearTracking(textHolder.textThinking);
@@ -617,7 +816,7 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 preview = itemView.getContext().getString(R.string.chat_thinking_finished,
                         message.getThinkingTimeMs() / 1000f);
             } else if (paragraphs.length > 0) {
-                preview = thinkingParagraphPreview(paragraphs[paragraphs.length - 1]);
+                preview = itemView.getContext().getString(R.string.lay_thinking_process);
             } else {
                 preview = itemView.getContext().getString(R.string.lay_thinking_process);
             }
@@ -664,6 +863,7 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                     && !nextIsToolCard
                     && !nextIsAssistantSegment;
             actionBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+            app.multiai.mobile.views.MessageSourcesView.bind(actionBar, messages, message, visible);
         }
 
         private void hideAiContent() {
@@ -727,8 +927,196 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 }
             } else {
                 textMessage.setTextColor(color(R.color.text_primary));
-                app.multiai.mobile.utils.Telemoji.apply(
-                    itemView.getContext(), textMessage, content);
+                if (message.isEditing()) {
+                    // ─── Режим правки, 1-в-1 как в Work-режиме ───
+                    // Пузырь прячется, вместо него — карточка с многострочным
+                    // полем, предупреждением и рядом [+] … [✕ ↑].
+                    android.view.ViewGroup itemViewRoot = (android.view.ViewGroup) itemView;
+                    View bubble = itemView.findViewById(R.id.userBubbleContainer);
+                    if (bubble != null) bubble.setVisibility(View.GONE);
+                    android.content.Context ctx = itemView.getContext();
+                    int accent = app.multiai.mobile.utils.AccentColor.resolve(ctx);
+                    int accentFg = app.multiai.mobile.utils.AccentColor.contrastForeground(accent);
+
+                    android.widget.LinearLayout editCard = itemView.findViewById(R.id.editCard);
+                    android.widget.EditText editField = itemView.findViewById(R.id.editMessageField);
+                    android.widget.LinearLayout editActionsRow = itemView.findViewById(R.id.editActionsRow);
+                    if (editCard == null) {
+                        editCard = new android.widget.LinearLayout(ctx);
+                        editCard.setId(R.id.editCard);
+                        editCard.setVisibility(View.GONE);
+                        editCard.setOrientation(android.widget.LinearLayout.VERTICAL);
+                        android.graphics.drawable.GradientDrawable cardBg = new android.graphics.drawable.GradientDrawable();
+                        cardBg.setCornerRadius(dp(20));
+                        cardBg.setColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.surface_card));
+                        cardBg.setStroke(Math.max(1, dp(1)),
+                                androidx.core.content.ContextCompat.getColor(ctx, R.color.stroke));
+                        editCard.setBackground(cardBg);
+                        android.widget.LinearLayout.LayoutParams cardLp = new android.widget.LinearLayout.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                        cardLp.setMargins(dp(4), dp(2), dp(4), 0);
+                        editCard.setLayoutParams(cardLp);
+
+                        editField = new android.widget.EditText(ctx);
+                        editField.setId(R.id.editMessageField);
+                        editField.setBackground(null);
+                        editField.setTextColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_primary));
+                        editField.setHintTextColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_hint));
+                        editField.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                        editField.setMinLines(2);
+                        editField.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                                | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                                | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+                        int fieldPad = dp(16);
+                        editField.setPadding(fieldPad, dp(14), fieldPad, dp(6));
+                        editCard.addView(editField, new android.widget.LinearLayout.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+
+                        android.widget.TextView warning = new android.widget.TextView(ctx);
+                        warning.setId(R.id.editWarning);
+                        warning.setText(R.string.chat_edit_inline_hint);
+                        warning.setTextColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_hint));
+                        warning.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
+                        warning.setPadding(fieldPad, 0, fieldPad, dp(12));
+                        editCard.addView(warning, new android.widget.LinearLayout.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+                        itemViewRoot.addView(editCard);
+
+                        editActionsRow = new android.widget.LinearLayout(ctx);
+                        editActionsRow.setId(R.id.editActionsRow);
+                        editActionsRow.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                        editActionsRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                        android.widget.LinearLayout.LayoutParams rowLp = new android.widget.LinearLayout.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                        rowLp.setMargins(dp(4), dp(8), dp(4), dp(2));
+                        editActionsRow.setLayoutParams(rowLp);
+
+                        android.widget.ImageView attachBtn = new android.widget.ImageView(ctx);
+                        attachBtn.setId(R.id.editAttachButton);
+                        attachBtn.setImageResource(R.drawable.ic_plus);
+                        attachBtn.setColorFilter(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_secondary));
+                        attachBtn.setPadding(dp(6), dp(6), dp(6), dp(6));
+                        attachBtn.setContentDescription(ctx.getString(R.string.chat_edit));
+                        editActionsRow.addView(attachBtn, new android.widget.LinearLayout.LayoutParams(dp(28), dp(28)));
+
+                        View spacer = new View(ctx);
+                        editActionsRow.addView(spacer, new android.widget.LinearLayout.LayoutParams(0, 1, 1f));
+
+                        android.widget.ImageView cancelBtn = new android.widget.ImageView(ctx);
+                        cancelBtn.setId(R.id.editCancelButton);
+                        cancelBtn.setImageResource(R.drawable.ic_close);
+                        cancelBtn.setColorFilter(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_secondary));
+                        int btnPad = dp(8);
+                        cancelBtn.setPadding(btnPad, btnPad, btnPad, btnPad);
+                        android.graphics.drawable.GradientDrawable cancelBg = new android.graphics.drawable.GradientDrawable();
+                        cancelBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                        cancelBg.setColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.surface_tonal));
+                        cancelBg.setStroke(Math.max(1, dp(1)),
+                                androidx.core.content.ContextCompat.getColor(ctx, R.color.stroke));
+                        cancelBtn.setBackground(cancelBg);
+                        cancelBtn.setContentDescription(ctx.getString(R.string.chat_cancel));
+                        android.widget.LinearLayout.LayoutParams cancelLp = new android.widget.LinearLayout.LayoutParams(
+                                dp(34), dp(34));
+                        cancelLp.rightMargin = dp(8);
+                        editActionsRow.addView(cancelBtn, cancelLp);
+
+                        android.widget.ImageView sendBtn = new android.widget.ImageView(ctx);
+                        sendBtn.setId(R.id.editSendButton);
+                        sendBtn.setImageResource(R.drawable.ic_arrow_up);
+                        sendBtn.setColorFilter(accentFg);
+                        sendBtn.setPadding(btnPad, btnPad, btnPad, btnPad);
+                        android.graphics.drawable.GradientDrawable sendBg = new android.graphics.drawable.GradientDrawable();
+                        sendBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                        sendBg.setColor(accent);
+                        sendBtn.setBackground(sendBg);
+                        sendBtn.setContentDescription(ctx.getString(R.string.chat_save));
+                        editActionsRow.addView(sendBtn, new android.widget.LinearLayout.LayoutParams(dp(34), dp(34)));
+                        itemViewRoot.addView(editActionsRow);
+                    }
+                    boolean enteringEdit = editCard.getVisibility() != View.VISIBLE
+                            || editCard.getTag() != message;
+                    editCard.setTag(message);
+                    if (enteringEdit) {
+                        editField.setText(content);
+                        editCard.setVisibility(View.VISIBLE);
+                        editActionsRow.setVisibility(View.VISIBLE);
+                    }
+                    editField.requestFocus();
+                    editField.setSelection(editField.getText().length());
+
+                    final android.widget.EditText field = editField;
+                    final String originalContent = content;
+                    final android.widget.LinearLayout cardBox = editCard;
+                    final android.widget.LinearLayout actionsRow = editActionsRow;
+                    final View bubbleView = bubble;
+                    Runnable saveAction = () -> {
+                        String newText = field.getText().toString().trim();
+                        message.setEditing(false);
+                        cardBox.setVisibility(View.GONE);
+                        actionsRow.setVisibility(View.GONE);
+                        if (bubbleView != null) bubbleView.setVisibility(View.VISIBLE);
+                        message.setContent(newText.isEmpty() ? originalContent : newText);
+                        if (userMessageActionListener != null) {
+                            int pos = messages.indexOf(message);
+                            if (pos >= 0) userMessageActionListener.onUserMessageEdited(message, pos,
+                                    newText.isEmpty() ? originalContent : newText);
+                        }
+                    };
+                    Runnable cancelAction = () -> {
+                        message.restoreEditAttachmentSnapshot();
+                        message.setEditing(false);
+                        cardBox.setVisibility(View.GONE);
+                        actionsRow.setVisibility(View.GONE);
+                        if (bubbleView != null) bubbleView.setVisibility(View.VISIBLE);
+                        refreshMessage(message);
+                    };
+                    View sendBtn = itemView.findViewById(R.id.editSendButton);
+                    if (sendBtn != null) sendBtn.setOnClickListener(v -> saveAction.run());
+                    View cancelBtn = itemView.findViewById(R.id.editCancelButton);
+                    if (cancelBtn != null) cancelBtn.setOnClickListener(v -> cancelAction.run());
+                    View attachBtnView = itemView.findViewById(R.id.editAttachButton);
+                    if (attachBtnView != null) {
+                        attachBtnView.setOnClickListener(v -> {
+                            if (userMessageActionListener == null) return;
+                            int pos = messages.indexOf(message);
+                            app.multiai.mobile.ui.kit.AttachMenuPopup.show(attachBtnView,
+                                    new app.multiai.mobile.ui.kit.AttachMenuPopup.Callback() {
+                                        @Override public void onCamera() {
+                                            userMessageActionListener.onUserMessageAttach(message, pos, "camera");
+                                        }
+                                        @Override public void onPhoto() {
+                                            userMessageActionListener.onUserMessageAttach(message, pos, "photo");
+                                        }
+                                        @Override public void onFiles() {
+                                            userMessageActionListener.onUserMessageAttach(message, pos, "file");
+                                        }
+                                    },
+                                    () -> attachBtnView.animate().rotation(0f).setDuration(160).start());
+                            attachBtnView.animate().rotation(45f).setDuration(160).start();
+                        });
+                    }
+                } else {
+                    // Hide edit field if not editing
+                    View editCardView = itemView.findViewById(R.id.editCard);
+                    if (editCardView != null) editCardView.setVisibility(View.GONE);
+                    View editActionsRowView = itemView.findViewById(R.id.editActionsRow);
+                    if (editActionsRowView != null) editActionsRowView.setVisibility(View.GONE);
+                    View bubbleContainer = itemView.findViewById(R.id.userBubbleContainer);
+                    if (bubbleContainer != null) bubbleContainer.setVisibility(View.VISIBLE);
+                    // Маршрут как в Work-режиме: LaTeX/таблицы → renderToLayout,
+                    // иначе markdown в textMessage (голый Telemoji ронял формулы).
+                    updateContent(message);
+                    // У user-сообщений системного выделения нет (лонг-тап = меню)
+                    textMessage.setTextIsSelectable(false);
+                    if (richContentContainer != null
+                            && richContentContainer.getVisibility() == View.VISIBLE) {
+                        disableDeepSelection(richContentContainer);
+                    }
+                }
             }
             updateActionBarVisibility(message);
             bindVariantPager(message);
@@ -740,6 +1128,7 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 boolean attachmentOnly = isVisuallyBlank(content)
                         && (message.hasImage() || message.hasAttachedFile());
                 textMessage.setVisibility(attachmentOnly ? View.GONE : View.VISIBLE);
+                // Retry/Edit moved to long-press menu
             } else if (message.getType() != Message.TYPE_AI) {
                 textMessage.setVisibility(View.VISIBLE);
             }
@@ -757,67 +1146,19 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 disliked = false;
                 applyActionTints();
                 tapFeedback(btnLike);
-                if (actionListener != null) actionListener.onLike(message);
+                // Репорт — только при установке лайка; снятие просто убирает оценку.
+                if (liked && actionListener != null) actionListener.onLike(message);
             });
             if (btnDislike != null) btnDislike.setOnClickListener(v -> {
                 disliked = toggleDislike(message);
                 liked = false;
                 applyActionTints();
                 tapFeedback(btnDislike);
-                if (actionListener != null) actionListener.onDislike(message);
+                // Форма — только при установке дизлайка; снятие просто убирает оценку.
+                if (disliked && actionListener != null) actionListener.onDislike(message);
             });
             if (btnTts != null) btnTts.setOnClickListener(v -> { tapFeedback(btnTts); if (actionListener != null) actionListener.onTts(message); });
             if (btnMore != null) btnMore.setOnClickListener(v -> { tapFeedback(btnMore); if (actionListener != null) actionListener.onMore(message, v); });
-
-            // Long-press на сообщении юзера — контекст-меню (копировать / выделить), как в Work Mode.
-            if (message.getType() == Message.TYPE_USER) {
-                itemView.setOnLongClickListener(v -> {
-                    showUserContextMenu(message);
-                    return true;
-                });
-            } else if (message.getType() == Message.TYPE_AI && !message.isStreaming()) {
-                // O24: long-press на ответе AI — копировать/выделить (как в Telegram).
-                itemView.setOnLongClickListener(v -> {
-                    showAiContextMenu(message);
-                    return true;
-                });
-            } else {
-                itemView.setOnLongClickListener(null);
-            }
-        }
-
-        /**
-         * O24: контекст-меню для ответа AI (копировать целиком / выделить фрагмент).
-         */
-        private void showAiContextMenu(Message message) {
-            android.content.Context ctx = itemView.getContext();
-            android.widget.TextView target = resolveSelectableTarget();
-            if (target == null) {
-                return;
-            }
-            java.util.List<ModernSheet.MenuItem> items = java.util.Arrays.asList(
-                    new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_copy),
-                            R.drawable.ic_copy, false, null),
-                    new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_select_text),
-                            R.drawable.ic_select_text, false, null));
-            ModernSheet.menu(ctx, null, items, (idx, item) -> {
-                if (idx == 0) {
-                    android.content.ClipboardManager cm = (android.content.ClipboardManager)
-                            ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
-                    if (cm != null) {
-                        String content = message.getContent();
-                        cm.setPrimaryClip(android.content.ClipData.newPlainText(
-                                "message", content != null ? content : ""));
-                        if (ctx instanceof android.app.Activity) {
-                            ModernToast.show((android.app.Activity) ctx,
-                                    ctx.getString(R.string.kit_msg_copied));
-                        }
-                    }
-                } else if (idx == 1) {
-                    target.setTextIsSelectable(true);
-                    target.requestFocus();
-                }
-            });
         }
 
         /** Текстовое view ответа: приоритет у основного текста, иначе — внутри rich-контейнера. */
@@ -849,35 +1190,6 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 }
             }
             return null;
-        }
-
-        /** Копировать / выделить текст сообщения пользователя (Chat Mode). */
-        private void showUserContextMenu(Message message) {
-            android.content.Context ctx = itemView.getContext();
-            java.util.List<ModernSheet.MenuItem> items = java.util.Arrays.asList(
-                    new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_copy),
-                            R.drawable.ic_copy, false, null),
-                    new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_select_text),
-                            R.drawable.ic_select_text, false, null));
-            ModernSheet.menu(ctx, null, items, (idx, item) -> {
-                if (idx == 0) {
-                    android.content.ClipboardManager cm = (android.content.ClipboardManager)
-                            ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
-                    if (cm != null && message.getContent() != null) {
-                        cm.setPrimaryClip(android.content.ClipData.newPlainText(
-                                "message", message.getContent()));
-                        if (ctx instanceof android.app.Activity) {
-                            ModernToast.show((android.app.Activity) ctx,
-                                    ctx.getString(R.string.kit_msg_copied));
-                        }
-                    }
-                } else if (idx == 1) {
-                    if (textMessage != null) {
-                        textMessage.setTextIsSelectable(true);
-                        textMessage.requestFocus();
-                    }
-                }
-            });
         }
 
         private void bindVariantPager(Message message) {
@@ -921,6 +1233,21 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
         /** Вложения (user-layout): карточка фото + чип файла, размер из файла. */
         private void bindAttachments(Message message) {
             if (message.getType() != Message.TYPE_USER) return;
+            if (message.isEditing()) {
+                if (fileAttachmentCard != null) fileAttachmentCard.setVisibility(View.GONE);
+                if (imageCard != null) app.multiai.mobile.views.ImageAttachmentStrip.render(imageCard,
+                        message.getImageBase64(), index -> {
+                            message.replaceImages(app.multiai.mobile.utils.ImageAttachments.remove(message.getImageBase64(), index));
+                            refreshMessage(message);
+                        }, message.getAttachedFileName(), message.getAttachedFileContent(), index -> {
+                            java.util.List<app.multiai.mobile.utils.FileAttachments.Entry> files =
+                                    app.multiai.mobile.utils.FileAttachments.unpack(message.getAttachedFileName(), message.getAttachedFileContent());
+                            files.remove(index);
+                            message.replaceFiles(files);
+                            refreshMessage(message);
+                        });
+                return;
+            }
 
             if (imageCard != null && imageAttachment != null) {
                 View oldStrip = imageCard.findViewWithTag("multi-image-strip");
@@ -1027,39 +1354,97 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 .start();
         }
 
+        private int dp(int value) {
+            return Math.round(value * itemView.getResources().getDisplayMetrics().density);
+        }
+
+        /** Рекурсивно выключает системное выделение во всех TextView контейнера. */
+        private void disableDeepSelection(View view) {            if (view instanceof TextView) {
+                TextView tv = (TextView) view;
+                if (tv.getText() != null && tv.getText().length() > 0) {
+                    tv.setTextIsSelectable(false);
+                    tv.setMovementMethod(null);
+                }
+                return;
+            }
+            if (view instanceof ViewGroup) {
+                ViewGroup vg = (ViewGroup) view;
+                for (int i = 0; i < vg.getChildCount(); i++) {
+                    disableDeepSelection(vg.getChildAt(i));
+                }
+            }
+        }
+
         /** Лёгкое обновление только текста для стриминга — не дёргает listeners и action bar. */
-        void updateContent(Message message) {
-            String content = message.getContent() != null ? message.getContent() : "";
+        void updateContent(Message message) {            String content = message.getContent() != null ? message.getContent() : "";
             if (message.getType() == Message.TYPE_AI) {
+                String display = app.multiai.mobile.utils.CitationLinker.link(message, content);
                 if (message.isStreaming()) {
-                    updateStreamingContent(content);
+                    updateStreamingContent(display);
                 } else {
-                    renderAiContent(content);
+                    renderAiContent(display);
                 }
                 updateActionBarVisibility(message);
             } else {
-                textMessage.setVisibility(View.VISIBLE);
-                app.multiai.mobile.utils.Telemoji.apply(
-                    itemView.getContext(), textMessage, content);
+                // User message: use layout renderer for LaTeX/tables, plain render otherwise
+                boolean needsRich = content.contains("```")
+                        || content.contains("$$")
+                        || content.contains("\\[")
+                        || app.multiai.mobile.utils.MarkdownRenderer.containsInlineLatex(content)
+                        || app.multiai.mobile.utils.MarkdownRenderer.containsMarkdownTable(content);
+                if (needsRich && richContentContainer != null) {
+                    textMessage.setVisibility(View.GONE);
+                    richContentContainer.setVisibility(View.VISIBLE);
+                    richContentContainer.removeAllViews();
+                    app.multiai.mobile.utils.MarkdownRenderer.renderToLayout(
+                            itemView.getContext(), richContentContainer, content);
+                } else {
+                    if (richContentContainer != null) {
+                        richContentContainer.setVisibility(View.GONE);
+                        richContentContainer.removeAllViews();
+                    }
+                    textMessage.setVisibility(View.VISIBLE);
+                    app.multiai.mobile.utils.MarkdownRenderer.render(
+                        itemView.getContext(), textMessage, content);
+                }
             }
         }
+
+        private final app.multiai.mobile.ui.kit.StreamingReveal contentReveal =
+                new app.multiai.mobile.ui.kit.StreamingReveal();
 
         private void updateStreamingContent(String content) {
             if (isVisuallyBlank(content)) {
                 hideAiContent();
                 return;
             }
-            if (richContentContainer != null) {
+            // Check if content has LaTeX/tables/code that need layout rendering
+            boolean needsRich = content.contains("```")
+                    || content.contains("$$")
+                    || content.contains("\\[")
+                    || app.multiai.mobile.utils.MarkdownRenderer.containsInlineLatex(content)
+                    || app.multiai.mobile.utils.MarkdownRenderer.containsMarkdownTable(content);
+            if (needsRich && richContentContainer != null) {
+                // Rich blocks are finalized once; rebuilding their view trees per token blocks input.
                 richContentContainer.setVisibility(View.GONE);
-                richContentContainer.removeAllViews();
+                textMessage.setVisibility(View.VISIBLE);
+                app.multiai.mobile.utils.Telemoji.clearTracking(textMessage);
+                textMessage.setText(content);
+            } else {
+                if (richContentContainer != null) {
+                    richContentContainer.setVisibility(View.GONE);
+                    richContentContainer.removeAllViews();
+                }
+                textMessage.setVisibility(View.VISIBLE);
+                app.multiai.mobile.utils.Telemoji.clearTracking(textMessage);
+                app.multiai.mobile.utils.MarkdownRenderer.render(itemView.getContext(), textMessage,
+                        app.multiai.mobile.utils.StreamingMarkdown.prepare(content));
             }
-            textMessage.setVisibility(View.VISIBLE);
-            app.multiai.mobile.utils.Telemoji.clearTracking(textMessage);
-            app.multiai.mobile.utils.MarkdownRenderer.render(itemView.getContext(), textMessage,
-                    app.multiai.mobile.utils.StreamingMarkdown.prepare(content));
+            contentReveal.update(textMessage);
         }
 
         private void finishStreaming(Message message) {
+            contentReveal.reset();
             updateContent(message);
             updateThinking(message);
             updateActionBarVisibility(message);
@@ -1118,7 +1503,11 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
             if (thinkingBody == null || textThinking == null) return;
             boolean expanded = message.isThinkingExpanded();
             thinkingBody.setVisibility(expanded ? View.VISIBLE : View.GONE);
-            if (expanded) textThinking.setText(thinking);
+            if (expanded) {
+                // Markdown + LaTeX в reasoning, как в Work-режиме
+                app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
+                        itemView.getContext(), textThinking, thinking);
+            }
             ImageView toggle = itemView.findViewById(R.id.thinkingToggle);
             View header = itemView.findViewById(R.id.thinkingHeader);
             if (header != null) {
@@ -1128,7 +1517,8 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                     animateThinkingBody(nowExpanded, cleanThinkingForDisplay(
                             message.getThinkingContent()));
                     if (toggle != null) toggle.animate().rotation(nowExpanded ? 180f : 0f)
-                            .setDuration(180).start();
+                            .setDuration(app.multiai.mobile.ui.kit.MotionKit.duration(220))
+                            .setInterpolator(app.multiai.mobile.ui.kit.MotionKit.STANDARD_EASING).start();
                 });
             }
             if (toggle != null) toggle.setRotation(expanded ? 180f : 0f);
@@ -1139,13 +1529,15 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
             thinkingBody.animate().cancel();
             float shift = itemView.getResources().getDisplayMetrics().density * 4f;
             if (expand) {
-                textThinking.setText(thinking);
+                app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
+                        itemView.getContext(), textThinking, thinking);
                 textThinking.scrollTo(0, 0);
                 thinkingBody.setVisibility(View.VISIBLE);
                 thinkingBody.setAlpha(0f);
                 thinkingBody.setTranslationY(-shift);
                 thinkingBody.animate().alpha(1f).translationY(0f)
-                        .setDuration(180).start();
+                        .setDuration(app.multiai.mobile.ui.kit.MotionKit.duration(260))
+                        .setInterpolator(app.multiai.mobile.ui.kit.MotionKit.STANDARD_EASING).start();
             } else {
                 thinkingBody.animate().alpha(0f).translationY(-shift)
                         .setDuration(140)
@@ -1226,6 +1618,8 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
             if (renderSignature.equals(lastRenderSignature)) return;
             lastRenderSignature = renderSignature;
             widgetSlot.removeAllViews();
+            // Clear any leftover pressed state from the recycled holder
+            widgetSlot.setForeground(null);
 
             View widget = null;
             if (groupedCalls != null && !groupedCalls.isEmpty()) {
@@ -1280,6 +1674,10 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
         private final android.widget.TextView textErrorTitle;
         private final android.widget.TextView textErrorBody;
         private final android.widget.TextView textErrorCode;
+        private final View buttonErrorDismiss;
+        private final View buttonErrorDetails;
+        private final View buttonErrorCopy;
+        private final android.widget.TextView textErrorTechnical;
         private final View buttonRetry;
         private final View buttonSupport;
         private final View buttonAuth;
@@ -1289,6 +1687,10 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
             textErrorTitle = itemView.findViewById(R.id.textErrorTitle);
             textErrorBody = itemView.findViewById(R.id.textErrorBody);
             textErrorCode = itemView.findViewById(R.id.textErrorCode);
+            buttonErrorDismiss = itemView.findViewById(R.id.buttonErrorDismiss);
+            buttonErrorDetails = itemView.findViewById(R.id.buttonErrorDetails);
+            buttonErrorCopy = itemView.findViewById(R.id.buttonErrorCopy);
+            textErrorTechnical = itemView.findViewById(R.id.textErrorTechnical);
             buttonRetry = itemView.findViewById(R.id.buttonRetry);
             buttonSupport = itemView.findViewById(R.id.buttonSupport);
             buttonAuth = itemView.findViewById(R.id.buttonAuth);
@@ -1309,6 +1711,60 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 textErrorCode.setText(ctx.getString(R.string.kit_msg_error_code_prefix) + code);
             }
 
+            // Крестик: убрать карточку из списка.
+            if (buttonErrorDismiss != null) {
+                buttonErrorDismiss.setOnClickListener(v -> {
+                    RecyclerView.Adapter<?> adapter = getBindingAdapter();
+                    ChatModeMessagesAdapter self = adapter instanceof ChatModeMessagesAdapter
+                            ? (ChatModeMessagesAdapter) adapter : null;
+                    if (self != null) {
+                        self.removeMessage(message);
+                    }
+                });
+            }
+
+            // «Подробности»: раскрытие технического блока с сырыми данными ошибки.
+            if (buttonErrorDetails != null) {
+                boolean expanded = message.isErrorDetailsExpanded();
+                if (textErrorTechnical != null) {
+                    String tech = message.getErrorTechnical();
+                    textErrorTechnical.setText(tech != null && !tech.trim().isEmpty() ? tech
+                            : message.getErrorTitle() != null ? message.getErrorTitle() : code);
+                    textErrorTechnical.setVisibility(expanded ? View.VISIBLE : View.GONE);
+                }
+                ((android.widget.TextView) buttonErrorDetails).setText(ctx.getString(
+                        expanded ? R.string.kit_msg_error_details_hide : R.string.kit_msg_error_details));
+                buttonErrorDetails.setOnClickListener(v -> {
+                    message.setErrorDetailsExpanded(!message.isErrorDetailsExpanded());
+                    RecyclerView.Adapter<?> adapter = getBindingAdapter();
+                    int position = getBindingAdapterPosition();
+                    if (adapter instanceof ChatModeMessagesAdapter
+                            && position != RecyclerView.NO_POSITION) {
+                        ((ChatModeMessagesAdapter) adapter).notifyItemChanged(position);
+                    }
+                });
+            }
+
+            // «Копировать»: сырые данные ошибки в буфер обмена.
+            if (buttonErrorCopy != null) {
+                buttonErrorCopy.setOnClickListener(v -> {
+                    String copyText = message.getErrorTechnical();
+                    if (copyText == null || copyText.trim().isEmpty()) {
+                        copyText = (message.getErrorTitle() != null ? message.getErrorTitle() + "\n" : "")
+                                + (message.getContent() != null ? message.getContent() + "\n" : "")
+                                + code;
+                    }
+                    android.content.ClipboardManager cm =
+                            (android.content.ClipboardManager) ctx.getSystemService(
+                                    android.content.Context.CLIPBOARD_SERVICE);
+                    if (cm != null) {
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("error", copyText));
+                        android.widget.Toast.makeText(ctx, R.string.kit_msg_copied,
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
             boolean isAuthError = "MULTIAI-NOT-AUTHORIZED".equals(code)
                     || "MULTIAI-SESSION-EXPIRED".equals(code);
 
@@ -1317,8 +1773,10 @@ public class ChatModeMessagesAdapter extends RecyclerView.Adapter<RecyclerView.V
                 if (isAuthError) {
                     buttonAuth.setVisibility(View.VISIBLE);
                     buttonAuth.setOnClickListener(v -> {
-                        ctx.startActivity(new android.content.Intent(ctx,
-                                app.multiai.mobile.ui.ProfileActivity.class));
+                        android.content.Intent intent = new android.content.Intent(ctx,
+                                app.multiai.mobile.ui.ProfileActivity.class);
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                        ctx.startActivity(intent);
                     });
                 } else {
                     buttonAuth.setVisibility(View.GONE);

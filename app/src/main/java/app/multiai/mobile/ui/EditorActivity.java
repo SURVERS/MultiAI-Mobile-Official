@@ -288,7 +288,7 @@ public class EditorActivity extends AppCompatActivity {
         });
 
         recyclerTabs.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
-        recyclerTabs.setItemAnimator(null);
+        recyclerTabs.setItemAnimator(app.multiai.mobile.ui.kit.MotionKit.listAnimator());
         searchPanel.setVisibility(View.GONE);
 
         editCode.addTextChangedListener(new TextWatcher() {
@@ -472,14 +472,20 @@ public class EditorActivity extends AppCompatActivity {
             }
         }
 
-        openOrSwitchTab(fileUri, name, path);
+        int targetLine = intent.getIntExtra("line_number", -1);
+        openOrSwitchTab(fileUri, name, path, targetLine);
     }
 
     private void openOrSwitchTab(Uri uri, String name, String path) {
+        openOrSwitchTab(uri, name, path, -1);
+    }
+
+    private void openOrSwitchTab(Uri uri, String name, String path, int targetLine) {
         String target = uri.toString();
         for (int i = 0; i < tabs.size(); i++) {
             if (tabs.get(i).getUri().toString().equals(target)) {
                 switchToTab(i);
+                if (targetLine > 0) scrollToLine(targetLine);
                 return;
             }
         }
@@ -490,7 +496,29 @@ public class EditorActivity extends AppCompatActivity {
         EditorTab tab = new EditorTab(uri, name, path, extension, textFile);
         tabs.add(tab);
         switchToTab(tabs.size() - 1);
-        if (textFile) loadTextContent(tab);
+        if (textFile) {
+            loadTextContent(tab);
+            if (targetLine > 0) {
+                // Scroll to line after content loads
+                final int line = targetLine;
+                editCode.postDelayed(() -> scrollToLine(line), 300);
+            }
+        }
+    }
+
+    /** Scroll the editor to a specific line number. */
+    private void scrollToLine(int lineNumber) {
+        if (editCode == null || editCode.getLayout() == null) return;
+        try {
+            int line = Math.max(0, lineNumber - 1); // 0-based
+            int offset = editCode.getLayout().getLineStart(line);
+            editCode.setSelection(offset);
+            // Also scroll vertically to show the line
+            int y = editCode.getLayout().getLineTop(line);
+            editCode.scrollTo(0, y - editCode.getHeight() / 3);
+        } catch (Exception ignored) {
+            // Line out of range, ignore
+        }
     }
 
     /** Loads the full file, then splits it into pages for display. */
@@ -890,7 +918,7 @@ public class EditorActivity extends AppCompatActivity {
         view.setAlpha(0f);
         view.setVisibility(View.VISIBLE);
         view.animate().cancel();
-        view.animate().alpha(1f).setDuration(140).start();
+        view.animate().alpha(1f).setDuration(app.multiai.mobile.ui.kit.MotionKit.duration(180L)).start();
     }
 
     /**
@@ -907,7 +935,7 @@ public class EditorActivity extends AppCompatActivity {
         view.animate().cancel();
         view.animate()
                 .alpha(0f)
-                .setDuration(120)
+                .setDuration(app.multiai.mobile.ui.kit.MotionKit.duration(150L))
                 .withEndAction(() -> {
                     view.setVisibility(View.GONE);
                     view.setAlpha(1f);

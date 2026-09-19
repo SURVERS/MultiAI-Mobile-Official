@@ -32,7 +32,7 @@ import okio.BufferedSource;
 public final class TtsEngine {
 
     private static final String TAG = "TtsEngine";
-    private static final String EDGE_URL = "https://backend-tau-ten-80.vercel.app/api/edge-tts";
+    private static final String EDGE_URL = "https://multiai-api.vercel.app/api/edge-tts";
     private static final String QWEN_URL = "https://qwen-qwen3-tts-demo.hf.space";
 
     private static final java.util.Set<Character> RU_LETTERS = new java.util.HashSet<>();
@@ -120,9 +120,9 @@ public final class TtsEngine {
                 .header("Accept", "application/json")
                 .header("User-Agent", "MultiAI-Mobile/1.0 (Android)")
                 .post(reqBody);
-        String accessToken = OAuthSession.get().getAccessToken();
-        if (accessToken != null && !accessToken.trim().isEmpty()) {
-            requestBuilder.header("Authorization", "Bearer " + accessToken);
+        String bearer = app.multiai.mobile.network.BackendApi.bearerToken();
+        if (bearer != null) {
+            requestBuilder.header("Authorization", bearer);
         }
         Request req = requestBuilder.build();
 

@@ -1,25 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Skills: колба/флакон — навык как "сваренная формула" инструкций -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp"
-    android:viewportWidth="24" android:viewportHeight="24">
-    <path
-        android:pathData="M9,3H15M10,3V8.2L5.6,16.4C4.8,17.9 5.9,19.7 7.6,19.7H16.4C18.1,19.7 19.2,17.9 18.4,16.4L14,8.2V3"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="1.7"
-        android:fillColor="#00000000"
-        android:strokeLineJoin="round"
-        android:strokeLineCap="round" />
-    <path
-        android:pathData="M7.8,14.5H16.2"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="1.4"
-        android:fillColor="#00000000"
-        android:strokeLineCap="round" />
-    <path
-        android:pathData="M10.6,16.9L10.6,16.9M13.4,17.6L13.4,17.6"
-        android:strokeColor="@color/text_primary"
-        android:strokeWidth="1.9"
-        android:fillColor="#00000000"
-        android:strokeLineCap="round" />
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24.000000dip" android:width="24.000000dip" android:viewportWidth="24.000000" android:viewportHeight="24.000000">
+  <path android:fillColor="@color/icon" android:pathData="M19,17.329C19,16.704 18.781,16.099 18.381,15.619L17.957,15.111C16.621,15.681 15.503,15.936 14.486,15.989C13.36,16.048 12.418,15.855 11.558,15.66C10.685,15.463 9.911,15.269 8.963,15.22C8.071,15.173 7.001,15.258 5.599,15.644C5.212,16.12 5,16.715 5,17.329C5,18.804 6.196,20 7.671,20H16.329C17.804,20 19,18.804 19,17.329ZM14,4H10V9.276C10,9.978 9.754,10.657 9.305,11.196L7.595,13.248C8.119,13.204 8.607,13.198 9.066,13.222C10.221,13.282 11.178,13.524 11.999,13.71C12.832,13.898 13.548,14.036 14.383,13.992C15.002,13.96 15.721,13.825 16.612,13.496L14.695,11.196C14.246,10.657 14,9.978 14,9.276V4ZM16,9.276C16,9.51 16.082,9.736 16.231,9.916L19.917,14.339C20.617,15.178 21,16.236 21,17.329C21,19.909 18.909,22 16.329,22H7.671C5.091,22 3,19.909 3,17.329C3,16.236 3.383,15.178 4.083,14.339L7.769,9.916C7.918,9.736 8,9.51 8,9.276V4C7.448,4 7,3.552 7,3C7,2.448 7.448,2 8,2H16C16.552,2 17,2.448 17,3C17,3.552 16.552,4 16,4V9.276Z"/>
 </vector>

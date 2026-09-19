@@ -16,6 +16,12 @@
     <string name="custom_provider_api_key">API-ключ</string>
     <string name="custom_provider_base_url">Base URL</string>
     <string name="custom_provider_auto_fetch_note">Список моделей подгрузится автоматически из /v1/models</string>
+    <string name="custom_provider_model_id">ID модели (необязательно)</string>
+    <string name="custom_provider_model_id_hint">Например, gpt-4o, claude-3-opus</string>
+    <string name="custom_provider_model_id_note">Если указан — добавится вручную, даже если /v1/models недоступен</string>
+    <string name="custom_provider_model_added">Модель «%1$s» добавлена</string>
+    <string name="custom_provider_model_exists">Модель уже есть в списке</string>
+    <string name="custom_provider_model_deleted">Модель удалена</string>
     <string name="custom_provider_models">Модели</string>
     <string name="custom_provider_add_model">Добавить модель</string>
     <string name="custom_provider_model_hint">ID модели, например gpt-4o</string>

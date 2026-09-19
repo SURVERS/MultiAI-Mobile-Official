@@ -249,6 +249,24 @@ public class OAuthLoginController {
             if (idProfile != null && !idProfile.sub.equals(userProfile.sub)) {
                 throw new OAuthClient.OAuthException("userinfo_sub_mismatch");
             }
+
+            // Если userinfo не вернул picture, пробуем вытащить avatar_url из snapshot
+            // (backend-хранит canonical avatar там, а desktop читает именно его).
+            if (isBlank(userProfile.picture)) {
+                try {
+                    JSONObject snapshot = accountApi.snapshot();
+                    String snapshotAvatar = OAuthAvatar.fromProfileJson(snapshot.optJSONObject("user"));
+                    if (!isBlank(snapshotAvatar)) {
+                        userProfile = new OAuthStore.ProfileClaims(
+                                userProfile.sub, userProfile.name, snapshotAvatar,
+                                userProfile.email, userProfile.preferredUsername,
+                                userProfile.telegram, userProfile.authTime, userProfile.scope);
+                    }
+                } catch (Exception ignored) {
+                    // snapshot может не отдаться (нет scope/сеть) — не блокируем логин
+                }
+            }
+
             OAuthStore.ProfileClaims profile = mergeProfiles(userProfile, idProfile, tokens.scope);
             OAuthRefreshCoordinator.LoginPublishResult result =
                     OAuthRefreshCoordinator.publishLogin(context, attempt.sessionEpoch,
@@ -288,6 +306,23 @@ public class OAuthLoginController {
         if (current == null || isBlank(accessToken)) return false;
         OAuthStore.ProfileClaims profile = parseProfileClaims(
                 client.fetchUserinfo(current, accessToken), OAuthSession.get().getScope());
+
+        // Fallback: если userinfo.picture пуст, пробуем snapshot.user.avatar_url
+        if (isBlank(profile.picture)) {
+            try {
+                JSONObject snapshot = accountApi.snapshot();
+                String snapshotAvatar = OAuthAvatar.fromProfileJson(snapshot.optJSONObject("user"));
+                if (!isBlank(snapshotAvatar)) {
+                    profile = new OAuthStore.ProfileClaims(
+                            profile.sub, profile.name, snapshotAvatar,
+                            profile.email, profile.preferredUsername,
+                            profile.telegram, profile.authTime, profile.scope);
+                }
+            } catch (Exception ignored) {
+                // snapshot недоступен — не ломаем refresh
+            }
+        }
+
         if (!store.updateProfile(profile)) return false;
         notifyProfileUpdated();
         return true;

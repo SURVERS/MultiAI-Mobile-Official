@@ -46,6 +46,116 @@ public final class VoiceCatalog {
             return sb.toString();
         }
 
+        /** Подпись в английской локали: gender · accent через английские переводы. */
+        public String subtitle(boolean english) {
+            if (!english) return subtitle();
+            StringBuilder sb = new StringBuilder();
+            if (!gender.isEmpty()) sb.append(mapGenderEn(gender));
+            if (!accent.isEmpty()) {
+                if (sb.length() > 0) sb.append(" · ");
+                sb.append(mapAccentEn(accent));
+            }
+            return sb.toString();
+        }
+
+        private static String mapGenderEn(String g) {
+            if ("Мужской".equals(g)) return "Male";
+            if ("Женский".equals(g)) return "Female";
+            if ("Мультиязычный".equals(g)) return "Multilingual";
+            return g;
+        }
+
+        private static String mapAccentEn(String a) {
+            if (a == null || a.isEmpty()) return a;
+            if (a.equals("Русский")) return "Russian";
+            if (a.equals("Английский")) return "English";
+            if (a.equals("Английский (AU)")) return "English (AU)";
+            if (a.equals("Немецкий")) return "German";
+            if (a.equals("Французский")) return "French";
+            if (a.equals("Итальянский")) return "Italian";
+            if (a.equals("Португальский")) return "Portuguese";
+            if (a.equals("Корейский")) return "Korean";
+            if (a.equals("Японский")) return "Japanese";
+            if (a.equals("Испанский")) return "Spanish";
+            return a;
+        }
+
+        /** Отображаемое имя голоса на нужном языке интерфейса. */
+        public String displayName(boolean english) {
+            if (!english) return display;
+            String en = EN_DISPLAY.get(display);
+            return en != null ? en : display;
+        }
+
+        private static final java.util.Map<String, String> EN_DISPLAY;
+        static {
+            java.util.Map<String, String> m = new java.util.HashMap<>();
+            m.put("Светлана", "Svetlana");
+            m.put("Дмитрий", "Dmitry");
+            m.put("Ава", "Ava");
+            m.put("Эмма", "Emma");
+            m.put("Эндрю", "Andrew");
+            m.put("Брайан", "Brian");
+            m.put("Уильям", "William");
+            m.put("Серафина", "Seraphina");
+            m.put("Флориан", "Florian");
+            m.put("Вивьен", "Vivienne");
+            m.put("Реми", "Rémy");
+            m.put("Джузеппе", "Giuseppe");
+            m.put("Талита", "Thalita");
+            m.put("Хёнсу", "Hyunsu");
+            m.put("Черри", "Cherry");
+            m.put("Серена", "Serena");
+            m.put("Итан", "Ethan");
+            m.put("Челси", "Chelsie");
+            m.put("Момо", "Momo");
+            m.put("Вивиан", "Vivian");
+            m.put("Мун", "Moon");
+            m.put("Майя", "Maia");
+            m.put("Кай", "Kai");
+            m.put("Нофиш", "Nofish");
+            m.put("Белла", "Bella");
+            m.put("Дженнифер", "Jennifer");
+            m.put("Райан", "Ryan");
+            m.put("Катерина", "Katerina");
+            m.put("Эйден", "Aiden");
+            m.put("Бодега", "Bodega");
+            m.put("Алекс", "Alek");
+            m.put("Дольче", "Dolce");
+            m.put("Сохи", "Sohee");
+            m.put("Онно Анна", "Ono Anna");
+            m.put("Ленн", "Lenn");
+            m.put("Сонриса", "Sonrisa");
+            m.put("Эмильен", "Emilien");
+            m.put("Андре", "André");
+            m.put("Радио Гол", "Radio Gol");
+            m.put("Элдрик Сейдж", "Eldric Sage");
+            m.put("Миа", "Mia");
+            m.put("Мочи", "Mochi");
+            m.put("Беллона", "Bellona");
+            m.put("Винсент", "Vincent");
+            m.put("Банни", "Bunny");
+            m.put("Нил", "Neil");
+            m.put("Элиас", "Elias");
+            m.put("Артур", "Arthur");
+            m.put("Нини", "Nini");
+            m.put("Эбона", "Ebona");
+            m.put("Серен", "Seren");
+            m.put("Пип", "Pip");
+            m.put("Стелла", "Stella");
+            m.put("Ли", "Li");
+            m.put("Маркус", "Marcus");
+            m.put("Рой", "Roy");
+            m.put("Питер", "Peter");
+            m.put("Эрик", "Eric");
+            m.put("Рокки", "Rocky");
+            m.put("Кики", "Kiki");
+            m.put("Санни", "Sunny");
+            m.put("Джада", "Jada");
+            m.put("Дилан", "Dylan");
+            EN_DISPLAY = java.util.Collections.unmodifiableMap(m);
+        }
+
         /** Уникальная короткая фраза для предпрослушивания каждого голоса. */
         public String previewText() {
             switch (id) {
@@ -180,6 +290,143 @@ public final class VoiceCatalog {
                     return "Дилан на связи: собираю режим турбо, но головой вперёд в стену не бежим.";
                 default:
                     return "Я " + display + ". Кидай идею — соберём из неё что-то по-настоящему классное.";
+            }
+        }
+
+        public String previewText(boolean english) {
+            if (!english) return previewText();
+            switch (id) {
+                // Edge TTS
+                case "ru-RU-SvetlanaNeural":
+                    return "Svetlana here: let’s turn “I don’t know where to start” into a solid win.";
+                case "ru-RU-DmitryNeural":
+                    return "Dmitry on the line: drop the task, I’m already warming up my brain.";
+                case "en-US-AvaMultilingualNeural":
+                    return "Ava is in: even a code storm can be shaped into one beautiful ship.";
+                case "en-US-EmmaMultilingualNeural":
+                    return "Emma here: from “I give up” to “done, it works” — one good plan away.";
+                case "en-US-AndrewMultilingualNeural":
+                    return "Andrew on air: no panic, bugs sometimes just want a little attention.";
+                case "en-US-BrianMultilingualNeural":
+                    return "Brian connected: take the chaos, add logic, drop the cringe.";
+                case "en-AU-WilliamMultilingualNeural":
+                    return "William vibing: let’s build something you’ll want to show off.";
+                case "de-DE-SeraphinaMultilingualNeural":
+                    return "Seraphina here: ideas don’t bite, but I’ll bring cookies anyway.";
+                case "de-DE-FlorianMultilingualNeural":
+                    return "Florian on deck: gathering focus piece by piece, like a rare drop.";
+                case "fr-FR-VivienneMultilingualNeural":
+                    return "Vivienne is in: let’s do it neat, stylish, and without the boring quest.";
+                case "fr-FR-RemyMultilingualNeural":
+                    return "Remy here: if a task looks scary, we split it and win.";
+                case "it-IT-GiuseppeMultilingualNeural":
+                    return "Giuseppe on the line: a pinch of magic, but the code stays honest.";
+                case "pt-BR-ThalitaMultilingualNeural":
+                    return "Thalita ready for action: code, ideas, or a clever move — pick a mode.";
+                case "ko-KR-HyunsuMultilingualNeural":
+                    return "Hyunsu on it: catching your idea mid-air so it never lands in drafts.";
+
+                // Qwen3 TTS
+                case "Cherry / 芊悦":
+                    return "Cherry here: let’s toss your idea in the blender and pull out something juicy.";
+                case "Serena / 苏瑶":
+                    return "Serena on the line: even a tricky task feels like an easy quest today.";
+                case "Ethan / 晨煦":
+                    return "Ethan in the game: lining up the thoughts into a tight crew, no extra noise.";
+                case "Chelsie / 千雪":
+                    return "Chelsie dropped in: we can go fast, clean, and not turn it into spaghetti.";
+                case "Momo / 茉兔":
+                    return "Momo here: I’m small, but the plan for your big idea is already ready.";
+                case "Vivian / 十三":
+                    return "Vivian vibing: taking your “what if” and turning it into “let’s go”.";
+                case "Moon / 月白":
+                    return "Moon on air: night-brain mode is on, let’s build something cool.";
+                case "Maia / 四月":
+                    return "Maia here: adding a fresh take so your idea blooms instead of stalling.";
+                case "Kai / 凯":
+                    return "Kai connected: short, sharp, to the point — and with a good vibe.";
+                case "Nofish / 不吃鱼":
+                    return "Nofish on deck: I don’t eat bugs, but I catch them faster than they hide.";
+                case "Bella / 萌宝":
+                    return "Bella in chat: let’s make it so good even the draft smiles.";
+                case "Jennifer / 詹妮弗":
+                    return "Jennifer here: calm voice, bold idea, zero stuffiness.";
+                case "Ryan / 甜茶":
+                    return "Ryan is in: if there’s a task, there’s already a shot at making it legendary.";
+                case "Katerina / 卡捷琳娜":
+                    return "Katerina on the line: untangling this knot so even the threads get surprised.";
+                case "Aiden / 艾登":
+                    return "Aiden on it: first clear, then beautiful, then wow.";
+                case "Bodega / 西班牙语-博德加":
+                    return "Bodega here: adding some fire to the idea, but no production fire.";
+                case "Alek / 俄语-阿列克":
+                    return "Alek on the line: there’s a plan, there’s tea, we just need to crush the task.";
+                case "Dolce / 意大利语-多尔切":
+                    return "Dolce on air: smooth on the delivery, hard on the results.";
+                case "Sohee / 韩语-素熙":
+                    return "Sohee here: catching the details that usually hide behind “I’ll fix it later”.";
+                case "Ono Anna / 日语-小野杏":
+                    return "Ono Anna here: a small step now — a big plus for the next version.";
+                case "Lenn / 德语-莱恩":
+                    return "Lenn connected: order in thoughts, speed in work, zero fuss.";
+                case "Sonrisa / 西班牙语拉美-索尼莎":
+                    return "Sonrisa smiles: let’s add some color to the task and value to the answer.";
+                case "Emilien / 法语-埃米尔安":
+                    return "Emilien vibing: turning your ideas into a route that’s nice to follow.";
+                case "Andre / 葡萄牙语欧-安德雷":
+                    return "Andre here: no magic promised, but something very close to it — easily.";
+                case "Radio Gol / 葡萄牙语巴-拉迪奥·戈尔":
+                    return "Radio Gol on air: breaking news — your idea just got stronger.";
+                case "Eldric Sage / 精品百人-沧明子":
+                    return "Eldric Sage says: the ancient scroll advises not to fear the first commit.";
+                case "Mia / 精品百人-乖小妹":
+                    return "Mia here: let’s make it cute on the outside and very smart on the inside.";
+                case "Mochi / 精品百人-沙小弥":
+                    return "Mochi is in: soft vibe, solid plan, and not a single dull point.";
+                case "Bellona / 精品百人-燕铮莺":
+                    return "Bellona on the line: time to give the task an epic soundtrack and a real fix.";
+                case "Vincent / 精品百人-田叔":
+                    return "Vincent here: building a serious result without a serious face.";
+                case "Bunny / 精品百人-萌小姬":
+                    return "Bunny hops in: let’s sort it all out, and it’ll be clear in a snap.";
+                case "Neil / 精品百人-阿闻":
+                    return "Neil on it: fewer doubts, more tests, and one pleasant finish.";
+                case "Elias / 墨讲师":
+                    return "Elias here: smart-explainer mode is on, no one falls asleep on the second word.";
+                case "Arthur / 精品百人-徐大爷":
+                    return "Arthur says: I’ve seen bugs like these a hundred times, and they always give up.";
+                case "Nini / 精品百人-邻家妹妹":
+                    return "Nini vibing: let’s shape this idea into something you’ll actually love.";
+                case "Ebona / 精品百人-诡婆婆":
+                    return "Ebona whispers: the dark bug forest is cleared, the exit is found, the light is on.";
+                case "Seren / 精品百人-小婉":
+                    return "Seren here: adding calm to the chaos and a spark to the dullest task.";
+                case "Pip / 精品百人-调皮小新":
+                    return "Pip is in: let’s give the bugs a small but very deserved beatdown.";
+                case "Stella / 精品百人-美少女阿月":
+                    return "Stella on the line: turning on star mode, but I still remember the deadline.";
+                case "Li / 南京-老李":
+                    return "Li here: no small talk — grab the tool, do the work, take the win.";
+                case "Marcus / 陕西-秦川":
+                    return "Marcus on air: if the road is long, we just take the first step in style.";
+                case "Roy / 闽南-阿杰":
+                    return "Roy connected: pulling the best out of this thought, archiving the rest.";
+                case "Peter / 天津-李彼得":
+                    return "Peter here: task accepted, mood is up, and the “give up” button is gone.";
+                case "Eric / 四川-程川":
+                    return "Eric on deck: catching the point faster than autocomplete can suggest.";
+                case "Rocky / 粤语-阿强":
+                    return "Rocky on it: getting this idea off the couch and out to conquer the world.";
+                case "Kiki / 粤语-阿清":
+                    return "Kiki here: making it look easy, while it’s pure engineering magic inside.";
+                case "Sunny / 四川-晴儿":
+                    return "Sunny shines in: even the grumpiest bug gets a sunny fix today.";
+                case "Jada / 上海-阿珍":
+                    return "Jada here: giving the task some character and the fix that crisp finish.";
+                case "Dylan / 北京-晓东":
+                    return "Dylan on the line: turbo mode is on, but we don’t run headfirst into walls.";
+                default:
+                    return "This is " + displayName(true) + ". Share your idea — let’s turn it into something truly great.";
             }
         }
     }

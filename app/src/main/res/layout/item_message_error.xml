@@ -202,24 +202,26 @@
                         android:fontFamily="sans-serif-medium" />
                 </LinearLayout>
 
-                <!-- Auth button (только для auth/session ошибок) -->
-                <com.google.android.material.button.MaterialButton
+                <!-- Auth chip (только для auth/session ошибок): мягкая индиго-подложка
+                     вместо белой заливки, текст в одну строку без обреза -->
+                <TextView
                     android:id="@+id/buttonAuth"
                     android:layout_width="wrap_content"
-                    android:layout_height="32dp"
+                    android:layout_height="36dp"
                     android:layout_marginStart="8dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
+                    android:gravity="center"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
                     android:text="@string/chat_err_auth_button"
-                    android:textColor="@color/icon_on_accent"
+                    android:textColor="@color/error_auth_text"
                     android:textSize="12.5sp"
                     android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:visibility="gone"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    app:backgroundTint="@color/accent"
-                    app:cornerRadius="9dp" />
+                    android:background="@drawable/error_chip_auth_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <TextView

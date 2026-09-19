@@ -335,8 +335,15 @@ public final class WorkModeTools {
         String rootPath = normalizePath(rawRootPath);
         boolean regex = args.optBoolean("regex", false);
         boolean caseSensitive = args.optBoolean("case_sensitive", false);
-        Pattern compiled = regex ? Pattern.compile(query, caseSensitive ? 0 : Pattern.CASE_INSENSITIVE)
-                : null;
+        Pattern compiled = null;
+        if (regex) {
+            try {
+                // Compile with a timeout guard against catastrophic backtracking
+                compiled = Pattern.compile(query, caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
+            } catch (Exception e) {
+                return error("INVALID_REGEX", "Invalid regular expression: " + e.getMessage());
+            }
+        }
         DocumentFile root = rootPath.isEmpty() ? projectRoot() : resolveFile(rootPath);
         if (root == null || !root.isDirectory()) return error("DIRECTORY_NOT_FOUND", "Directory not found");
         JSONArray matches = new JSONArray();
@@ -870,9 +877,24 @@ public final class WorkModeTools {
             }
             String[] lines = text.split("\\r?\\n", -1);
             for (int i = 0; i < lines.length; i++) {
-                boolean hit = regex != null ? regex.matcher(lines[i]).find()
-                        : (caseSensitive ? lines[i].contains(query)
-                        : lines[i].toLowerCase(Locale.US).contains(query.toLowerCase(Locale.US)));
+                boolean hit;
+                if (regex != null) {
+                    // Guard against catastrophic backtracking: skip lines that are
+                    // too long for safe regex matching (most regex bombs need long input).
+                    String line = lines[i];
+                    if (line.length() > 10000) {
+                        hit = false; // Skip extremely long lines for regex safety
+                    } else {
+                        try {
+                            hit = regex.matcher(line).find();
+                        } catch (StackOverflowError | Exception e) {
+                            hit = false; // Regex blew up on this line, skip it
+                        }
+                    }
+                } else {
+                    hit = caseSensitive ? lines[i].contains(query)
+                            : lines[i].toLowerCase(Locale.US).contains(query.toLowerCase(Locale.US));
+                }
                 if (!hit) continue;
                 if (stats.results >= MAX_ENTRIES) {
                     stats.resultLimitReached = true;

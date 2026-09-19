@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Чёрная карточка без обводки: заливка = канва (в тёмной теме OLED-чёрная).
+     Различимость держится прессом + текстом/иконками, без бордера. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
         <shape>
-            <solid android:color="@color/surface_elevated" />
+            <solid android:color="@color/surface_tonal" />
             <corners android:radius="14dp" />
         </shape>
     </item>
     <item>
         <shape>
-            <solid android:color="@color/surface_tonal" />
+            <solid android:color="@color/bg" />
             <corners android:radius="14dp" />
         </shape>
     </item>

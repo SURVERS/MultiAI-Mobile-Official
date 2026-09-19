@@ -89,7 +89,7 @@
     <string name="lay_web_search">Web search</string>
 
     <!-- ═══════════════ widget_save_memory.xml ═══════════════ -->
-    <string name="lay_memory_saved">Saved to memory</string>
+    <string name="lay_memory_saved">Memory updated</string>
 
     <!-- ═══════════════ item_chat_list.xml ═══════════════ -->
     <string name="lay_new_chat">New chat</string>
@@ -280,6 +280,11 @@
     <string name="store_subscriptions">Subscriptions</string>
     <string name="store_recommended">Recommended</string>
     <string name="store_per_month">/ month</string>
+    <string name="store_period_p1m">month</string>
+    <string name="store_period_p3m">3 months</string>
+    <string name="store_period_p6m">6 months</string>
+    <string name="store_period_p1y">year</string>
+    <string name="store_period_p7d">week</string>
     <string name="store_features">Features</string>
     <string name="store_buy">Buy</string>
     <string name="store_sub_pro_tagline">A comfortable start for personal tasks at a relaxed pace.</string>
@@ -307,6 +312,18 @@
     <string name="profile_promo_title">Promo code</string>
     <string name="profile_promo_hint">Enter promo code</string>
     <string name="profile_promo_activate">Activate</string>
+    <string name="profile_my_keys">My keys</string>
+    <string name="device_banned_title">Access restricted</string>
+    <string name="device_banned_title_alt">Access to MultiAI services is restricted</string>
+    <string name="device_banned_message">This device has been blocked. Contact MultiAI support.</string>
+    <string name="device_banned_exit">Close</string>
+    <string name="settings_report_bug">Report a bug</string>
+    <string name="report_bug_title">Report a bug</string>
+    <string name="report_bug_hint">Describe what happened: what you did, what went wrong…</string>
+    <string name="report_bug_send">Send</string>
+    <string name="report_bug_sent">Thanks! The report was sent to the developers</string>
+    <string name="report_bug_failed">Could not send. Try again later</string>
+    <string name="report_bug_empty">Describe the problem first</string>
     <string name="profile_plan_tokens">Tokens in plan</string>
     <string name="profile_plan_requests">Requests per month</string>
     <string name="profile_plan_next">Next payment</string>

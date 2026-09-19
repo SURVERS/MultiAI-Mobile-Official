@@ -55,7 +55,7 @@
     <string name="report_bug">Сообщить об ошибке</string>
     <string name="about">Информация</string>
     <string name="logout">Выйти</string>
-    <string name="drawer_version">Версия 1.3</string>
+    <string name="drawer_version">Версия %s</string>
     <string name="archive_title">Архив</string>
     <string name="archive_empty_title">Архив пуст</string>
     <string name="archive_empty_subtitle">Архивированные чаты появятся здесь</string>

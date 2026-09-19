@@ -3,11 +3,13 @@ package app.multiai.mobile.adapters;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.TypedValue;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -54,6 +56,181 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     private static final Handler handler = new Handler(Looper.getMainLooper());
     private OnErrorRetryListener errorRetryListener;
 
+    /** Никнейм юзера и имя текущей модели для форматирования при копировании. */
+    private static String userNickname = "";
+    private static String currentModelName = "";
+
+    public void setUserNickname(String nickname) {
+        userNickname = nickname != null ? nickname.trim() : "";
+    }
+
+    public void setCurrentModelName(String name) {
+        currentModelName = name != null ? name.trim() : "";
+    }
+
+    /** Текст сообщения пользователя для копирования — без никнейма-префикса. */
+    public static String formatUserForCopy(Message message) {
+        String content = message.getContent();
+        return content != null ? content : "";
+    }
+
+    /** Форматирование ответа AI для копирования: «*Thinking*\n…\nAI (модель): ответ». */
+    public static String formatAiForCopy(Message message) {
+        StringBuilder sb = new StringBuilder();
+        String thinking = message.getThinkingContent();
+        if (thinking != null && !thinking.trim().isEmpty()) {
+            sb.append("*Thinking*\n").append(thinking.trim()).append("\n\n");
+        }
+        String model = currentModelName != null && !currentModelName.isEmpty() ? currentModelName : "AI";
+        sb.append("AI (").append(model).append("): ");
+        String content = message.getContent();
+        if (content != null) {
+            if (thinking != null && !thinking.trim().isEmpty()) {
+                String trimmedThinking = thinking.trim();
+                String trimmedContent = content.trim();
+                if (trimmedContent.startsWith(trimmedThinking)) {
+                    content = content.substring(content.indexOf(trimmedThinking) + trimmedThinking.length()).trim();
+                }
+            }
+            sb.append(content);
+        }
+        return sb.toString();
+    }
+
+    /** Форматирование даты/времени для заголовка popup-sheet: «Вчера, 14:30» или «Сегодня, 14:30» или «12 сен, 14:30». */
+    static String formatMessageDate(Context ctx, long timestamp) {
+        if (timestamp <= 0) return "";
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        java.util.Calendar msg = java.util.Calendar.getInstance();
+        msg.setTimeInMillis(timestamp);
+        boolean sameDay = now.get(java.util.Calendar.YEAR) == msg.get(java.util.Calendar.YEAR)
+                && now.get(java.util.Calendar.DAY_OF_YEAR) == msg.get(java.util.Calendar.DAY_OF_YEAR);
+        java.util.Calendar yesterday = java.util.Calendar.getInstance();
+        yesterday.add(java.util.Calendar.DAY_OF_YEAR, -1);
+        boolean isYesterday = now.get(java.util.Calendar.YEAR) == yesterday.get(java.util.Calendar.YEAR)
+                && yesterday.get(java.util.Calendar.DAY_OF_YEAR) == msg.get(java.util.Calendar.DAY_OF_YEAR);
+        java.text.SimpleDateFormat timeFmt = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+        String time = timeFmt.format(msg.getTime());
+        if (sameDay) return time;
+        if (isYesterday) return ctx.getString(R.string.chat_yesterday) + ", " + time;
+        java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault());
+        return dateFmt.format(msg.getTime()) + ", " + time;
+    }
+
+    /** Показать popup-sheet рядом с сообщением: Скопировать/Выделить текст (без даты и share). */
+    private void showMessagePopup(View anchor, Message message) {
+        Context ctx = anchor.getContext();
+        boolean isUser = message.getType() == Message.TYPE_USER;
+
+        java.util.List<app.multiai.mobile.ui.kit.ModernSheet.MenuItem> items = new java.util.ArrayList<>();
+        items.add(new app.multiai.mobile.ui.kit.ModernSheet.MenuItem(
+                ctx.getString(R.string.kit_msg_action_copy), R.drawable.ic_action_copy, false, null));
+        items.add(new app.multiai.mobile.ui.kit.ModernSheet.MenuItem(
+                ctx.getString(R.string.kit_msg_action_select_text), R.drawable.file_document, false, null));
+        if (isUser) {
+            items.add(new app.multiai.mobile.ui.kit.ModernSheet.MenuItem(
+                    ctx.getString(R.string.chat_edit), R.drawable.ic_edit_pencil, false, null));
+        }
+
+        app.multiai.mobile.ui.kit.ModernMenu.show(anchor, null, items, (idx, item) -> {
+            if (idx == 0) {
+                // Скопировать
+                android.content.ClipboardManager cm = (android.content.ClipboardManager)
+                        ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                if (cm != null) {
+                    String text = isUser ? formatUserForCopy(message) : formatAiForCopy(message);
+                    cm.setPrimaryClip(android.content.ClipData.newPlainText("message", text));
+                    if (ctx instanceof android.app.Activity) {
+                        app.multiai.mobile.ui.kit.ModernToast.show((android.app.Activity) ctx,
+                                ctx.getString(R.string.kit_msg_copied));
+                    }
+                }
+            } else if (idx == 1) {
+                // Выделить текст — bottom sheet с полным текстом для выделения
+                showSelectTextSheet(anchor, message);
+            } else if (idx == 2 && isUser) {
+                // Изменить — enable inline editing mode
+                message.setEditing(true);
+                int pos = messages.indexOf(message);
+                if (pos >= 0) notifyItemChanged(pos);
+            }
+        });
+    }
+
+    /** Bottom sheet «Выбрать текст»: чистый текст сообщения для выделения и копирования. */
+    private void showSelectTextSheet(View anchor, Message message) {
+        Context ctx = anchor.getContext();
+        if (!(ctx instanceof android.app.Activity)) return;
+        android.app.Activity activity = (android.app.Activity) ctx;
+
+        // Сырой текст без служебных префиксов «Никнейм:» / «AI (модель):» —
+        // в шите должно быть ровно то, что сказал собеседник.
+        String fullText = message.getContent() != null ? message.getContent() : "";
+        if (fullText.isEmpty()) return;
+
+        android.widget.LinearLayout body = new android.widget.LinearLayout(activity);
+        body.setOrientation(android.widget.LinearLayout.VERTICAL);
+
+        android.widget.ScrollView scroll = new android.widget.ScrollView(activity);
+        android.widget.TextView textView = new android.widget.TextView(activity);
+        textView.setText(fullText);
+        textView.setTextColor(androidx.core.content.ContextCompat.getColor(activity, R.color.text_primary));
+        textView.setTextSize(15);
+        textView.setTextIsSelectable(true);
+        textView.setHighlightColor(androidx.core.graphics.ColorUtils.setAlphaComponent(
+                androidx.core.content.ContextCompat.getColor(activity, R.color.accent), 66));
+        textView.setLineSpacing(0, 1.2f);
+        scroll.addView(textView, new android.widget.ScrollView.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+        // Высота ~полэкрана: и на коротком тексте шит не слипается, и длинный скроллится
+        scroll.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                (int) (activity.getResources().getDisplayMetrics().heightPixels * 0.45)));
+        body.addView(scroll);
+
+        app.multiai.mobile.ui.kit.ModernSheet.custom(activity,
+                ctx.getString(R.string.kit_msg_action_select_text), body, true);
+    }
+
+    /** Включить нативное выделение текста для конкретного сообщения. */
+    private void enableTextSelection(View anchor, Message message) {
+        if (message.getType() == Message.TYPE_AI) {
+            // Для AI ищем TextView внутри itemView
+            android.widget.TextView target = findSelectableTextView((android.view.ViewGroup) anchor);
+            if (target != null) {
+                target.setTextIsSelectable(true);
+                target.requestFocus();
+                
+            }
+        } else {
+            // Для user — ищем TextView внутри itemView
+            android.widget.TextView target = findSelectableTextView((android.view.ViewGroup) anchor);
+            if (target != null) {
+                target.setTextIsSelectable(true);
+                target.requestFocus();
+                
+            }
+        }
+    }
+
+    private android.widget.TextView findSelectableTextView(android.view.ViewGroup root) {
+        for (int i = 0; i < root.getChildCount(); i++) {
+            android.view.View child = root.getChildAt(i);
+            if (child instanceof android.widget.TextView) {
+                android.widget.TextView tv = (android.widget.TextView) child;
+                if (tv.getText() != null && tv.getText().length() > 0 && tv.getVisibility() == android.view.View.VISIBLE) {
+                    return tv;
+                }
+            }
+            if (child instanceof android.view.ViewGroup) {
+                android.widget.TextView nested = findSelectableTextView((android.view.ViewGroup) child);
+                if (nested != null) return nested;
+            }
+        }
+        return null;
+    }
+
     // Thumbnail cache: messageId → bitmap. Avoids re-decoding full base64 on every bind.
     private static final int THUMB_MAX_DIM = 512;
     private static final android.util.LruCache<String, android.graphics.Bitmap> thumbCache =
@@ -74,6 +251,22 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         void onShare(Message message);
         void onMore(Message message, View anchor);
         void onEditUserMessage(Message message, int position);
+    }
+
+    /** Callback для кнопок «Повторить/Изменить» под сообщением пользователя. */
+    public interface OnUserMessageActionListener {
+        void onUserMessageRetry(Message message, int position);
+        void onUserMessageEdit(Message message, int position);
+        /** Called when user finishes inline editing and saves the message. */
+        void onUserMessageEdited(Message message, int position, String newContent);
+        /** «+» в режиме правки: прикрепить камерой/фото/файлом к редактируемому сообщению. */
+        void onUserMessageAttach(Message message, int position, String kind);
+    }
+
+    private OnUserMessageActionListener userMessageActionListener;
+
+    public void setUserMessageActionListener(OnUserMessageActionListener listener) {
+        this.userMessageActionListener = listener;
     }
 
     private MessageActionListener actionListener;
@@ -162,6 +355,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     @android.annotation.SuppressLint("RecyclerView")
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = messages.get(position);
+        holder.attachedAdapter = this;
         boolean workflowChild = isToolWorkflowChild(position);
         boolean hidden = workflowChild || message.isRetryPending();
         ViewGroup.LayoutParams itemParams = holder.itemView.getLayoutParams();
@@ -174,9 +368,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         }
         holder.itemView.setVisibility(hidden ? View.GONE : View.VISIBLE);
         if (!hidden) {
-            holder.itemView.setOnLongClickListener(null);
             holder.bind(message, collectWorkflowCalls(position), shouldSuppressOwnToolCalls(position),
-                    shouldShowWorkflowSummary(position));
+                    shouldShowWorkflowSummary(position), userMessageActionListener, messages);
+            // Long-press popup ONLY for user messages — AI messages use system text selection
+            boolean canPopup = message.getType() == Message.TYPE_USER && !message.isStreaming();
+            holder.itemView.setOnLongClickListener(canPopup ? v -> {
+                showMessagePopup(v, message);
+                return true;
+            } : null);
         }
         // 🔥 Легковесная анимация входа: только fade-in, никаких scale/translate
         // которые тормозят стриминг и выглядят дёрганно
@@ -732,7 +931,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
      * Renders segments into toolCallsContainer in order. Offscreen rows get
      * a payload notify as fallback: the next bind rebuilds the segments.
      */
+    private final app.multiai.mobile.utils.StreamRenderQueue workflowRenderQueue =
+            new app.multiai.mobile.utils.StreamRenderQueue();
+
     public void updateWorkflowSegmentsDirect(Message message) {
+        workflowRenderQueue.submit(message, () -> renderWorkflowSegmentsNow(message));
+    }
+
+    private void renderWorkflowSegmentsNow(Message message) {
         int index = indexOfMessage(message);
         if (index < 0) return;
         RecyclerView.ViewHolder holder = recyclerMessages != null
@@ -920,6 +1126,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     @Override
     public void onViewRecycled(@NonNull MessageViewHolder holder) {
         holder.clearTransientAnimations();
+        holder.contentReveal.reset();
         if (holder.textMessage != null) {
             app.multiai.mobile.utils.Telemoji.clearTracking(holder.textMessage);
         }
@@ -945,6 +1152,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     }
 
     static class MessageViewHolder extends RecyclerView.ViewHolder {
+        /** Ссылка на адаптер для notify-колбэков из статического холдера. */
+        private MessagesAdapter attachedAdapter;
         private TextView textMessage;
         private TextView textThinking;
         private TextView thinkingPreview;
@@ -973,6 +1182,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         private TextView activeThinkingTextView;
         private TextView activeThinkingPreviewView;
         private TextView activeContentTextView;
+        private String activeThinkingLastSource;
         private String activeContentTarget = "";
         private int activeContentShownCp;
         private long activeContentRevealStartedAt;
@@ -1080,7 +1290,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         }
 
         void bind(Message message, List<app.multiai.mobile.models.ToolCall> workflowCalls,
-                  boolean suppressOwnToolCalls, boolean showWorkflowSummary) {
+                  boolean suppressOwnToolCalls, boolean showWorkflowSummary,
+                  OnUserMessageActionListener userActionListener, List<Message> messageList) {
             clearTransientAnimations();
             resetRenderCache();
             boundWorkflowCalls = workflowCalls;
@@ -1130,11 +1341,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 } else {
                     updateContentOnly(message);
                     updateThinkingOnly(message);
-                    // O24: long-press на ответе AI — копировать/выделить (как в Telegram).
-                    itemView.setOnLongClickListener(v -> {
-                        showAiContextMenu(message);
-                        return true;
-                    });
                 }
                 updateActionBarVisibility(message);
                 bindVariantPager(message);
@@ -1143,12 +1349,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 bindToolExecution(message);
             } else if (viewType == Message.TYPE_USER) {
                 // 🔥 User message with optional image
-                bindUserMessage(message);
-                // Long-press context menu for user messages
-                itemView.setOnLongClickListener(v -> {
-                    showUserContextMenu(message);
-                    return true;
-                });
+                bindUserMessage(message, userActionListener, messageList);
             } else if (textMessage != null) {
                 // Рендерим markdown для AI сообщений
                 if (message.getType() == Message.TYPE_AI) {
@@ -1390,24 +1591,277 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         }
 
         // 🔥 Bind user message with image support
-        void bindUserMessage(Message message) {
+        void bindUserMessage(Message message, OnUserMessageActionListener userActionListener,
+                             List<Message> messageList) {
             if (textMessage == null) return;
-            
+
             String content = message.getContent();
             boolean hasFile = message.hasAttachedFile();
+
+            // Check if this message is being edited
+            boolean isEditing = message.isEditing();
+
+            if (isEditing) {
+                // Режим правки как в ChatGPT: пузырь прячется, вместо него —
+                // карточка с многострочным полем, под ней ряд [+  …  ✕ ↑].
+                android.view.ViewGroup itemViewRoot = (android.view.ViewGroup) itemView;
+                View bubble = itemView.findViewById(R.id.userBubbleContainer);
+                if (bubble != null) bubble.setVisibility(View.GONE);
+                android.content.Context ctx = itemView.getContext();
+                int accent = app.multiai.mobile.utils.AccentColor.resolve(ctx);
+                int accentFg = app.multiai.mobile.utils.AccentColor.contrastForeground(accent);
+
+                android.widget.LinearLayout editCard = itemView.findViewById(R.id.editCard);
+                android.widget.EditText editField = itemView.findViewById(R.id.editMessageField);
+                android.widget.LinearLayout editActionsRow = itemView.findViewById(R.id.editActionsRow);
+                if (editCard == null) {
+                    editCard = new android.widget.LinearLayout(ctx);
+                    editCard.setId(R.id.editCard);
+                    editCard.setVisibility(View.GONE);
+                    editCard.setOrientation(android.widget.LinearLayout.VERTICAL);
+                    android.graphics.drawable.GradientDrawable cardBg = new android.graphics.drawable.GradientDrawable();
+                    cardBg.setCornerRadius(dp(20));
+                    cardBg.setColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.surface_card));
+                    cardBg.setStroke(Math.max(1, dp(1)),
+                            androidx.core.content.ContextCompat.getColor(ctx, R.color.stroke));
+                    editCard.setBackground(cardBg);
+                    android.widget.LinearLayout.LayoutParams cardLp = new android.widget.LinearLayout.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                    cardLp.setMargins(dp(4), dp(2), dp(4), 0);
+                    editCard.setLayoutParams(cardLp);
+
+                    editField = new android.widget.EditText(ctx);
+                    editField.setId(R.id.editMessageField);
+                    editField.setBackground(null);
+                    editField.setTextColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_primary));
+                    editField.setHintTextColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_hint));
+                    editField.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                    editField.setMinLines(2);
+                    editField.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                            | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                            | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+                    int fieldPad = dp(16);
+                    editField.setPadding(fieldPad, dp(14), fieldPad, dp(6));
+                    editCard.addView(editField, new android.widget.LinearLayout.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+
+                    // Предупреждение: история после сообщения будет удалена
+                    android.widget.TextView warning = new android.widget.TextView(ctx);
+                    warning.setId(R.id.editWarning);
+                    warning.setText(R.string.chat_edit_inline_hint);
+                    warning.setTextColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_hint));
+                    warning.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
+                    warning.setPadding(fieldPad, 0, fieldPad, dp(12));
+                    editCard.addView(warning, new android.widget.LinearLayout.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+                    itemViewRoot.addView(editCard);
+
+                    // Ряд кнопок: [+] слева, справа ✕ и ↑
+                    editActionsRow = new android.widget.LinearLayout(ctx);
+                    editActionsRow.setId(R.id.editActionsRow);
+                    editActionsRow.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                    editActionsRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                    android.widget.LinearLayout.LayoutParams rowLp = new android.widget.LinearLayout.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+                    rowLp.setMargins(dp(4), dp(8), dp(4), dp(2));
+                    editActionsRow.setLayoutParams(rowLp);
+
+                    android.widget.ImageView attachBtn = new android.widget.ImageView(ctx);
+                    attachBtn.setId(R.id.editAttachButton);
+                    attachBtn.setImageResource(R.drawable.ic_plus);
+                    attachBtn.setColorFilter(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_secondary));
+                    attachBtn.setPadding(dp(6), dp(6), dp(6), dp(6));
+                    attachBtn.setContentDescription(ctx.getString(R.string.chat_edit));
+                    editActionsRow.addView(attachBtn, new android.widget.LinearLayout.LayoutParams(dp(28), dp(28)));
+
+                    View spacer = new View(ctx);
+                    editActionsRow.addView(spacer, new android.widget.LinearLayout.LayoutParams(0, 1, 1f));
+
+                    android.widget.ImageView cancelBtn = new android.widget.ImageView(ctx);
+                    cancelBtn.setId(R.id.editCancelButton);
+                    cancelBtn.setImageResource(R.drawable.ic_close);
+                    cancelBtn.setColorFilter(androidx.core.content.ContextCompat.getColor(ctx, R.color.text_secondary));
+                    int btnPad = dp(8);
+                    cancelBtn.setPadding(btnPad, btnPad, btnPad, btnPad);
+                    android.graphics.drawable.GradientDrawable cancelBg = new android.graphics.drawable.GradientDrawable();
+                    cancelBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                    cancelBg.setColor(androidx.core.content.ContextCompat.getColor(ctx, R.color.surface_tonal));
+                    cancelBg.setStroke(Math.max(1, dp(1)),
+                            androidx.core.content.ContextCompat.getColor(ctx, R.color.stroke));
+                    cancelBtn.setBackground(cancelBg);
+                    cancelBtn.setContentDescription(ctx.getString(R.string.chat_cancel));
+                    android.widget.LinearLayout.LayoutParams cancelLp = new android.widget.LinearLayout.LayoutParams(
+                            dp(34), dp(34));
+                    cancelLp.rightMargin = dp(8);
+                    editActionsRow.addView(cancelBtn, cancelLp);
+
+                    android.widget.ImageView sendBtn = new android.widget.ImageView(ctx);
+                    sendBtn.setId(R.id.editSendButton);
+                    sendBtn.setImageResource(R.drawable.ic_arrow_up);
+                    sendBtn.setColorFilter(accentFg);
+                    sendBtn.setPadding(btnPad, btnPad, btnPad, btnPad);
+                    android.graphics.drawable.GradientDrawable sendBg = new android.graphics.drawable.GradientDrawable();
+                    sendBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                    sendBg.setColor(accent);
+                    sendBtn.setBackground(sendBg);
+                    sendBtn.setContentDescription(ctx.getString(R.string.chat_save));
+                    editActionsRow.addView(sendBtn, new android.widget.LinearLayout.LayoutParams(dp(34), dp(34)));
+                    itemViewRoot.addView(editActionsRow);
+                }
+                // Текст ставим только при ВХОДЕ в правку: rebind после attach
+                // фото не должен затирать недопечатанный текст юзера
+                boolean enteringEdit = editCard.getVisibility() != View.VISIBLE
+                        || editCard.getTag() != message;
+                editCard.setTag(message);
+                if (enteringEdit) {
+                    editField.setText(content);
+                    editCard.setVisibility(View.VISIBLE);
+                    editActionsRow.setVisibility(View.VISIBLE);
+                }
+                editField.requestFocus();
+                editField.setSelection(editField.getText().length());
+
+                final android.widget.EditText field = editField;
+                final String originalContent = content;
+                final android.widget.LinearLayout actionsRow = editActionsRow;
+                final android.widget.LinearLayout cardBox = editCard;
+                Runnable exitEditMode = () -> {
+                    cardBox.setVisibility(View.GONE);
+                    actionsRow.setVisibility(View.GONE);
+                    if (bubble != null) bubble.setVisibility(View.VISIBLE);
+                };
+                Runnable saveAction = () -> {
+                    String newText = field.getText().toString().trim();
+                    app.multiai.mobile.utils.AiDebugLog.log("Edit save: len="
+                            + newText.length() + ", originalLen=" + originalContent.length());
+                    message.setEditing(false);
+                    exitEditMode.run();
+                    // Пустую правку откатываем к исходному тексту, иначе —
+                    // всегда регенерируем ответ (как в ChatGPT), даже если
+                    // текст не менялся.
+                    message.setContent(newText.isEmpty() ? originalContent : newText);
+                    if (userActionListener != null) {
+                        int pos = messageList.indexOf(message);
+                        if (pos >= 0) userActionListener.onUserMessageEdited(message, pos,
+                                newText.isEmpty() ? originalContent : newText);
+                    } else {
+                        app.multiai.mobile.utils.AiDebugLog.log("Edit save: listener NULL");
+                    }
+                };
+                    Runnable cancelAction = () -> {
+                        message.restoreEditAttachmentSnapshot();
+                        message.setEditing(false);
+                        exitEditMode.run();
+                        if (attachedAdapter != null) attachedAdapter.refreshMessage(message);
+                    };
+                View sendBtn = itemView.findViewById(R.id.editSendButton);
+                if (sendBtn != null) sendBtn.setOnClickListener(v -> saveAction.run());
+                View cancelBtn = itemView.findViewById(R.id.editCancelButton);
+                if (cancelBtn != null) cancelBtn.setOnClickListener(v -> cancelAction.run());
+                View attachBtnView = itemView.findViewById(R.id.editAttachButton);
+                if (attachBtnView != null) {
+                    attachBtnView.setOnClickListener(v -> {
+                        if (userActionListener == null) return;
+                        int pos = messageList.indexOf(message);
+                        // То же меню, что и «+» в чате: Камера / Фото / Файлы
+                        app.multiai.mobile.ui.kit.AttachMenuPopup.show(attachBtnView,
+                                new app.multiai.mobile.ui.kit.AttachMenuPopup.Callback() {
+                                    @Override public void onCamera() {
+                                        userActionListener.onUserMessageAttach(message, pos, "camera");
+                                    }
+                                    @Override public void onPhoto() {
+                                        userActionListener.onUserMessageAttach(message, pos, "photo");
+                                    }
+                                    @Override public void onFiles() {
+                                        userActionListener.onUserMessageAttach(message, pos, "file");
+                                    }
+                                },
+                                () -> attachBtnView.animate().rotation(0f).setDuration(160).start());
+                        attachBtnView.animate().rotation(45f).setDuration(160).start();
+                    });
+                }
+                bindUserAttachments(message);
+                return;
+            }
+
+            // Не редактируем: прячем карточку правки, возвращаем пузырь
+            View editCardView = itemView.findViewById(R.id.editCard);
+            if (editCardView != null) editCardView.setVisibility(View.GONE);
+            View editActionsRowView = itemView.findViewById(R.id.editActionsRow);
+            if (editActionsRowView != null) editActionsRowView.setVisibility(View.GONE);
+            View bubbleContainer = itemView.findViewById(R.id.userBubbleContainer);
+            if (bubbleContainer != null) bubbleContainer.setVisibility(View.VISIBLE);
+
             if (content != null && !content.isEmpty()) {
-                textMessage.setVisibility(View.VISIBLE);
-                app.multiai.mobile.utils.Telemoji.apply(
-                    itemView.getContext(), textMessage, content);
+                // User message: use layout renderer for LaTeX/tables, plain render otherwise
+                boolean needsRich = content.contains("```")
+                        || content.contains("$$")
+                        || content.contains("\\[")
+                        || app.multiai.mobile.utils.MarkdownRenderer.containsInlineLatex(content)
+                        || app.multiai.mobile.utils.MarkdownRenderer.containsMarkdownTable(content);
+                android.widget.LinearLayout richContainer = itemView.findViewById(R.id.richContentContainer);
+                if (needsRich && richContainer != null) {
+                    app.multiai.mobile.utils.AiDebugLog.log(
+                            "User msg rich render: " + content.substring(0, Math.min(120, content.length())));
+                    textMessage.setVisibility(View.GONE);
+                    richContainer.setVisibility(View.VISIBLE);
+                    richContainer.removeAllViews();
+                    app.multiai.mobile.utils.MarkdownRenderer.renderToLayout(
+                            itemView.getContext(), richContainer, content);
+                } else {
+                    if (richContainer != null) {
+                        richContainer.setVisibility(View.GONE);
+                        richContainer.removeAllViews();
+                    }
+                    textMessage.setVisibility(View.VISIBLE);
+                    // renderSafe: битый LaTeX от AI не уронит весь баббл —
+                    // деградируем формулу до текста.
+                    app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
+                        itemView.getContext(), textMessage, content);
+                }
             } else if (!hasFile && !message.hasImage()) {
                 // No text, no file, no image — still show empty bubble
                 textMessage.setVisibility(View.VISIBLE);
-                app.multiai.mobile.utils.Telemoji.clearTracking(textMessage);
                 textMessage.setText("");
             } else {
                 textMessage.setVisibility(View.GONE);
             }
-            
+
+            // У user-сообщений системного выделения нет (лонг-тап = меню),
+            // в отличие от ответов ИИ. Ссылки при этом остаются тапабельными.
+            textMessage.setTextIsSelectable(false);
+            android.widget.LinearLayout richForSelection =
+                    itemView.findViewById(R.id.richContentContainer);
+            if (richForSelection != null && richForSelection.getVisibility() == View.VISIBLE) {
+                enableDeepTextSelection(richForSelection, false);
+            }
+
+            bindUserAttachments(message);
+        }
+
+        /** Карточки вложений (файл + фото): общие для обычного и edit-режима. */
+        private void bindUserAttachments(Message message) {
+            if (message.isEditing()) {
+                View file = itemView.findViewById(R.id.fileAttachmentCard);
+                if (file != null) file.setVisibility(View.GONE);
+                View images = itemView.findViewById(R.id.imageCard);
+                if (images != null) app.multiai.mobile.views.ImageAttachmentStrip.render(images,
+                        message.getImageBase64(), index -> {
+                            message.replaceImages(app.multiai.mobile.utils.ImageAttachments.remove(message.getImageBase64(), index));
+                            if (attachedAdapter != null) attachedAdapter.refreshMessage(message);
+                        }, message.getAttachedFileName(), message.getAttachedFileContent(), index -> {
+                            java.util.List<app.multiai.mobile.utils.FileAttachments.Entry> files =
+                                    app.multiai.mobile.utils.FileAttachments.unpack(message.getAttachedFileName(), message.getAttachedFileContent());
+                            files.remove(index);
+                            message.replaceFiles(files);
+                            if (attachedAdapter != null) attachedAdapter.refreshMessage(message);
+                        });
+                return;
+            }
             // File attachment card
             android.widget.LinearLayout fileCard = itemView.findViewById(R.id.fileAttachmentCard);
             if (fileCard != null) {
@@ -1447,7 +1901,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 imageView.setVisibility(View.VISIBLE);
                 String payload = message.getImageBase64();
                 if (payload != null && payload.startsWith("[")) {
-                    app.multiai.mobile.views.ImageAttachmentStrip.render(imageCard, payload, null);
+                    // В режиме правки у плиток есть свой крестик удаления
+                    app.multiai.mobile.views.ImageAttachmentStrip.render(imageCard, payload,
+                            message.isEditing() ? index -> {
+                                String updated = app.multiai.mobile.utils.ImageAttachments.remove(
+                                        message.getImageBase64(), index);
+                                message.setImageBase64(updated);
+                                if (attachedAdapter != null) attachedAdapter.refreshMessage(message);
+                            } : null);
                     return;
                 }
                 if (message.hasImage()) {
@@ -1695,7 +2156,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     String text = seg.getVisibleThinkingText();
                     if (text.isEmpty()) continue;
                     boolean trailing = (segIdx == segments.size() - 1);
-                    View thinkingView = createThinkingSegmentView(seg, trailing);
+                    View thinkingView = createThinkingSegmentView(seg, trailing, working);
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                     if (toolCallsContainer.getChildCount() > 0) lp.topMargin = dp(6);
@@ -1703,7 +2164,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     thinkingView.setVisibility(expanded ? View.VISIBLE : View.GONE);
                     toolCallsContainer.addView(thinkingView);
                 } else if (seg.getType() == app.multiai.mobile.models.WorkflowSegment.TYPE_CONTENT) {
-                    String content = seg.getContentText();
+                    String content = linkCitations(message, seg.getContentText());
                     if (content == null || content.trim().isEmpty()) continue;
                     boolean streamingTail = working && segIdx == segments.size() - 1;
                     // Finished segments with code blocks, LaTeX or tables need the
@@ -1727,12 +2188,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     contentView.setTextColor(color(textPrimary));
                     contentView.setTextSize(16f);
                     contentView.setLineSpacing(0f, 1.12f);
-                    contentView.setTextIsSelectable(true);
+                    // Выделение и клики по ссылкам настраивает сам рендерер
+                    // (MarkdownRenderer.configureInteractiveText) — оверрайды
+                    // тут только ломали одно из двух.
                     boolean activeStreamingContent = streamingTail;
                     if (activeStreamingContent) {
                         contentView.setText("");
                     } else {
-                        app.multiai.mobile.utils.MarkdownRenderer.render(
+                        app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
                                 itemView.getContext(), contentView, content);
                     }
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -1871,6 +2334,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     app.multiai.mobile.utils.Telemoji.clearTracking(activeContentTextView);
                     app.multiai.mobile.utils.MarkdownRenderer.render(itemView.getContext(), activeContentTextView,
                             app.multiai.mobile.utils.StreamingMarkdown.prepare(activeContentTarget.substring(0, end)));
+                    contentReveal.update(activeContentTextView);
                     handler.postDelayed(this, 48L);
                 }
             };
@@ -1885,9 +2349,12 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         private void updateActiveThinkingSegment(app.multiai.mobile.models.WorkflowSegment seg) {
             String cleaned = seg.getVisibleThinkingText();
             if (cleaned.isEmpty()) return;
-            if (!cleaned.contentEquals(activeThinkingTextView.getText())) {
+            CharSequence current = activeThinkingTextView.getText();
+            if (activeThinkingLastSource == null || !cleaned.contentEquals(activeThinkingLastSource)) {
+                activeThinkingLastSource = cleaned;
                 app.multiai.mobile.utils.Telemoji.clearTracking(activeThinkingTextView);
-                activeThinkingTextView.setText(cleaned);
+                app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
+                        itemView.getContext(), activeThinkingTextView, cleaned);
             }
             if (activeThinkingPreviewView != null) {
                 String preview = cleaned.replaceAll("\\s+", " ").trim();
@@ -1902,10 +2369,10 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         // Обновляем ТОЛЬКО content (без thinking)
         void updateContentOnly(Message message) {
             if (viewType != Message.TYPE_AI) return;
-            
-            String content = cleanContentForDisplay(message.getContent());
-            
-            
+
+            String content = linkCitations(message, cleanContentForDisplay(message.getContent()));
+
+
             boolean needsLayoutRender = needsLayoutRender(content);
 
             List<app.multiai.mobile.models.WorkflowSegment> workflowSegments =
@@ -1925,7 +2392,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     // Simple text — render into textMessage
                     if (textMessage != null) {
                         textMessage.setVisibility(View.VISIBLE);
-                        app.multiai.mobile.utils.MarkdownRenderer.render(
+                        // renderSafe + selectable/links настраивает рендерер сам
+                        app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
                             itemView.getContext(),
                             textMessage,
                             content
@@ -2152,7 +2620,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 String text = seg.getVisibleThinkingText();
                 if (text.isEmpty()) continue;
                 boolean trailing = (i == segments.size() - 1);
-                View thinkingView = createThinkingSegmentView(seg, trailing);
+                View thinkingView = createThinkingSegmentView(seg, trailing, working);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 if (thinkingContainer.getChildCount() > 0) lp.topMargin = dp(6);
@@ -2161,7 +2629,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         }
 
         private View createThinkingSegmentView(app.multiai.mobile.models.WorkflowSegment seg,
-                                               boolean trailing) {
+                                               boolean trailing, boolean working) {
             View view = android.view.LayoutInflater.from(itemView.getContext())
                     .inflate(R.layout.item_workflow_thinking, null, false);
             TextView textThinking = view.findViewById(R.id.textThinking);
@@ -2172,8 +2640,13 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
             String cleaned = seg.getVisibleThinkingText();
             if (textThinking != null) {
-                app.multiai.mobile.utils.Telemoji.apply(
-                        itemView.getContext(), textThinking, cleaned);
+                if (working) {
+                    app.multiai.mobile.utils.Telemoji.apply(
+                            itemView.getContext(), textThinking, cleaned);
+                } else {
+                    app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
+                            itemView.getContext(), textThinking, cleaned);
+                }
             }
             if (thinkingPreview != null) {
                 String preview = cleaned.replaceAll("\\s+", " ").trim();
@@ -2213,6 +2686,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 // Remember for patch-in-place token updates (no rebuilds).
                 activeThinkingTextView = textThinking;
                 activeThinkingPreviewView = thinkingPreview;
+                activeThinkingLastSource = working ? null : cleaned;
             }
             return view;
         }
@@ -2403,8 +2877,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             String preview = finished
                     ? itemView.getContext().getString(R.string.chat_thinking_finished,
                             message.getThinkingTimeMs() / 1000f)
-                    : paragraphCount == 0 ? ""
-                            : thinkingParagraphPreview(paragraphs[paragraphCount - 1]);
+                    : itemView.getContext().getString(R.string.lay_thinking_process);
             if (preview.isEmpty()) preview = itemView.getContext().getString(R.string.lay_thinking_process);
             if (thinkingWaveIcon != null) thinkingWaveIcon.setRunning(message.isStreaming() && !finished);
             if (finished) {
@@ -2480,7 +2953,10 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 thinkingContainer.setVisibility(expanded ? View.VISIBLE : View.GONE);
 
                 if (!thinkingText.equals(textThinking.getText().toString())) {
-                    textThinking.setText(thinkingText);
+                    // Markdown + LaTeX в reasoning; размышление уже не стримится
+                    // (working отсечён выше), поэтому рендерим полноценно.
+                    app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
+                            itemView.getContext(), textThinking, thinkingText);
                 }
                 updateThinkingPreview(message, thinkingText);
 
@@ -2517,6 +2993,18 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     .replaceAll("(?is)</?(?:think|thinking|reasoning)>", "");
         }
 
+        private static final java.util.regex.Pattern CITATION_PATTERN =
+                java.util.regex.Pattern.compile("\\[(\\d{1,2})\\](?!\\()");
+
+        /**
+         * Делаёт цитаты [1], [2] кликабельными: подставляет ссылки на источники
+         * из результатов web_search этого сообщения. Уже готовые ссылки
+         * [1](url) не трогаем.
+         */
+        private String linkCitations(Message message, String content) {
+            return app.multiai.mobile.utils.CitationLinker.link(message, content);
+        }
+
         private static boolean isVisuallyBlank(String content) {
             return content == null || content.trim().isEmpty();
         }
@@ -2538,9 +3026,33 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             bubbleContainer.setVisibility(isVisuallyBlank(content) && !message.hasImage() ? View.GONE : View.VISIBLE);
         }
 
+        /**
+         * Рекурсивно включает/выключает системное выделение текста во всех
+         * TextView внутри контейнера.
+         */
+        private void enableDeepTextSelection(View view, boolean selectable) {
+            if (view instanceof TextView) {
+                TextView tv = (TextView) view;
+                if (tv.getText() != null && tv.getText().length() > 0) {
+                    tv.setTextIsSelectable(selectable);
+                    if (selectable) tv.setMovementMethod(null);
+                }
+                return;
+            }
+            if (view instanceof ViewGroup) {
+                ViewGroup vg = (ViewGroup) view;
+                for (int i = 0; i < vg.getChildCount(); i++) {
+                    enableDeepTextSelection(vg.getChildAt(i), selectable);
+                }
+            }
+        }
+
         // Прямое обновление TextView без notifyItemChanged (для анимации).
         // Markdown не парсим до конца стрима: незакрытые ```/$/таблицы меняют
         // высоту сообщения на каждом токене и заставляют RecyclerView трястись.
+        private final app.multiai.mobile.ui.kit.StreamingReveal contentReveal =
+                new app.multiai.mobile.ui.kit.StreamingReveal();
+
         void updateContentTextDirect(Message message, String content) {
             if (viewType != Message.TYPE_AI) return;
             if (textMessage != null) {
@@ -2566,6 +3078,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     // (по букве на строку). Layout уже задаёт нужное.
                     textMessage.setAlpha(1f);
                     textMessage.setText(cleaned);
+                    contentReveal.update(textMessage);
                 }
 
                 if (codeBlocksContainer != null) {
@@ -2905,8 +3418,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     message.toggleThinking();
                     if (message.isThinkingExpanded()) {
                         String full = message.getThinkingContent();
-                        textThinking.setText(full == null ? "" : full
-                                .replace("<think>", "").replace("</think>", "").trim());
+                        app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
+                                itemView.getContext(), textThinking, full == null ? "" : full
+                                        .replace("<think>", "").replace("</think>", "").trim());
                     }
                     animateThinkingToggle(message.isThinkingExpanded());
                 });
@@ -2914,7 +3428,10 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
             if (message.isThinkingExpanded()) {
                 if (!thinking.contentEquals(textThinking.getText())) {
-                    textThinking.setText(thinking);
+                    // Markdown + LaTeX в reasoning (стриминг сюда не доходит:
+                    // пока шторка свёрнута, TextView не трогаем).
+                    app.multiai.mobile.utils.MarkdownRenderer.renderSafe(
+                            itemView.getContext(), textThinking, thinking);
                 }
                 textThinking.setVisibility(View.VISIBLE);
             } else {
@@ -3082,6 +3599,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 })
                 .start();
 
+            textThinking.animate().cancel();
             // Плавное появление/скрытие контента
             if (expand) {
                 textThinking.setVisibility(View.VISIBLE);
@@ -3099,7 +3617,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     .translationY(-20f)
                     .setDuration(300)
                     .setInterpolator(new AccelerateDecelerateInterpolator())
-                    .withEndAction(() -> textThinking.setVisibility(View.GONE))
+                    .withEndAction(() -> {
+                        textThinking.setVisibility(View.GONE);
+                        textThinking.setAlpha(1f);
+                        textThinking.setTranslationY(0f);
+                    })
                     .start();
             }
         }
@@ -3128,6 +3650,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     && !nextIsToolCard
                     && !nextIsAssistantSegment;
             actionBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+            app.multiai.mobile.views.MessageSourcesView.bind(actionBar,
+                    messagesAdapter != null ? messagesAdapter.messages : null, message, visible);
             if (visible) bindActionBar(message);
         }
 
@@ -3163,14 +3687,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 if (btnLike != null) btnLike.setColorFilter(nowLiked ? color(accentColor) : inactive);
                 if (btnDislike != null) btnDislike.setColorFilter(inactive);
                 tapFeedback(btnLike);
-                if (listener != null) listener.onLike(message);
+                // Репорт — только при установке лайка; снятие просто убирает оценку.
+                if (nowLiked && listener != null) listener.onLike(message);
             });
             if (btnDislike != null) btnDislike.setOnClickListener(v -> {
                 boolean nowDisliked = messagesAdapter != null && messagesAdapter.toggleDislike(message);
                 if (btnDislike != null) btnDislike.setColorFilter(nowDisliked ? color(errorColor) : inactive);
                 if (btnLike != null) btnLike.setColorFilter(inactive);
                 tapFeedback(btnDislike);
-                if (listener != null) listener.onDislike(message);
+                // Форма — только при установке дизлайка; снятие просто убирает оценку.
+                if (nowDisliked && listener != null) listener.onDislike(message);
             });
             if (btnTts != null) btnTts.setOnClickListener(v -> {
                 tapFeedback(btnTts);
@@ -3195,70 +3721,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 .start();
         }
 
-        private void showUserContextMenu(Message message) {
-            android.content.Context ctx = itemView.getContext();
-
-            // Bottom sheet style popup. Работа с проектом идёт от уже
-            // отправленного запроса, поэтому «Редактировать текст» здесь убрано:
-            // правка сообщения после выполненных тулов рассинхронизирует ход.
-            java.util.List<ModernSheet.MenuItem> items = java.util.Arrays.asList(
-                new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_copy), R.drawable.ic_copy, false, null),
-                new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_select_text), R.drawable.ic_select_text, false, null)
-            );
-
-            ModernSheet.menu(ctx, null, items, (idx, item) -> {
-                switch (idx) {
-                    case 0:
-                        android.content.ClipboardManager cm = (android.content.ClipboardManager) ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
-                        if (cm != null && message.getContent() != null) {
-                            cm.setPrimaryClip(android.content.ClipData.newPlainText("message", message.getContent()));
-                            ModernToast.show((Activity) ctx, ctx.getString(R.string.kit_msg_copied));
-                        }
-                        break;
-                    case 1:
-                        if (textMessage != null) {
-                            textMessage.setTextIsSelectable(true);
-                            textMessage.requestFocus();
-                        }
-                        break;
-                }
-            });
-        }
-
-        /**
-         * O24: контекст-меню для ответа AI (копировать целиком / выделить фрагмент).
-         * «Выделить» включает textIsSelectable на текстовом view сообщения; при
-         * rich-рендере (код-блоки в отдельном контейнере) выделяется текстовая часть.
-         */
-        private void showAiContextMenu(Message message) {
-            android.content.Context ctx = itemView.getContext();
-            android.widget.TextView target = resolveSelectableTarget();
-            if (target == null) {
-                return;
-            }
-            java.util.List<ModernSheet.MenuItem> items = java.util.Arrays.asList(
-                new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_copy), R.drawable.ic_copy, false, null),
-                new ModernSheet.MenuItem(ctx.getString(R.string.kit_msg_action_select_text), R.drawable.ic_select_text, false, null)
-            );
-            ModernSheet.menu(ctx, null, items, (idx, item) -> {
-                switch (idx) {
-                    case 0:
-                        android.content.ClipboardManager cm = (android.content.ClipboardManager) ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
-                        if (cm != null) {
-                            String plain = aiPlainTextForCopy(message);
-                            cm.setPrimaryClip(android.content.ClipData.newPlainText("message", plain));
-                            ModernToast.show((Activity) ctx, ctx.getString(R.string.kit_msg_copied));
-                        }
-                        break;
-                    case 1:
-                        target.setTextIsSelectable(true);
-                        target.requestFocus();
-                        break;
-                }
-            });
-        }
-
-        /** Текстовое view ответа: приоритет у основного текста, иначе первый текст внутри rich-контейнера. */
+        /** Текстовое view ответа: приоритет у основному тексту, иначе первый текст внутри rich-контейнера. */
         private android.widget.TextView resolveSelectableTarget() {
             if (textMessage != null && textMessage.getVisibility() == View.VISIBLE
                     && textMessage.getText() != null && textMessage.getText().length() > 0) {
@@ -3287,12 +3750,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 }
             }
             return null;
-        }
-
-        /** Копируем исходный markdown-контент сообщения (без UI-разметки код-блоков). */
-        private String aiPlainTextForCopy(Message message) {
-            String content = message.getContent();
-            return content != null ? content : "";
         }
 
         private int dp(int value) {

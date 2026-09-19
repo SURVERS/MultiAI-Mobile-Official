@@ -90,15 +90,6 @@ public class SkillsActivity extends AppCompatActivity {
         emptyView.setPadding(SettingsUI.dp(this, 24), SettingsUI.dp(this, 32),
                 SettingsUI.dp(this, 24), SettingsUI.dp(this, 16));
         content.addView(emptyView);
-
-        TextView workModeNote = new TextView(this);
-        workModeNote.setText(R.string.skills_work_mode_only_note);
-        workModeNote.setTextColor(SettingsUI.colorHint(this));
-        workModeNote.setTextSize(12);
-        workModeNote.setGravity(Gravity.CENTER);
-        workModeNote.setPadding(SettingsUI.dp(this, 24), 0,
-                SettingsUI.dp(this, 24), SettingsUI.dp(this, 16));
-        content.addView(workModeNote);
     }
 
     @Override
@@ -250,13 +241,6 @@ public class SkillsActivity extends AppCompatActivity {
             titleRow.addView(diskBadge);
         }
         textCol.addView(titleRow);
-
-        TextView slugLine = new TextView(this);
-        slugLine.setText("./" + (skill.slug == null || skill.slug.isEmpty() ? "—" : skill.slug));
-        slugLine.setTextColor(accent);
-        slugLine.setTypeface(android.graphics.Typeface.MONOSPACE);
-        slugLine.setTextSize(12.5f);
-        textCol.addView(slugLine);
 
         if (skill.description != null && !skill.description.isEmpty()) {
             TextView desc = new TextView(this);

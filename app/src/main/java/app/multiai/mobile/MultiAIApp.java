@@ -41,9 +41,18 @@ public class MultiAIApp extends Application {
     private OAuthLoginController heartbeatOAuth;
     private int startedActivityCount;
     private boolean processForeground;
+    private boolean needsUpdateReset = true;
     private volatile boolean heartbeatUnsupported;
     private volatile long heartbeatBackoffUntil;
     private long lastHeartbeatAttempt = -HEARTBEAT_INTERVAL_MS;
+
+    private final Runnable banCheckTick = new Runnable() {
+        @Override public void run() {
+            if (!processForeground) return;
+            app.multiai.mobile.utils.DeviceBanManager.checkNow(MultiAIApp.this);
+            heartbeatHandler.postDelayed(this, 10_000L);
+        }
+    };
 
     private final Runnable heartbeatTick = new Runnable() {
         @Override
@@ -58,7 +67,7 @@ public class MultiAIApp extends Application {
     public void onCreate() {
         super.onCreate();
         APP = this;
-        app.multiai.mobile.utils.DebugFileLog.init(this);
+        app.multiai.mobile.network.BackendApi.get().restoreBanState(this);
         heartbeatHandler = new Handler(Looper.getMainLooper());
         AppSettings settings = new AppSettings(this);
         applyLanguage(settings.getLanguage());
@@ -83,16 +92,24 @@ public class MultiAIApp extends Application {
                 lockManager.onActivityStarted(activity);
                 startSensitiveInitializationAfterUnlock();
                 startedActivityCount++;
-                if (startedActivityCount == 1) startDeviceHeartbeatLoop();
+                if (startedActivityCount == 1) {
+                    startDeviceHeartbeatLoop();
+                    if (needsUpdateReset) {
+                        needsUpdateReset = false;
+                        app.multiai.mobile.utils.UpdateManager.resetPostponed();
+                    }
+                }
             }
 
             @Override
             public void onActivityResumed(Activity activity) {
                 applyWindowSecurity(activity, lockManager);
+                app.multiai.mobile.utils.DeviceBanManager.onResumed(activity);
             }
 
             @Override
             public void onActivityPaused(Activity activity) {
+                app.multiai.mobile.utils.DeviceBanManager.onPaused(activity);
                 // onPause completes before Android captures the task snapshot. Force a
                 // secure window whenever app lock is enabled, even during the 1s grace.
                 if (new AppSettings(MultiAIApp.this).isBiometricEnabled()) {
@@ -104,7 +121,12 @@ public class MultiAIApp extends Application {
             public void onActivityStopped(Activity activity) {
                 lockManager.onActivityStopped(activity);
                 if (startedActivityCount > 0) startedActivityCount--;
-                if (startedActivityCount == 0) stopDeviceHeartbeatLoop();
+                if (startedActivityCount == 0) {
+                    stopDeviceHeartbeatLoop();
+                    if (!activity.isChangingConfigurations()) {
+                        needsUpdateReset = true;
+                    }
+                }
             }
 
             @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
@@ -116,15 +138,19 @@ public class MultiAIApp extends Application {
         processForeground = true;
         heartbeatHandler.removeCallbacks(heartbeatTick);
         heartbeatHandler.post(heartbeatTick);
+        heartbeatHandler.removeCallbacks(banCheckTick);
+        heartbeatHandler.post(banCheckTick);
     }
 
     private void stopDeviceHeartbeatLoop() {
         processForeground = false;
         heartbeatHandler.removeCallbacks(heartbeatTick);
+        heartbeatHandler.removeCallbacks(banCheckTick);
     }
 
     /** Foreground-only, process-wide heartbeat; optional backend rollout fails soft. */
     private void sendDeviceHeartbeatIfDue() {
+        app.multiai.mobile.network.BackendApi.get().sendHeartbeat(this);
         long now = SystemClock.elapsedRealtime();
         if (heartbeatUnsupported || now < heartbeatBackoffUntil
                 || now - lastHeartbeatAttempt < HEARTBEAT_INTERVAL_MS

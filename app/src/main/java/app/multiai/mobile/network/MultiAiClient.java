@@ -67,7 +67,7 @@ public class MultiAiClient {
 
     private final OkHttpClient client;
     private final Handler mainHandler;
-    private static final ExecutorService AUTH_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+    private static final ExecutorService AUTH_EXECUTOR = Executors.newFixedThreadPool(3, r -> {
         Thread thread = new Thread(r, "multiai-auth-refresh");
         thread.setDaemon(true);
         return thread;
@@ -1526,21 +1526,22 @@ public class MultiAiClient {
                             "Enter a temporary planning session that blocks direct write_file/edit_file before studying a complex project change. "
                                     + "After it succeeds, project inspection tools, execute_command and present_plan remain available until the user exits.",
                             objectSchema(properties("reason", stringProp("Short reason for planning first")))));
-                    tools.put(toolFunction("todo", "Maintain the current task plan. Use items with id, title and status.",
+                    tools.put(toolFunction("todo", "Maintain the current task plan. Send the FULL items list each time: stable string ids, titles, status (pending | in_progress | completed). Keep at most one in_progress; when a task finishes, immediately mark it completed and set the next one in_progress. Completed items are not reopened by resending them as pending.",
                             objectSchema(properties(
                                     "items", new JSONObject().put("type", "array").put("maxItems", 50),
                                     "active_index", integerProp("Optional active item index")), "items")));
-                    tools.put(toolFunction("question", "Ask the user one or more blocking questions in a single call. Each question may have up to 5 choices and an optional free-text answer. The user answers them one by one (paginated). At most 10 questions per turn.",
-                            objectSchema(properties(
-                                    "questions", new JSONObject().put("type", "array").put("maxItems", 10).put("description", "Array of question objects").put("items",
-                                            new JSONObject().put("type", "object").put("properties", new JSONObject()
-                                                    .put("question", stringProp("Question text to show to the user"))
-                                                    .put("options", new JSONObject().put("type", "array").put("maxItems", 5).put("items", stringProp("Choice")).put("description", "Up to 5 choices"))
-                                                    .put("allow_free_text", booleanProp("Allow a custom typed answer")))),
-                                    "question", stringProp("Deprecated: single question — prefer the questions array"),
-                                    "options", new JSONObject().put("type", "array").put("items", stringProp("Choice")),
-                                    "allow_free_text", booleanProp("Allow a custom typed answer")), "questions")));
                 }
+                // question доступен и в Plan Mode: уточняющие вопросы — часть планирования.
+                tools.put(toolFunction("question", "Ask the user one or more blocking questions in a single call. Each question may have up to 5 choices and an optional free-text answer. The user answers them one by one (paginated). At most 10 questions per turn.",
+                        objectSchema(properties(
+                                "questions", new JSONObject().put("type", "array").put("maxItems", 10).put("description", "Array of question objects").put("items",
+                                        new JSONObject().put("type", "object").put("properties", new JSONObject()
+                                                .put("question", stringProp("Question text to show to the user"))
+                                                .put("options", new JSONObject().put("type", "array").put("maxItems", 5).put("items", stringProp("Choice")).put("description", "Up to 5 choices"))
+                                                .put("allow_free_text", booleanProp("Allow a custom typed answer")))),
+                                "question", stringProp("Deprecated: single question — prefer the questions array"),
+                                "options", new JSONObject().put("type", "array").put("items", stringProp("Choice")),
+                                "allow_free_text", booleanProp("Allow a custom typed answer")), "questions")));
 
                 // These filesystem tools are the complete Plan Mode capability set.
                 tools.put(toolFunction("read_file", "Read a bounded range of a UTF-8 project file. Always request the smallest useful inclusive 1-based start_line and end_line; at most 400 lines per call",
@@ -1577,6 +1578,10 @@ public class MultiAiClient {
                             objectSchema(properties(
                                     "cmd", stringProp("Command to execute, for example ./gradlew test"),
                                     "timeout_sec", integerProp("Timeout from 1 to 300 seconds")), "cmd")));
+                    tools.put(toolFunction("invoke_subagent", "Delegate a READ-ONLY exploration or research task to a subagent while planning. Do not use subagents to mutate the project in Plan Mode. Omit preset_id only to use the built-in general-purpose fallback",
+                            objectSchema(properties(
+                                    "preset_id", stringProp("Optional id from AVAILABLE SUBAGENTS"),
+                                    "task", stringProp("Focused read-only task for the subagent")), "task")));
                     tools.put(toolFunction("present_plan",
                             "Present the final detailed Markdown implementation plan. Include affected project-relative paths, ordered steps, validation and risks. This opens the plan card and waits for the user to exit Plan Mode.",
                             objectSchema(properties(
